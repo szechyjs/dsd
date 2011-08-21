@@ -1,0 +1,218 @@
+/*
+ * Copyright (C) 2010 DSD Author
+ * GPG Key ID: 0x3F1D7FD0 (74EF 430D F7F2 0A48 FCE6  F630 FAA2 635D 3F1D 7FD0)
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+
+#include "config.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define __USE_XOPEN
+#include <time.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <unistd.h>
+#ifdef SOLARIS
+#include <sys/audioio.h>
+#endif
+#ifdef BSD
+#include <sys/soundcard.h>
+#endif
+#include <math.h>
+#include <mbelib.h>
+
+typedef struct
+{
+  int onesymbol;
+  char mbe_in_file[1024];
+  FILE *mbe_in_f;
+  int errorbars;
+  int datascope;
+  int symboltiming;
+  int verbose;
+  int p25enc;
+  int p25lc;
+  int p25status;
+  int p25tg;
+  int scoperate;
+  char audio_in_dev[1024];
+  int audio_in_fd;
+  char audio_out_dev[1024];
+  int audio_out_fd;
+  int split;
+  int playoffset;
+  char mbe_out_dir[1024];
+  char mbe_out_file[1024];
+  FILE *mbe_out_f;
+  float audio_gain;
+  int audio_out;
+  char wav_out_file[1024];
+  FILE *wav_out_f;
+  int wav_out_fd;
+  int serial_baud;
+  char serial_dev[1024];
+  int serial_fd;
+  int resume;
+  int frame_dstar;
+  int frame_x2tdma;
+  int frame_p25p1;
+  int frame_nxdn;
+  int frame_dmr;
+  int frame_provoice;
+  int mod_c4fm;
+  int mod_qpsk;
+  int mod_gfsk;
+  int uvquality;
+  int inverted_x2tdma;
+  int inverted_dmr;
+  int mod_threshold;
+  int ssize;
+  int msize;
+  int playfiles;
+  int delay;
+} dsd_opts;
+
+typedef struct
+{
+  int *dibit_buf;
+  int *dibit_buf_p;
+  int repeat;
+  short *audio_out_buf;
+  short *audio_out_buf_p;
+  float *audio_out_float_buf;
+  float *audio_out_float_buf_p;
+  float audio_out_temp_buf[160];
+  float *audio_out_temp_buf_p;
+  int audio_out_idx;
+  int audio_out_idx2;
+  int center;
+  int jitter;
+  int synctype;
+  int min;
+  int max;
+  int lmid;
+  int umid;
+  int minref;
+  int maxref;
+  int lastsample;
+  int sbuf[128];
+  int sidx;
+  int maxbuf[1024];
+  int minbuf[1024];
+  int midx;
+  char err_str[64];
+  char fsubtype[16];
+  char ftype[16];
+  int symbolcnt;
+  int rf_mod;
+  int numflips;
+  int lastsynctype;
+  int lastp25type;
+  int offset;
+  int carrier;
+  char tg[25][16];
+  int tgcount;
+  int lasttg;
+  int lastsrc;
+  int nac;
+  int errs;
+  int errs2;
+  int mbe_file_type;
+  int optind;
+  int numtdulc;
+  int firstframe;
+  char slot0light[8];
+  char slot1light[8];
+  float aout_gain;
+  float aout_max_buf[200];
+  float *aout_max_buf_p;
+  int aout_max_buf_idx;
+  int samplesPerSymbol;
+  int symbolCenter;
+  char algid[9];
+  char keyid[17];
+  int currentslot;
+  mbe_parms *cur_mp;
+  mbe_parms *prev_mp;
+  mbe_parms *prev_mp_enhanced;
+} dsd_state;
+
+/*
+ * Frame sync patterns
+ */
+#define INV_FRAME_SYNC "333331331133111131311111"
+#define FRAME_SYNC "111113113311333313133333"
+#define X2TDMA_VOICE_SYNC "113131333331313331113311"
+#define X2TDMA_DATA_SYNC "331313111113131113331133"
+#define DSTAR_SYNC "313131313133131113313111"
+#define INV_DSTAR_SYNC "131313131311313331131333"
+#define INV_NXDN96_SYNC "313133113131111333"
+#define NXDN96_SYNC "131311331313333111"
+#define DMR_DATA_SYNC "313333111331131131331131"
+#define DMR_VOICE_SYNC "131111333113313313113313"
+#define INV_PROVOICE_SYNC "31313111333133133311331133113311"
+#define PROVOICE_SYNC     "13131333111311311133113311331133"
+
+
+/*
+ * function prototypes
+ */
+void processDMRdata (dsd_opts * opts, dsd_state * state);
+void processDMRvoice (dsd_opts * opts, dsd_state * state);
+void processAudio (dsd_opts * opts, dsd_state * state);
+void writeSynthesizedVoice (dsd_opts * opts, dsd_state * state);
+void playSynthesizedVoice (dsd_opts * opts, dsd_state * state);
+void openAudioOutDevice (dsd_opts * opts, int speed);
+void openAudioInDevice (dsd_opts * opts);
+int getDibit (dsd_opts * opts, dsd_state * state);
+void skipDibit (dsd_opts * opts, dsd_state * state, int count);
+void saveImbe4400Data (dsd_opts * opts, dsd_state * state, char *imbe_d);
+void saveAmbe2250Data (dsd_opts * opts, dsd_state * state, char *ambe_d);
+int readImbe4400Data (dsd_opts * opts, dsd_state * state, char *imbe_d);
+int readAmbe2250Data (dsd_opts * opts, dsd_state * state, char *ambe_d);
+void openMbeInFile (dsd_opts * opts, dsd_state * state);
+void closeMbeOutFile (dsd_opts * opts, dsd_state * state);
+void openMbeOutFile (dsd_opts * opts, dsd_state * state);
+void openWavOutFile (dsd_opts * opts, dsd_state * state);
+void printFrameInfo (dsd_opts * opts, dsd_state * state);
+void processFrame (dsd_opts * opts, dsd_state * state);
+void printFrameSync (dsd_opts * opts, dsd_state * state, char *frametype, int offset, char *modulation);
+int getFrameSync (dsd_opts * opts, dsd_state * state);
+int comp (const void *a, const void *b);
+void noCarrier (dsd_opts * opts, dsd_state * state);
+void initOpts (dsd_opts * opts);
+void initState (dsd_state * state);
+void usage ();
+void liveScanner (dsd_opts * opts, dsd_state * state);
+int main (int argc, char **argv);
+void playMbeFiles (dsd_opts * opts, dsd_state * state, int argc, char **argv);
+void processMbeFrame (dsd_opts * opts, dsd_state * state, char imbe_fr[8][23], char ambe_fr[4][24], char imbe7100_fr[7][24]);
+void openSerial (dsd_opts * opts, dsd_state * state);
+void resumeScan (dsd_opts * opts, dsd_state * state);
+int getSymbol (dsd_opts * opts, dsd_state * state, int have_sync);
+void upsample (dsd_state * state, float invalue);
+void processDSTAR (dsd_opts * opts, dsd_state * state);
+void processNXDN96 (dsd_opts * opts, dsd_state * state);
+void processP25lcw (dsd_opts * opts, dsd_state * state, char *lcformat, char *mfid, char *lcinfo);
+void processHDU (dsd_opts * opts, dsd_state * state);
+void processLDU1 (dsd_opts * opts, dsd_state * state);
+void processLDU2 (dsd_opts * opts, dsd_state * state);
+void processTDULC (dsd_opts * opts, dsd_state * state);
+void processProVoice (dsd_opts * opts, dsd_state * state);
+void processX2TDMAdata (dsd_opts * opts, dsd_state * state);
+void processX2TDMAvoice (dsd_opts * opts, dsd_state * state);
