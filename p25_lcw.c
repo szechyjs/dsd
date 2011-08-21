@@ -23,27 +23,13 @@ processP25lcw (dsd_opts * opts, dsd_state * state, char *lcformat, char *mfid, c
     {
 
       // first tg is the active channel
-      if (state->tgcount < 24)
-        {
-          // update tg buffer
-          j = 0;
-          for (i = 40; i < 52; i++)
-            {
-              state->tg[state->tgcount][j] = lcinfo[i];
-              j++;
-            }
-          tmpstr[12] = 48;
-          tmpstr[13] = 48;
-          tmpstr[14] = 48;
-          tmpstr[15] = 48;
-          tmpstr[16] = 0;
-          state->tgcount = state->tgcount + 1;
-        }
-
-      // first one again for tg display
       j = 0;
       for (i = 40; i < 52; i++)
         {
+          if (state->tgcount < 24)
+            {
+              state->tg[state->tgcount][j] = lcinfo[i];
+            }
           tmpstr[j] = lcinfo[i];
           j++;
         }
@@ -52,9 +38,17 @@ processP25lcw (dsd_opts * opts, dsd_state * state, char *lcformat, char *mfid, c
       tmpstr[14] = 48;
       tmpstr[15] = 48;
       tmpstr[16] = 0;
-      tmpstr[16] = 0;
       talkgroup = strtol (tmpstr, NULL, 2);
       state->lasttg = talkgroup;
+      if (state->tgcount < 24)
+        {
+          state->tgcount = state->tgcount + 1;
+        }
+      if (opts->p25tg == 1)
+        {
+          printf ("tg: %li ", talkgroup);
+        }
+
       if (opts->p25tg == 1)
         {
           printf ("tg: %li ", talkgroup);
@@ -136,6 +130,10 @@ processP25lcw (dsd_opts * opts, dsd_state * state, char *lcformat, char *mfid, c
       tmpstr[16] = 0;
       talkgroup = strtol (tmpstr, NULL, 2);
       state->lasttg = talkgroup;
+      if (state->tgcount < 24)
+        {
+          state->tgcount = state->tgcount + 1;
+        }
       if (opts->p25tg == 1)
         {
           printf ("tg: %li ", talkgroup);

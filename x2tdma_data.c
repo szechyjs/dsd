@@ -207,7 +207,7 @@ processX2TDMAdata (dsd_opts * opts, dsd_state * state)
   printf ("%s ", syncbits);
 #endif
 
-  if (strcmp (sync, X2TDMA_DATA_SYNC) == 0)
+  if ((strcmp (sync, X2TDMA_BS_DATA_SYNC) == 0) || (strcmp (sync, X2TDMA_BS_DATA_SYNC) == 0))
     {
       if (state->currentslot == 0)
         {
@@ -216,17 +216,6 @@ processX2TDMAdata (dsd_opts * opts, dsd_state * state)
       else
         {
           sprintf (state->slot1light, "[slot1]");
-        }
-    }
-  else if (strcmp (sync, X2TDMA_VOICE_SYNC) == 0)
-    {
-      if (state->currentslot == 0)
-        {
-          sprintf (state->slot0light, "[SLOT0]");
-        }
-      else
-        {
-          sprintf (state->slot1light, "[SLOT1]");
         }
     }
 

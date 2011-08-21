@@ -305,6 +305,10 @@ processHDU (dsd_opts * opts, dsd_state * state)
   tmpstr[16] = 0;
   talkgroup = strtol (tmpstr, NULL, 2);
   state->lasttg = talkgroup;
+  if (state->tgcount < 24)
+    {
+      state->tgcount = state->tgcount + 1;
+    }
   if (opts->p25tg == 1)
     {
       printf ("tg: %li\n", talkgroup);

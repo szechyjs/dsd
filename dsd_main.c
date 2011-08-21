@@ -21,7 +21,7 @@
 #include "p25p1_const.h"
 #include "x2tdma_const.h"
 #include "dstar_const.h"
-#include "nxdn96_const.h"
+#include "nxdn_const.h"
 #include "dmr_const.h"
 #include "provoice_const.h"
 
@@ -39,7 +39,6 @@ comp (const void *a, const void *b)
 void
 noCarrier (dsd_opts * opts, dsd_state * state)
 {
-
   state->dibit_buf_p = state->dibit_buf + 200;
   memset (state->dibit_buf, 0, sizeof (int) * 200);
   if (opts->mbe_out_f != NULL)
@@ -55,6 +54,8 @@ noCarrier (dsd_opts * opts, dsd_state * state)
   state->err_str[0] = 0;
   sprintf (state->fsubtype, "              ");
   sprintf (state->ftype, "             ");
+  state->errs = 0;
+  state->errs2 = 0;
   state->lasttg = 0;
   state->lastsrc = 0;
   state->lastp25type = 0;
@@ -112,7 +113,8 @@ initOpts (dsd_opts * opts)
   opts->frame_dstar = 0;
   opts->frame_x2tdma = 1;
   opts->frame_p25p1 = 1;
-  opts->frame_nxdn = 0;
+  opts->frame_nxdn48 = 0;
+  opts->frame_nxdn96 = 1;
   opts->frame_dmr = 1;
   opts->frame_provoice = 0;
   opts->mod_c4fm = 1;
@@ -147,6 +149,7 @@ initState (dsd_state * state)
   state->audio_out_idx = 0;
   state->audio_out_idx2 = 0;
   state->audio_out_temp_buf_p = state->audio_out_temp_buf;
+  state->wav_out_bytes = 0;
   state->center = 0;
   state->jitter = -1;
   state->synctype = -1;
@@ -181,11 +184,11 @@ initState (dsd_state * state)
   state->lastp25type = 0;
   state->offset = 0;
   state->carrier = 0;
-  for (j = 0; i < 25; j++)
+  for (i = 0; i < 25; i++)
     {
-      for (i = 0; j < 16; i++)
+      for (j = 0; j < 16; j++)
         {
-          state->tg[i][j] = 0;
+          state->tg[i][j] = 48;
         }
     }
   state->tgcount = 0;
@@ -218,7 +221,6 @@ initState (dsd_state * state)
 void
 usage ()
 {
-  printf ("Digital Speech Decoder 1.3\n");
   printf ("\n");
   printf ("Usage:\n");
   printf ("  dsd [options]            Live scanner mode\n");
@@ -227,10 +229,10 @@ usage ()
   printf ("\n");
   printf ("Display Options:\n");
   printf ("  -e            Show Frame Info and errorbars (default)\n");
-  printf ("  -pe           Show p25 encryption sync bits\n");
-  printf ("  -pl           Show p25 link control bits\n");
-  printf ("  -ps           Show p25 status bits and low speed data\n");
-  printf ("  -pt           Show p25 talkgroup info\n");
+  printf ("  -pe           Show P25 encryption sync bits\n");
+  printf ("  -pl           Show P25 link control bits\n");
+  printf ("  -ps           Show P25 status bits and low speed data\n");
+  printf ("  -pt           Show P25 talkgroup info\n");
   printf ("  -q            Don't show Frame Info/errorbars\n");
   printf ("  -s            Datascope (disables other display options)\n");
   printf ("  -t            Show symbol timing during sync\n");
@@ -248,13 +250,14 @@ usage ()
   printf ("Scanner control options:\n");
   printf ("  -B <num>      Serial port baud rate (default=115200)\n");
   printf ("  -C <device>   Serial port for scanner control (default=/dev/ttyUSB0)\n");
-  printf ("  -R <num>      Resume scan after <num> TDULC frames or any PDU\n");
+  printf ("  -R <num>      Resume scan after <num> TDULC frames or any PDU or TSDU\n");
   printf ("\n");
   printf ("Decoder options:\n");
   printf ("  -fa           Auto-detect frame type (default)\n");
   printf ("  -f1           Decode only P25 Phase 1\n");
   printf ("  -fd           Decode only D-STAR* (no audio)\n");
-  printf ("  -fn           Decode only NXDN96* (no audio)\n");
+  printf ("  -fi           Decode only NXDN48* (6.25 kHz) / IDAS*\n");
+  printf ("  -fn           Decode only NXDN96 (12.5 kHz)\n");
   printf ("  -fp           Decode only ProVoice*\n");
   printf ("  -fr           Decode only DMR/MOTOTRBO\n");
   printf ("  -fx           Decode only X2-TDMA\n");
@@ -300,6 +303,25 @@ liveScanner (dsd_opts * opts, dsd_state * state)
     }
 }
 
+void
+cleanupAndExit (dsd_opts * opts, dsd_state * state)
+{
+  noCarrier (opts, state);
+  if (opts->wav_out_f != NULL)
+    {
+      closeWavOutFile (opts, state);
+    }
+  printf ("Exiting.\n");
+  exit (0);
+}
+
+void
+sigfun (int sig)
+{
+  exitflag = 1;
+  signal (SIGINT, SIG_DFL);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -307,12 +329,19 @@ main (int argc, char **argv)
   int c;
   extern char *optarg;
   extern int optind, opterr, optopt;
-
   dsd_opts opts;
   dsd_state state;
+  char versionstr[25];
+  mbe_printVersion (versionstr);
+
+  printf ("Digital Speech Decoder 1.4.1\n");
+  printf ("mbelib version %s\n", versionstr);
 
   initOpts (&opts);
   initState (&state);
+
+  exitflag = 0;
+  signal (SIGINT, sigfun);
 
   while ((c = getopt (argc, argv, "hep:qstv:z:i:o:d:g:nw:B:C:R:f:m:u:x:A:S:M:r")) != -1)
     {
@@ -424,7 +453,8 @@ main (int argc, char **argv)
               opts.frame_dstar = 0;
               opts.frame_x2tdma = 1;
               opts.frame_p25p1 = 1;
-              opts.frame_nxdn = 0;
+              opts.frame_nxdn48 = 0;
+              opts.frame_nxdn96 = 1;
               opts.frame_dmr = 1;
               opts.frame_provoice = 0;
             }
@@ -433,7 +463,8 @@ main (int argc, char **argv)
               opts.frame_dstar = 1;
               opts.frame_x2tdma = 0;
               opts.frame_p25p1 = 0;
-              opts.frame_nxdn = 0;
+              opts.frame_nxdn48 = 0;
+              opts.frame_nxdn96 = 0;
               opts.frame_dmr = 0;
               opts.frame_provoice = 0;
               printf ("Decoding only D-STAR frames.\n");
@@ -443,7 +474,8 @@ main (int argc, char **argv)
               opts.frame_dstar = 0;
               opts.frame_x2tdma = 1;
               opts.frame_p25p1 = 0;
-              opts.frame_nxdn = 0;
+              opts.frame_nxdn48 = 0;
+              opts.frame_nxdn96 = 0;
               opts.frame_dmr = 0;
               opts.frame_provoice = 0;
               printf ("Decoding only X2-TDMA frames.\n");
@@ -453,7 +485,8 @@ main (int argc, char **argv)
               opts.frame_dstar = 0;
               opts.frame_x2tdma = 0;
               opts.frame_p25p1 = 0;
-              opts.frame_nxdn = 0;
+              opts.frame_nxdn48 = 0;
+              opts.frame_nxdn96 = 0;
               opts.frame_dmr = 0;
               opts.frame_provoice = 1;
               state.samplesPerSymbol = 5;
@@ -462,6 +495,7 @@ main (int argc, char **argv)
               opts.mod_qpsk = 0;
               opts.mod_gfsk = 1;
               state.rf_mod = 2;
+              printf ("Setting symbol rate to 9600 / second\n");
               printf ("Enabling only GFSK modulation optimizations.\n");
               printf ("Decoding only ProVoice frames.\n");
             }
@@ -470,19 +504,45 @@ main (int argc, char **argv)
               opts.frame_dstar = 0;
               opts.frame_x2tdma = 0;
               opts.frame_p25p1 = 1;
-              opts.frame_nxdn = 0;
+              opts.frame_nxdn48 = 0;
+              opts.frame_nxdn96 = 0;
               opts.frame_dmr = 0;
               opts.frame_provoice = 0;
               printf ("Decoding only P25 Phase 1 frames.\n");
+            }
+          else if (optarg[0] == 'i')
+            {
+              opts.frame_dstar = 0;
+              opts.frame_x2tdma = 0;
+              opts.frame_p25p1 = 0;
+              opts.frame_nxdn48 = 1;
+              opts.frame_nxdn96 = 0;
+              opts.frame_dmr = 0;
+              opts.frame_provoice = 0;
+              state.samplesPerSymbol = 20;
+              state.symbolCenter = 10;
+              opts.mod_c4fm = 0;
+              opts.mod_qpsk = 0;
+              opts.mod_gfsk = 1;
+              state.rf_mod = 2;
+              printf ("Setting symbol rate to 2400 / second\n");
+              printf ("Enabling only GFSK modulation optimizations.\n");
+              printf ("Decoding only NXDN 4800 baud frames.\n");
             }
           else if (optarg[0] == 'n')
             {
               opts.frame_dstar = 0;
               opts.frame_x2tdma = 0;
               opts.frame_p25p1 = 0;
-              opts.frame_nxdn = 1;
+              opts.frame_nxdn48 = 0;
+              opts.frame_nxdn96 = 1;
               opts.frame_dmr = 0;
               opts.frame_provoice = 0;
+              opts.mod_c4fm = 0;
+              opts.mod_qpsk = 0;
+              opts.mod_gfsk = 1;
+              state.rf_mod = 2;
+              printf ("Enabling only GFSK modulation optimizations.\n");
               printf ("Decoding only NXDN 9600 baud frames.\n");
             }
           else if (optarg[0] == 'r')
@@ -490,7 +550,8 @@ main (int argc, char **argv)
               opts.frame_dstar = 0;
               opts.frame_x2tdma = 0;
               opts.frame_p25p1 = 0;
-              opts.frame_nxdn = 0;
+              opts.frame_nxdn48 = 0;
+              opts.frame_nxdn96 = 0;
               opts.frame_dmr = 1;
               opts.frame_provoice = 0;
               printf ("Decoding only DMR/MOTOTRBO frames.\n");
@@ -617,7 +678,7 @@ main (int argc, char **argv)
   else
     {
       opts.split = 0;
-      opts.playoffset = 38;
+      opts.playoffset = 25;     // 38
       opts.delay = 0;
       openAudioInDevice (&opts);
       opts.audio_out_fd = opts.audio_in_fd;
@@ -631,5 +692,6 @@ main (int argc, char **argv)
     {
       liveScanner (&opts, &state);
     }
+  cleanupAndExit (&opts, &state);
   return (0);
 }

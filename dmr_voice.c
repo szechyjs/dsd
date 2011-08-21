@@ -32,6 +32,7 @@ processDMRvoice (dsd_opts * opts, dsd_state * state)
   char syncdata[25];
   char cachdata[13];
   int mutecurrentslot;
+  int msMode;
 
 #ifdef DMR_DUMP
   int k;
@@ -40,6 +41,7 @@ processDMRvoice (dsd_opts * opts, dsd_state * state)
 #endif
 
   mutecurrentslot = 0;
+  msMode = 0;
 
   dibit_p = state->dibit_buf_p - 144;
   for (j = 0; j < 6; j++)
@@ -193,7 +195,7 @@ processDMRvoice (dsd_opts * opts, dsd_state * state)
       sync[24] = 0;
       syncdata[24] = 0;
 
-      if (strcmp (sync, DMR_DATA_SYNC) == 0)
+      if ((strcmp (sync, DMR_BS_DATA_SYNC) == 0) || (strcmp (sync, DMR_MS_DATA_SYNC) == 0))
         {
           mutecurrentslot = 1;
           if (state->currentslot == 0)
@@ -205,7 +207,7 @@ processDMRvoice (dsd_opts * opts, dsd_state * state)
               sprintf (state->slot1light, "[slot1]");
             }
         }
-      else if (strcmp (sync, DMR_VOICE_SYNC) == 0)
+      else if ((strcmp (sync, DMR_BS_VOICE_SYNC) == 0) || (strcmp (sync, DMR_MS_VOICE_SYNC) == 0))
         {
           mutecurrentslot = 0;
           if (state->currentslot == 0)
@@ -216,6 +218,10 @@ processDMRvoice (dsd_opts * opts, dsd_state * state)
             {
               sprintf (state->slot1light, "[SLOT1]");
             }
+        }
+      if ((strcmp (sync, DMR_MS_VOICE_SYNC) == 0) || (strcmp (sync, DMR_MS_DATA_SYNC) == 0))
+        {
+          msMode = 1;
         }
 
       if ((j == 0) && (opts->errorbars == 1))
@@ -318,7 +324,7 @@ processDMRvoice (dsd_opts * opts, dsd_state * state)
       sync[24] = 0;
       syncdata[24] = 0;
 
-      if (strcmp (sync, DMR_DATA_SYNC) == 0)
+      if ((strcmp (sync, DMR_BS_DATA_SYNC) == 0) || (msMode == 1))
         {
           if (state->currentslot == 0)
             {
@@ -329,7 +335,7 @@ processDMRvoice (dsd_opts * opts, dsd_state * state)
               sprintf (state->slot0light, " slot0 ");
             }
         }
-      else if (strcmp (sync, DMR_VOICE_SYNC) == 0)
+      else if (strcmp (sync, DMR_BS_VOICE_SYNC) == 0)
         {
           if (state->currentslot == 0)
             {

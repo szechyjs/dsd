@@ -38,6 +38,7 @@ processX2TDMAvoice (dsd_opts * opts, dsd_state * state)
   int burstd;
   int mutecurrentslot;
   int algidhex, kidhex;
+  int msMode;
 
 #ifdef X2TDMA_DUMP
   int k;
@@ -53,6 +54,7 @@ processX2TDMAvoice (dsd_opts * opts, dsd_state * state)
   aiei = 0;
   burstd = 0;
   mutecurrentslot = 0;
+  msMode = 0;
 
   dibit_p = state->dibit_buf_p - 144;
   for (j = 0; j < 6; j++)
@@ -206,7 +208,7 @@ processX2TDMAvoice (dsd_opts * opts, dsd_state * state)
       sync[24] = 0;
       syncdata[24] = 0;
 
-      if (strcmp (sync, X2TDMA_DATA_SYNC) == 0)
+      if ((strcmp (sync, X2TDMA_BS_DATA_SYNC) == 0) || (strcmp (sync, X2TDMA_MS_DATA_SYNC) == 0))
         {
           mutecurrentslot = 1;
           if (state->currentslot == 0)
@@ -218,7 +220,7 @@ processX2TDMAvoice (dsd_opts * opts, dsd_state * state)
               sprintf (state->slot1light, "[slot1]");
             }
         }
-      else if (strcmp (sync, X2TDMA_VOICE_SYNC) == 0)
+      else if ((strcmp (sync, X2TDMA_BS_VOICE_SYNC) == 0) || (strcmp (sync, X2TDMA_MS_VOICE_SYNC) == 0))
         {
           mutecurrentslot = 0;
           if (state->currentslot == 0)
@@ -229,6 +231,11 @@ processX2TDMAvoice (dsd_opts * opts, dsd_state * state)
             {
               sprintf (state->slot1light, "[SLOT1]");
             }
+        }
+
+      if ((strcmp (sync, X2TDMA_MS_VOICE_SYNC) == 0) || (strcmp (sync, X2TDMA_MS_DATA_SYNC) == 0))
+        {
+          msMode = 1;
         }
 
       if ((j == 0) && (opts->errorbars == 1))
@@ -564,7 +571,7 @@ processX2TDMAvoice (dsd_opts * opts, dsd_state * state)
       sync[24] = 0;
       syncdata[24] = 0;
 
-      if (strcmp (sync, X2TDMA_DATA_SYNC) == 0)
+      if ((strcmp (sync, X2TDMA_BS_DATA_SYNC) == 0) || (msMode == 1))
         {
           if (state->currentslot == 0)
             {
@@ -575,7 +582,7 @@ processX2TDMAvoice (dsd_opts * opts, dsd_state * state)
               sprintf (state->slot0light, " slot0 ");
             }
         }
-      else if (strcmp (sync, X2TDMA_VOICE_SYNC) == 0)
+      else if (strcmp (sync, X2TDMA_BS_VOICE_SYNC) == 0)
         {
           if (state->currentslot == 0)
             {

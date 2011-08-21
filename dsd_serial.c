@@ -18,6 +18,7 @@ openSerial (dsd_opts * opts, dsd_state * state)
 
   tty.c_cflag = 0;
 
+  baud = B115200;
   switch (opts->serial_baud)
     {
     case 1200:
@@ -70,19 +71,20 @@ void
 resumeScan (dsd_opts * opts, dsd_state * state)
 {
 
-  char cmd[7];
+  char cmd[16];
+  ssize_t result;
 
   if (opts->serial_fd > 0)
     {
       sprintf (cmd, "\rKEY00\r");
-      write (opts->serial_fd, cmd, 7);
+      result = write (opts->serial_fd, cmd, 7);
       cmd[0] = 2;
       cmd[1] = 75;
       cmd[2] = 15;
       cmd[3] = 3;
       cmd[4] = 93;
       cmd[5] = 0;
-      write (opts->serial_fd, cmd, 5);
+      result = write (opts->serial_fd, cmd, 5);
       state->numtdulc = 0;
     }
 }

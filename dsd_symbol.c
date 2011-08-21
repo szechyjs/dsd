@@ -23,6 +23,7 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
 
   short sample;
   int i, sum, symbol, count;
+  ssize_t result;
 
   sum = 0;
   count = 0;
@@ -31,7 +32,18 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
       // timing control
       if ((i == 0) && (have_sync == 0))
         {
-          if (state->rf_mod == 1)
+          if (state->samplesPerSymbol == 20)
+            {
+              if ((state->jitter >= 7) && (state->jitter <= 10))
+                {
+                  i--;
+                }
+              else if ((state->jitter >= 11) && (state->jitter <= 14))
+                {
+                  i++;
+                }
+            }
+          else if (state->rf_mod == 1)
             {
               if ((state->jitter >= 0) && (state->jitter < state->symbolCenter))
                 {
@@ -67,7 +79,7 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
           state->jitter = -1;
         }
 
-      read (opts->audio_in_fd, &sample, 2);
+      result = read (opts->audio_in_fd, &sample, 2);
       if ((sample > state->max) && (have_sync == 1) && (state->rf_mod == 0))
         {
           sample = state->max;
@@ -143,9 +155,17 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
                 }
             }
         }
+      if (state->samplesPerSymbol == 20)
+        {
+          if ((i >= 9) && (i <= 11))
+            {
+              sum += sample;
+              count++;
+            }
+        }
       if (state->samplesPerSymbol == 5)
         {
-          if ((i >= 2) && (i <= 2))
+          if (i == 2)
             {
               sum += sample;
               count++;

@@ -27,7 +27,7 @@ playMbeFiles (dsd_opts * opts, dsd_state * state, int argc, char **argv)
 
   for (i = state->optind; i < argc; i++)
     {
-      sprintf (opts->mbe_in_file, argv[i]);
+      sprintf (opts->mbe_in_file, "%s", argv[i]);
       openMbeInFile (opts, state);
       mbe_initMbeParms (state->cur_mp, state->prev_mp, state->prev_mp_enhanced);
       printf ("playing %s\n", opts->mbe_in_file);
@@ -61,6 +61,10 @@ playMbeFiles (dsd_opts * opts, dsd_state * state, int argc, char **argv)
                 {
                   playSynthesizedVoice (opts, state);
                 }
+            }
+          if (exitflag == 1)
+            {
+              cleanupAndExit (opts, state);
             }
         }
     }

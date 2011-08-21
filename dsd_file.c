@@ -125,7 +125,7 @@ readAmbe2250Data (dsd_opts * opts, dsd_state * state, char *ambe_d)
         }
     }
   b = fgetc (opts->mbe_in_f);
-  ambe_d[48] = b;
+  ambe_d[48] = (b & 1);
 
   return (0);
 }
@@ -173,6 +173,7 @@ closeMbeOutFile (dsd_opts * opts, dsd_state * state)
   int sum, i, j;
   int talkgroup;
   struct tm timep;
+  int result;
 
   if (opts->mbe_out_f != NULL)
     {
@@ -187,11 +188,6 @@ closeMbeOutFile (dsd_opts * opts, dsd_state * state)
           strptime (opts->mbe_out_file, "%s.amb", &timep);
         }
 
-      for (i = 0; i < 17; i++)
-        {
-          tgid[i] = 0;
-        }
-
       if (state->tgcount > 0)
         {
           for (i = 0; i < 16; i++)
@@ -203,6 +199,7 @@ closeMbeOutFile (dsd_opts * opts, dsd_state * state)
                 }
               tgid[i] = (char) (((float) sum / (float) state->tgcount) + 48.5);
             }
+          tgid[16] = 0;
           talkgroup = (int) strtol (tgid, NULL, 2);
         }
       else
@@ -216,7 +213,16 @@ closeMbeOutFile (dsd_opts * opts, dsd_state * state)
       strftime (datestr, 31, "%Y-%m-%d-%H%M%S", &timep);
       sprintf (newfilename, "nac%X-%s-tg%i%s", state->nac, datestr, talkgroup, ext);
       sprintf (shell, "mv %s %s", opts->mbe_out_file, newfilename);
-      system (shell);
+      result = system (shell);
+
+      state->tgcount = 0;
+      for (i = 0; i < 25; i++)
+        {
+          for (j = 0; j < 16; j++)
+            {
+              state->tg[i][j] = 48;
+            }
+        }
     }
 }
 
@@ -273,6 +279,7 @@ openWavOutFile (dsd_opts * opts, dsd_state * state)
       return;
     }
   opts->wav_out_fd = fileno (opts->wav_out_f);
+  state->wav_out_bytes = 0;
 
   fprintf (opts->wav_out_f, "RIFF");
   // total length
@@ -310,7 +317,7 @@ openWavOutFile (dsd_opts * opts, dsd_state * state)
   fputc (0, opts->wav_out_f);
   fputc (0, opts->wav_out_f);
 
-  // bytes/sample
+  // block align
   fputc (2, opts->wav_out_f);
   fputc (0, opts->wav_out_f);
 
@@ -325,7 +332,75 @@ openWavOutFile (dsd_opts * opts, dsd_state * state)
   fputc (0, opts->wav_out_f);
   fputc (0, opts->wav_out_f);
   fputc (0, opts->wav_out_f);
-  fputc (127, opts->wav_out_f);
+  fputc (0, opts->wav_out_f);
 
   fflush (opts->wav_out_f);
+}
+
+void
+closeWavOutFile (dsd_opts * opts, dsd_state * state)
+{
+
+  int length;
+
+  if (opts->wav_out_f != NULL)
+    {
+      rewind (opts->wav_out_f);
+      length = state->wav_out_bytes;
+
+      fprintf (opts->wav_out_f, "RIFF");
+      // total length
+      fputc (((36 + length) & 0xff), opts->wav_out_f);
+      fputc ((((36 + length) >> 8) & 0xff), opts->wav_out_f);
+      fputc ((((36 + length) >> 16) & 0xff), opts->wav_out_f);
+      fputc ((((36 + length) >> 24) & 0xff), opts->wav_out_f);
+
+      fprintf (opts->wav_out_f, "WAVE");
+      fprintf (opts->wav_out_f, "fmt ");
+
+      // length of format chunk
+      fputc (16, opts->wav_out_f);
+      fputc (0, opts->wav_out_f);
+      fputc (0, opts->wav_out_f);
+      fputc (0, opts->wav_out_f);
+
+      // always 0x1
+      fputc (1, opts->wav_out_f);
+      fputc (0, opts->wav_out_f);
+
+      // channels
+      fputc (1, opts->wav_out_f);
+      fputc (0, opts->wav_out_f);
+
+      // sample rate
+      fputc (64, opts->wav_out_f);
+      fputc (31, opts->wav_out_f);
+      fputc (0, opts->wav_out_f);
+      fputc (0, opts->wav_out_f);
+
+      // bytes per second
+      fputc (128, opts->wav_out_f);
+      fputc (62, opts->wav_out_f);
+      fputc (0, opts->wav_out_f);
+      fputc (0, opts->wav_out_f);
+
+      // block align
+      fputc (2, opts->wav_out_f);
+      fputc (0, opts->wav_out_f);
+
+      // bits/sample
+      fputc (16, opts->wav_out_f);
+      fputc (0, opts->wav_out_f);
+
+      // data chunk header
+      fprintf (opts->wav_out_f, "data");
+
+      // length of data
+      fputc ((length & 0xff), opts->wav_out_f);
+      fputc (((length >> 8) & 0xff), opts->wav_out_f);
+      fputc (((length >> 16) & 0xff), opts->wav_out_f);
+      fputc (((length >> 24) & 0xff), opts->wav_out_f);
+
+      fflush (opts->wav_out_f);
+    }
 }

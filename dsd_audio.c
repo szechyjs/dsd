@@ -41,14 +41,14 @@ processAudio (dsd_opts * opts, dsd_state * state)
       *state->aout_max_buf_p = max;
       state->aout_max_buf_p++;
       state->aout_max_buf_idx++;
-      if (state->aout_max_buf_idx > 74)
+      if (state->aout_max_buf_idx > 24)
         {
           state->aout_max_buf_idx = 0;
           state->aout_max_buf_p = state->aout_max_buf;
         }
 
       // lookup max history
-      for (i = 0; i < 75; i++)
+      for (i = 0; i < 25; i++)
         {
           maxbuf = state->aout_max_buf[i];
           if (maxbuf > max)
@@ -157,6 +157,7 @@ writeSynthesizedVoice (dsd_opts * opts, dsd_state * state)
   int n;
   short aout_buf[160];
   short *aout_buf_p;
+  ssize_t result;
 
   aout_buf_p = aout_buf;
   state->audio_out_temp_buf_p = state->audio_out_temp_buf;
@@ -175,18 +176,21 @@ writeSynthesizedVoice (dsd_opts * opts, dsd_state * state)
       state->audio_out_temp_buf_p++;
     }
 
-  write (opts->wav_out_fd, aout_buf, 320);
+  result = write (opts->wav_out_fd, aout_buf, 320);
   fflush (opts->wav_out_f);
+  state->wav_out_bytes += 320;
 }
 
 void
 playSynthesizedVoice (dsd_opts * opts, dsd_state * state)
 {
 
+  ssize_t result;
+
   if (state->audio_out_idx > opts->delay)
     {
       // output synthesized speech to sound card
-      write (opts->audio_out_fd, (state->audio_out_buf_p - state->audio_out_idx), (state->audio_out_idx * 2));
+      result = write (opts->audio_out_fd, (state->audio_out_buf_p - state->audio_out_idx), (state->audio_out_idx * 2));
       state->audio_out_idx = 0;
     }
 

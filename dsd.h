@@ -18,6 +18,7 @@
 #include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
 #include <string.h>
 #define __USE_XOPEN
 #include <time.h>
@@ -35,6 +36,12 @@
 #endif
 #include <math.h>
 #include <mbelib.h>
+
+/*
+ * global variables
+ */
+int exitflag;
+
 
 typedef struct
 {
@@ -71,7 +78,8 @@ typedef struct
   int frame_dstar;
   int frame_x2tdma;
   int frame_p25p1;
-  int frame_nxdn;
+  int frame_nxdn48;
+  int frame_nxdn96;
   int frame_dmr;
   int frame_provoice;
   int mod_c4fm;
@@ -100,6 +108,7 @@ typedef struct
   float *audio_out_temp_buf_p;
   int audio_out_idx;
   int audio_out_idx2;
+  int wav_out_bytes;
   int center;
   int jitter;
   int synctype;
@@ -155,19 +164,35 @@ typedef struct
 /*
  * Frame sync patterns
  */
-#define INV_FRAME_SYNC "333331331133111131311111"
-#define FRAME_SYNC "111113113311333313133333"
-#define X2TDMA_VOICE_SYNC "113131333331313331113311"
-#define X2TDMA_DATA_SYNC "331313111113131113331133"
-#define DSTAR_SYNC "313131313133131113313111"
-#define INV_DSTAR_SYNC "131313131311313331131333"
-#define INV_NXDN96_SYNC "313133113131111333"
-#define NXDN96_SYNC "131311331313333111"
-#define DMR_DATA_SYNC "313333111331131131331131"
-#define DMR_VOICE_SYNC "131111333113313313113313"
-#define INV_PROVOICE_SYNC "31313111333133133311331133113311"
-#define PROVOICE_SYNC     "13131333111311311133113311331133"
+#define INV_P25P1_SYNC "333331331133111131311111"
+#define P25P1_SYNC     "111113113311333313133333"
 
+#define X2TDMA_BS_VOICE_SYNC "113131333331313331113311"
+#define X2TDMA_BS_DATA_SYNC  "331313111113131113331133"
+#define X2TDMA_MS_DATA_SYNC  "313113333111111133333313"
+#define X2TDMA_MS_VOICE_SYNC "131331111333333311111131"
+
+#define DSTAR_SYNC     "313131313133131113313111"
+#define INV_DSTAR_SYNC "131313131311313331131333"
+
+#define NXDN_MS_DATA_SYNC      "313133113131111333"
+#define INV_NXDN_MS_DATA_SYNC  "131311331313333111"
+#define NXDN_MS_VOICE_SYNC     "313133113131113133"
+#define INV_NXDN_MS_VOICE_SYNC "131311331313331311"
+#define INV_NXDN_BS_DATA_SYNC  "131311331313333131"
+#define NXDN_BS_DATA_SYNC      "313133113131111313"
+#define INV_NXDN_BS_VOICE_SYNC "131311331313331331"
+#define NXDN_BS_VOICE_SYNC     "313133113131113113"
+
+#define DMR_BS_DATA_SYNC  "313333111331131131331131"
+#define DMR_BS_VOICE_SYNC "131111333113313313113313"
+#define DMR_MS_DATA_SYNC  "311131133313133331131113"
+#define DMR_MS_VOICE_SYNC "133313311131311113313331"
+
+#define INV_PROVOICE_SYNC    "31313111333133133311331133113311"
+#define PROVOICE_SYNC        "13131333111311311133113311331133"
+#define INV_PROVOICE_EA_SYNC "13313133113113333311313133133311"
+#define PROVOICE_EA_SYNC     "31131311331331111133131311311133"
 
 /*
  * function prototypes
@@ -189,6 +214,7 @@ void openMbeInFile (dsd_opts * opts, dsd_state * state);
 void closeMbeOutFile (dsd_opts * opts, dsd_state * state);
 void openMbeOutFile (dsd_opts * opts, dsd_state * state);
 void openWavOutFile (dsd_opts * opts, dsd_state * state);
+void closeWavOutFile (dsd_opts * opts, dsd_state * state);
 void printFrameInfo (dsd_opts * opts, dsd_state * state);
 void processFrame (dsd_opts * opts, dsd_state * state);
 void printFrameSync (dsd_opts * opts, dsd_state * state, char *frametype, int offset, char *modulation);
@@ -199,6 +225,8 @@ void initOpts (dsd_opts * opts);
 void initState (dsd_state * state);
 void usage ();
 void liveScanner (dsd_opts * opts, dsd_state * state);
+void cleanupAndExit (dsd_opts * opts, dsd_state * state);
+void sigfun (int sig);
 int main (int argc, char **argv);
 void playMbeFiles (dsd_opts * opts, dsd_state * state, int argc, char **argv);
 void processMbeFrame (dsd_opts * opts, dsd_state * state, char imbe_fr[8][23], char ambe_fr[4][24], char imbe7100_fr[7][24]);
@@ -207,7 +235,8 @@ void resumeScan (dsd_opts * opts, dsd_state * state);
 int getSymbol (dsd_opts * opts, dsd_state * state, int have_sync);
 void upsample (dsd_state * state, float invalue);
 void processDSTAR (dsd_opts * opts, dsd_state * state);
-void processNXDN96 (dsd_opts * opts, dsd_state * state);
+void processNXDNVoice (dsd_opts * opts, dsd_state * state);
+void processNXDNData (dsd_opts * opts, dsd_state * state);
 void processP25lcw (dsd_opts * opts, dsd_state * state, char *lcformat, char *mfid, char *lcinfo);
 void processHDU (dsd_opts * opts, dsd_state * state);
 void processLDU1 (dsd_opts * opts, dsd_state * state);

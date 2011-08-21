@@ -14,7 +14,7 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 CC = gcc
-CFLAGS = -O2
+CFLAGS = -O2 -Wall
 INCLUDES = -I. -I/usr/local/include -I/usr/include
 LIBS = -L/usr/local/lib -lm -lmbe 
 INSTALL=install
@@ -24,7 +24,7 @@ DEST_BASE=/usr/local
 DEST_INC=${DEST_BASE}/include
 DEST_LIB=${DEST_BASE}/lib
 DEST_BIN=${DEST_BASE}/bin
-OBJS = dsd_main.o dsd_symbol.o dsd_dibit.o dsd_frame_sync.o dsd_file.o dsd_audio.o dsd_serial.o dsd_frame.o dsd_mbe.o dsd_upsample.o p25p1_hdu.o p25p1_ldu1.o p25p1_ldu2.o p25p1_tdulc.o p25_lcw.o x2tdma_voice.o x2tdma_data.o dstar.o nxdn96.o dmr_voice.o dmr_data.o provoice.o
+OBJS = dsd_main.o dsd_symbol.o dsd_dibit.o dsd_frame_sync.o dsd_file.o dsd_audio.o dsd_serial.o dsd_frame.o dsd_mbe.o dsd_upsample.o p25p1_hdu.o p25p1_ldu1.o p25p1_ldu2.o p25p1_tdulc.o p25_lcw.o x2tdma_voice.o x2tdma_data.o dstar.o nxdn_voice.o nxdn_data.o dmr_voice.o dmr_data.o provoice.o
 
 all: dsd
 
@@ -84,8 +84,14 @@ x2tdma_data.o: x2tdma_data.c x2tdma_const.h dsd.h config.h
 dstar.o: dstar.c dstar_const.h dsd.h config.h
 	$(CC) $(CFLAGS) $(INCLUDES) -c dstar.c -o dstar.o
 
-nxdn96.o: nxdn96.c nxdn96_const.h dsd.h config.h
-	$(CC) $(CFLAGS) $(INCLUDES) -c nxdn96.c -o nxdn96.o
+nxdn48_voice.o: nxdn48_voice.c nxdn_const.h dsd.h config.h
+	$(CC) $(CFLAGS) $(INCLUDES) -c nxdn48_voice.c -o nxdn48_voice.o
+
+nxdn_voice.o: nxdn_voice.c nxdn_const.h dsd.h config.h
+	$(CC) $(CFLAGS) $(INCLUDES) -c nxdn_voice.c -o nxdn_voice.o
+
+nxdn_data.o: nxdn_data.c nxdn_const.h dsd.h config.h
+	$(CC) $(CFLAGS) $(INCLUDES) -c nxdn_data.c -o nxdn_data.o
 
 dmr_voice.o: dmr_voice.c dmr_const.h dsd.h config.h
 	$(CC) $(CFLAGS) $(INCLUDES) -c dmr_voice.c -o dmr_voice.o
