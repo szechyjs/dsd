@@ -177,6 +177,11 @@ getDibit (dsd_opts * opts, dsd_state * state)
       state->sidx++;
     }
 
+  if (state->dibit_buf_p > state->dibit_buf + 900000)
+    {
+	  state->dibit_buf_p = state->dibit_buf + 200;
+    }
+
   // determine dibit state
   if ((state->synctype == 6) || (state->synctype == 14))
     {

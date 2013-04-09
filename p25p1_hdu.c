@@ -258,6 +258,8 @@ processHDU (dsd_opts * opts, dsd_state * state)
 
   skipDibit (opts, state, 160);
 
+  state->p25kid = strtol(kid, NULL, 2);
+
   if (opts->p25enc == 1)
     {
       algidhex = strtol (algid, NULL, 2);

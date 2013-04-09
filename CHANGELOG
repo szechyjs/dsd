@@ -1,7 +1,21 @@
+1.6.0
+   New features:
+   Auto mutes P25 encrypted signals by default.
+   Raised cosine filters.
+   
+   Fixed bugs:
+   Changed the crazy dibit buffer which filled for ever until it 
+   ran out of allocated memory then caused a segmentation error. The 
+   buffer is now allowed to fill to 90% before being returned to the 
+   initial pointer value where it over writes the old samples, it 
+   seems to work ok and no segmentation errors now.
+   Input level is now calculated differently, before when it reported 50% 
+   the soundcard would be fully overloaded. With the new method aim for 30% inlvl.
+   
 1.4.1
 	New features:
-        Several new sync types for existing formats now recognized:
-          Decodes voice from NXDN 4800 (6.25kHz) signals
+    Several new sync types for existing formats now recognized:
+      Decodes voice from NXDN 4800 (6.25kHz) signals
   	  Decodes voice from NXDN 9600 (12.5kHz) repeater output
 	  Decodes voice from DMR/MotoTRBO simplex/repeater input
 	  Decodes voice from X2-TDMA simplex/repeater input

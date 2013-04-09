@@ -1,4 +1,4 @@
-Digital Speech Decoder 1.4
+Digital Speech Decoder 1.6.0
 Copyright (C) 2010 DSD Author
 GPG Key ID: 0x3F1D7FD0 (74EF 430D F7F2 0A48 FCE6  F630 FAA2 635D 3F1D 7FD0)
 
@@ -19,7 +19,7 @@ PERFORMANCE OF THIS SOFTWARE.
 	synthesis requires mbelib, which is a separate package.  DSD 1.4.1
 	requires mbelib 1.1 or later.
 
-	Supported formats in version 1.4.1:
+	Supported formats in version 1.6.0:
 
 	P25 Phase 1  Widely deployed radio standard used in public safety
 	             and amateur radio.

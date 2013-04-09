@@ -77,7 +77,10 @@ processLDU1 (dsd_opts * opts, dsd_state * state)
           y++;
           z++;
         }
-      processMbeFrame (opts, state, imbe_fr, NULL, NULL);
+      if (state->p25kid == 0)
+        {
+          processMbeFrame (opts, state, imbe_fr, NULL, NULL);
+        }
 
       // skip over non imbe data sometimes between frames
       if ((i < 4) || (i == 8))
