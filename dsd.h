@@ -159,6 +159,7 @@ typedef struct
   mbe_parms *cur_mp;
   mbe_parms *prev_mp;
   mbe_parms *prev_mp_enhanced;
+  int p25kid;
 } dsd_state;
 
 /*

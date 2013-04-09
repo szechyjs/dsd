@@ -216,6 +216,7 @@ initState (dsd_state * state)
   state->prev_mp = malloc (sizeof (mbe_parms));
   state->prev_mp_enhanced = malloc (sizeof (mbe_parms));
   mbe_initMbeParms (state->cur_mp, state->prev_mp, state->prev_mp_enhanced);
+  state->p25kid = 0;
 }
 
 void
@@ -334,7 +335,7 @@ main (int argc, char **argv)
   char versionstr[25];
   mbe_printVersion (versionstr);
 
-  printf ("Digital Speech Decoder 1.4.1\n");
+  printf ("Digital Speech Decoder 1.6.0\n");
   printf ("mbelib version %s\n", versionstr);
 
   initOpts (&opts);

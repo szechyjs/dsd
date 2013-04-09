@@ -23,7 +23,7 @@ printFrameInfo (dsd_opts * opts, dsd_state * state)
 
   int level;
 
-  level = (int) (((float) state->max / (float) 32768) * (float) 100);
+  level = (int) state->max / 164;
   if (opts->verbose > 0)
     {
       printf ("inlvl: %2i%% ", level);
@@ -73,7 +73,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
         {
           if (opts->verbose > 0)
             {
-              level = (int) (((float) state->max / (float) 32768) * (float) 100);
+              level = (int) state->max / 164;
               printf ("inlvl: %2i%% ", level);
             }
         }
@@ -96,7 +96,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
         {
           if (opts->verbose > 0)
             {
-              level = (int) (((float) state->max / (float) 32768) * (float) 100);
+              level = (int) state->max / 164;
               printf ("inlvl: %2i%% ", level);
             }
         }
@@ -118,7 +118,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
         {
           if (opts->verbose > 0)
             {
-              level = (int) (((float) state->max / (float) 32768) * (float) 100);
+              level = (int) state->max / 164;
               printf ("inlvl: %2i%% ", level);
             }
         }
@@ -140,7 +140,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
         {
           if (opts->verbose > 0)
             {
-              level = (int) (((float) state->max / (float) 32768) * (float) 100);
+              level = (int) state->max / 164;
               printf ("inlvl: %2i%% ", level);
             }
         }
@@ -194,7 +194,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
         {
           if (opts->verbose > 0)
             {
-              level = (int) (((float) state->max / (float) 32768) * (float) 100);
+              level = (int) state->max / 164;
               printf ("inlvl: %2i%% ", level);
             }
         }
