@@ -80,7 +80,9 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
         }
 
       result = read (opts->audio_in_fd, &sample, 2);
-      {
+
+      if (opts->disable_filters == 0)
+        {
       	  #define NZEROS 60
 		  #define GAIN 7.423339364e+00
 
@@ -117,7 +119,8 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
 		  sum += (xcoeffs[i] * xv[i]);
 
 		  sample = sum / GAIN; // filtered sample out
-      }
+        }
+
       if ((sample > state->max) && (have_sync == 1) && (state->rf_mod == 0))
         {
           sample = state->max;

@@ -80,7 +80,7 @@ processLDU2 (dsd_opts * opts, dsd_state * state)
           y++;
           z++;
         }
-      if (state->p25kid == 0)
+      if (state->p25kid == 0 || opts->unmute_encrypted_p25 == 1)
         {
     	  processMbeFrame (opts, state, imbe_fr, NULL, NULL);
         }

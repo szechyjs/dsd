@@ -1,4 +1,4 @@
-Digital Speech Decoder 1.6.0
+Digital Speech Decoder 1.6.0 with P25 & DMR Filter
 Copyright (C) 2010 DSD Author
 GPG Key ID: 0x3F1D7FD0 (74EF 430D F7F2 0A48 FCE6  F630 FAA2 635D 3F1D 7FD0)
 
@@ -455,10 +455,12 @@ Decoder options
 	-fp           Decode only ProVoice*
 	-fr           Decode only DMR/MOTOTRBO
 	-fx           Decode only X2-TDMA
+	-l            Disable Filters (not recommended)
 	-ma           Auto-select modulation optimizations (default)
 	-mc           Use only C4FM modulation optimizations
 	-mg           Use only GFSK modulation optimizations
 	-mq           Use only QPSK modulation optimizations
+	-pu           Unmute Encrypted P25
 	-u <num>      Unvoiced speech quality (default=3)
 	-xx           Expect non-inverted X2-TDMA signal
 	-xr           Expect inverted DMR/MOTOTRBO signal

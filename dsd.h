@@ -93,6 +93,8 @@ typedef struct
   int msize;
   int playfiles;
   int delay;
+  int disable_filters;
+  int unmute_encrypted_p25;
 } dsd_opts;
 
 typedef struct

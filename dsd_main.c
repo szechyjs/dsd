@@ -128,6 +128,8 @@ initOpts (dsd_opts * opts)
   opts->msize = 15;
   opts->playfiles = 0;
   opts->delay = 0;
+  opts->disable_filters = 0;
+  opts->unmute_encrypted_p25 = 0;
 }
 
 void
@@ -262,10 +264,12 @@ usage ()
   printf ("  -fp           Decode only ProVoice*\n");
   printf ("  -fr           Decode only DMR/MOTOTRBO\n");
   printf ("  -fx           Decode only X2-TDMA\n");
+  printf ("  -l            Disable Filters (not recommended)\n");
   printf ("  -ma           Auto-select modulation optimizations (default)\n");
   printf ("  -mc           Use only C4FM modulation optimizations\n");
   printf ("  -mg           Use only GFSK modulation optimizations\n");
   printf ("  -mq           Use only QPSK modulation optimizations\n");
+  printf ("  -pu           Unmute Encrypted P25\n");
   printf ("  -u <num>      Unvoiced speech quality (default=3)\n");
   printf ("  -xx           Expect non-inverted X2-TDMA signal\n");
   printf ("  -xr           Expect inverted DMR/MOTOTRBO signal\n");
@@ -335,7 +339,7 @@ main (int argc, char **argv)
   char versionstr[25];
   mbe_printVersion (versionstr);
 
-  printf ("Digital Speech Decoder 1.6.0\n");
+  printf ("Digital Speech Decoder 1.6.0 with P25 & DMR Filter\n");
   printf ("mbelib version %s\n", versionstr);
 
   initOpts (&opts);
@@ -344,7 +348,7 @@ main (int argc, char **argv)
   exitflag = 0;
   signal (SIGINT, sigfun);
 
-  while ((c = getopt (argc, argv, "hep:qstv:z:i:o:d:g:nw:B:C:R:f:m:u:x:A:S:M:r")) != -1)
+  while ((c = getopt (argc, argv, "hep:qstv:z:i:o:d:g:nw:B:C:R:f:m:u:x:A:S:M:r:l")) != -1)
     {
       opterr = 0;
       switch (c)
@@ -372,6 +376,10 @@ main (int argc, char **argv)
           else if (optarg[0] == 't')
             {
               opts.p25tg = 1;
+            }
+          else if (optarg[0] == 'u')
+            {
+        	  opts.unmute_encrypted_p25 = 1;
             }
           break;
         case 'q':
@@ -648,6 +656,10 @@ main (int argc, char **argv)
           opts.errorbars = 0;
           opts.datascope = 0;
           state.optind = optind;
+          break;
+        case 'l':
+          opts.disable_filters = 1;
+          printf ("DMR & P25 Filter Disabled\n");
           break;
         default:
           usage ();
