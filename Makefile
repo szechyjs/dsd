@@ -103,7 +103,7 @@ provoice.o: provoice.c provoice_const.h dsd.h config.h
 	$(CC) $(CFLAGS) $(INCLUDES) -c provoice.c -o provoice.o
 
 dsd: $(OBJS) dsd.h config.h
-	$(CC) $(CFLAGS) $(LIBS) -o dsd $(OBJS)
+	$(CC) $(CFLAGS) -o dsd $(OBJS) $(LIBS)
 
 clean:
 	rm -f *.o
