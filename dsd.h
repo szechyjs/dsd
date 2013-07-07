@@ -31,7 +31,7 @@
 #ifdef SOLARIS
 #include <sys/audioio.h>
 #endif
-#ifdef BSD
+#if defined(BSD) && !defined(__APPLE__)
 #include <sys/soundcard.h>
 #endif
 #include <math.h>
