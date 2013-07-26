@@ -14,9 +14,9 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 CC = gcc
-CFLAGS = -O2 -Wall
-INCLUDES = -I. -I/usr/local/include -I/usr/include
-LIBS = -L/usr/local/lib -lm -lmbe 
+CFLAGS = -O2 -Wall -g
+INCLUDES = -I. -I/usr/local/include -I/usr/include -I../mbelib-master
+LIBS = -L/usr/local/lib -L../mbelib-master -lm -lmbe 
 INSTALL=install
 AR=ar
 RANLIB=ranlib

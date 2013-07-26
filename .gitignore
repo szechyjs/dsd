@@ -1,2 +1,5 @@
-*.o
 dsd
+*.[ao]
+*.so*
+*.dylib
+build
