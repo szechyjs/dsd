@@ -75,8 +75,8 @@ typedef struct
   float audio_gain;
   int audio_out;
   char wav_out_file[1024];
-  FILE *wav_out_f;
-  int wav_out_fd;
+  SNDFILE *wav_out_f;
+  //int wav_out_fd;
   int serial_baud;
   char serial_dev[1024];
   int serial_fd;
@@ -114,7 +114,7 @@ typedef struct
   float *audio_out_temp_buf_p;
   int audio_out_idx;
   int audio_out_idx2;
-  int wav_out_bytes;
+  //int wav_out_bytes;
   int center;
   int jitter;
   int synctype;

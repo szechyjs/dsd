@@ -84,7 +84,7 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
       else {
           result = sf_read_short(opts->audio_in_file, &sample, 1);
           if(result == 0) {
-              exit(0);
+              cleanupAndExit (opts, state);
           }
       }
      // printf("res: %zd\n, offset: %lld", result, sf_seek(opts->audio_in_file, 0, SEEK_CUR));

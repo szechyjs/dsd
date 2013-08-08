@@ -106,7 +106,7 @@ initOpts (dsd_opts * opts)
   opts->audio_out = 1;
   opts->wav_out_file[0] = 0;
   opts->wav_out_f = NULL;
-  opts->wav_out_fd = -1;
+  //opts->wav_out_fd = -1;
   opts->serial_baud = 115200;
   sprintf (opts->serial_dev, "/dev/ttyUSB0");
   opts->resume = 0;
@@ -149,7 +149,7 @@ initState (dsd_state * state)
   state->audio_out_idx = 0;
   state->audio_out_idx2 = 0;
   state->audio_out_temp_buf_p = state->audio_out_temp_buf;
-  state->wav_out_bytes = 0;
+  //state->wav_out_bytes = 0;
   state->center = 0;
   state->jitter = -1;
   state->synctype = -1;

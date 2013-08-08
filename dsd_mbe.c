@@ -38,12 +38,12 @@ playMbeFiles (dsd_opts * opts, dsd_state * state, int argc, char **argv)
               readImbe4400Data (opts, state, imbe_d);
               mbe_processImbe4400Dataf (state->audio_out_temp_buf, &state->errs, &state->errs2, state->err_str, imbe_d, state->cur_mp, state->prev_mp, state->prev_mp_enhanced, opts->uvquality);
               processAudio (opts, state);
-              if (opts->wav_out_fd != -1)
+              if (opts->wav_out_f != NULL)
                 {
                   writeSynthesizedVoice (opts, state);
                 }
 
-              if (opts->audio_out == 1)
+              if (opts->audio_out != 1)
                 {
                   playSynthesizedVoice (opts, state);
                 }
@@ -53,7 +53,7 @@ playMbeFiles (dsd_opts * opts, dsd_state * state, int argc, char **argv)
               readAmbe2250Data (opts, state, ambe_d);
               mbe_processAmbe2250Dataf (state->audio_out_temp_buf, &state->errs, &state->errs2, state->err_str, ambe_d, state->cur_mp, state->prev_mp, state->prev_mp_enhanced, opts->uvquality);
               processAudio (opts, state);
-              if (opts->wav_out_fd != -1)
+              if (opts->wav_out_f != NULL)
                 {
                   writeSynthesizedVoice (opts, state);
                 }
@@ -114,7 +114,7 @@ processMbeFrame (dsd_opts * opts, dsd_state * state, char imbe_fr[8][23], char a
     }
 
   processAudio (opts, state);
-  if (opts->wav_out_fd != -1)
+  if (opts->wav_out_f != NULL)
     {
       writeSynthesizedVoice (opts, state);
     }

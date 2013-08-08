@@ -153,6 +153,34 @@ processAudio (dsd_opts * opts, dsd_state * state)
 void
 writeSynthesizedVoice (dsd_opts * opts, dsd_state * state)
 {
+  int n;
+  short aout_buf[160];
+  short *aout_buf_p;
+
+//  for(n=0; n<160; n++)
+//    printf("%d ", ((short*)(state->audio_out_temp_buf))[n]);
+//  printf("\n");
+  
+  aout_buf_p = aout_buf;
+  state->audio_out_temp_buf_p = state->audio_out_temp_buf;
+
+  for (n = 0; n < 160; n++)
+  {
+    if (*state->audio_out_temp_buf_p > (float) 32767)
+      {
+        *state->audio_out_temp_buf_p = (float) 32767;
+      }
+    else if (*state->audio_out_temp_buf_p < (float) -32768)
+      {
+        *state->audio_out_temp_buf_p = (float) -32768;
+      }
+      *aout_buf_p = (short) *state->audio_out_temp_buf_p;
+      aout_buf_p++;
+      state->audio_out_temp_buf_p++;
+  }
+
+  sf_write_short(opts->wav_out_f, aout_buf, 160);
+  /*
 
   int n;
   short aout_buf[160];
@@ -179,6 +207,7 @@ writeSynthesizedVoice (dsd_opts * opts, dsd_state * state)
   result = write (opts->wav_out_fd, aout_buf, 320);
   fflush (opts->wav_out_f);
   state->wav_out_bytes += 320;
+  */
 }
 
 void
@@ -215,7 +244,7 @@ openAudioOutDevice (dsd_opts * opts, int speed)
     opts->audio_out_file_info = calloc(1, sizeof(SF_INFO));
     opts->audio_out_file_info->samplerate = 48000;
     opts->audio_out_file_info->channels = 1;
-    opts->audio_out_file_info->format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
+    opts->audio_out_file_info->format = SF_FORMAT_WAV | SF_FORMAT_PCM_16 | SF_ENDIAN_LITTLE;
     opts->audio_out_file = sf_open(opts->audio_out_dev, SFM_READ, opts->audio_out_file_info);
     if(opts->audio_out_file == NULL) {
         printf ("Error, couldn't open file %s\n", opts->audio_in_dev);
