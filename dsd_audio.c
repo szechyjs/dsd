@@ -171,6 +171,10 @@ writeSynthesizedVoice (dsd_opts * opts, dsd_state * state)
         {
           *state->audio_out_temp_buf_p = (float) -32760;
         }
+      else if (isnan(*state->audio_out_temp_buf_p))
+        {
+          *state->audio_out_temp_buf_p = (float) 0;
+        }
       *aout_buf_p = (short) *state->audio_out_temp_buf_p;
       aout_buf_p++;
       state->audio_out_temp_buf_p++;
