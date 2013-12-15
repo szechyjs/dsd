@@ -128,6 +128,7 @@ initOpts (dsd_opts * opts)
   opts->msize = 15;
   opts->playfiles = 0;
   opts->delay = 0;
+  opts->use_cosine_filter = 1;
 }
 
 void
@@ -244,7 +245,7 @@ usage ()
   printf ("  -i <device>   Audio input device (default is /dev/audio)\n");
   printf ("  -o <device>   Audio output device (default is /dev/audio)\n");
   printf ("  -d <dir>      Create mbe data files, use this directory\n");
-  printf ("  -g <num>      Audio output gain (default = 0 = auto)\n");
+  printf ("  -g <num>      Audio output gain (default = 0 = auto, disable = -1)\n");
   printf ("  -n            Do not send synthesized speech to audio output device\n");
   printf ("  -w <file>     Output synthesized speech to a .wav file\n");
   printf ("\n");
@@ -256,12 +257,13 @@ usage ()
   printf ("Decoder options:\n");
   printf ("  -fa           Auto-detect frame type (default)\n");
   printf ("  -f1           Decode only P25 Phase 1\n");
-  printf ("  -fd           Decode only D-STAR* (no audio)\n");
+  printf ("  -fd           Decode only D-STAR*\n");
   printf ("  -fi           Decode only NXDN48* (6.25 kHz) / IDAS*\n");
   printf ("  -fn           Decode only NXDN96 (12.5 kHz)\n");
   printf ("  -fp           Decode only ProVoice*\n");
   printf ("  -fr           Decode only DMR/MOTOTRBO\n");
   printf ("  -fx           Decode only X2-TDMA\n");
+  printf ("  -l            Disable cosine filter (improves D-STAR performance)*\n");
   printf ("  -ma           Auto-select modulation optimizations (default)\n");
   printf ("  -mc           Use only C4FM modulation optimizations\n");
   printf ("  -mg           Use only GFSK modulation optimizations\n");
@@ -344,7 +346,7 @@ main (int argc, char **argv)
   exitflag = 0;
   signal (SIGINT, sigfun);
 
-  while ((c = getopt (argc, argv, "hep:qstv:z:i:o:d:g:nw:B:C:R:f:m:u:x:A:S:M:r")) != -1)
+  while ((c = getopt (argc, argv, "hep:qstv:z:i:o:d:g:nw:B:C:R:f:m:u:x:A:S:M:rl")) != -1)
     {
       opterr = 0;
       switch (c)
@@ -418,7 +420,11 @@ main (int argc, char **argv)
           break;
         case 'g':
           sscanf (optarg, "%f", &opts.audio_gain);
-          if (opts.audio_gain <= (float) 0)
+          if (opts.audio_gain < (float) 0 )
+            {
+              printf ("Disabling audio out gain setting\n");
+            }
+          else if (opts.audio_gain == (float) 0)
             {
               opts.audio_gain = (float) 0;
               printf ("Enabling audio out auto-gain\n");
@@ -451,7 +457,7 @@ main (int argc, char **argv)
         case 'f':
           if (optarg[0] == 'a')
             {
-              opts.frame_dstar = 0;
+              opts.frame_dstar = 1;
               opts.frame_x2tdma = 1;
               opts.frame_p25p1 = 1;
               opts.frame_nxdn48 = 0;
@@ -648,6 +654,9 @@ main (int argc, char **argv)
           opts.errorbars = 0;
           opts.datascope = 0;
           state.optind = optind;
+          break;
+        case 'l':
+          opts.use_cosine_filter = 0;
           break;
         default:
           usage ();

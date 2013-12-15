@@ -60,12 +60,9 @@ PERFORMANCE OF THIS SOFTWARE.
 
 	D-STAR       Amateur radio digital voice standard 
 
-	             Development support only.  DSD recognized frames and can
-	             extract the voice bits but speech is not yet decoded.
-	             D-STAR likely uses a version of AMBE not yet supported by
-	             mbelib.  The voice bit interleave pattern also needs to be
-	             determined.  
-                     Note: not enabled by default, use -fd to enable.
+	             This is an earlier version of the AMBE codec than the one
+	             used by most of the protocols. Support for this was added by
+	             various developers.
 
         Unsupported formats in version 1.4 considered for future development:
 
