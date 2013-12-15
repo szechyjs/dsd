@@ -43,7 +43,7 @@ saveImbe4400Data (dsd_opts * opts, dsd_state * state, char *imbe_d)
 }
 
 void
-saveAmbe2250Data (dsd_opts * opts, dsd_state * state, char *ambe_d)
+saveAmbe2450Data (dsd_opts * opts, dsd_state * state, char *ambe_d)
 {
   int i, j, k;
   unsigned char b;
@@ -99,7 +99,7 @@ readImbe4400Data (dsd_opts * opts, dsd_state * state, char *imbe_d)
 }
 
 int
-readAmbe2250Data (dsd_opts * opts, dsd_state * state, char *ambe_d)
+readAmbe2450Data (dsd_opts * opts, dsd_state * state, char *ambe_d)
 {
 
   int i, j, k;

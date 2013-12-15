@@ -17,7 +17,7 @@
 
 /*
  * Note: D-STAR support is very incomplete and does not work yet
- * It is unknown if the ambe3600x2250 decoder is even compatible with D-STAR 
+ * It is unknown if the ambe3600x2450 decoder is even compatible with D-STAR
  * voice frames.  If it is then the interleave pattern needs to be determined.
  * GMSK modulation optimizations will also required to get a usable bit error
  * rate.  This was included mainly as an example of how other systmes might
