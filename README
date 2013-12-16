@@ -56,8 +56,6 @@ PERFORMANCE OF THIS SOFTWARE.
 	             Support includes decoding and synthesis of speech and
 	             the ability to save and replay .amb data files.
 
-	Development (no speech) support only:
-
 	D-STAR       Amateur radio digital voice standard 
 
 	             This is an earlier version of the AMBE codec than the one
@@ -446,7 +444,7 @@ Decoder options
 
 	-fa           Auto-detect frame type (default)
 	-f1           Decode only P25 Phase 1
-	-fd           Decode only D-STAR* (no audio)
+	-fd           Decode only D-STAR*
 	-fi           Decode only NXDN48* (6.25 kHz) / IDAS*
 	-fn           Decode only NXDN96 (12.5 kHz)
 	-fp           Decode only ProVoice*
@@ -463,10 +461,7 @@ Decoder options
 	* denotes frame types that cannot be auto-detected.
 
 	ProVoice and NXDN48 not auto-detected as use different symbol
-	rates (9600 and 2400) than most formats (4800).  D-STAR is not
-	enabled by default as voice decode does not work and it has a
-        short sync word that is prone to false triggering.  It is included
-	for development/testing only.  
+	rates (9600 and 2400) than most formats (4800).  
 
 	MBE speech synthesis is broken down into two main types of sounds,
 	"Voiced" and "Unvoiced".  Voiced speech bands are synthesized with
