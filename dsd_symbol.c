@@ -88,6 +88,7 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
           }
       }
      // printf("res: %zd\n, offset: %lld", result, sf_seek(opts->audio_in_file, 0, SEEK_CUR));
+      if (opts->use_cosine_filter)
       {
       	  #define NZEROS 60
 		  #define GAIN 7.423339364e+00

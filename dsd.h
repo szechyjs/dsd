@@ -99,6 +99,7 @@ typedef struct
   int msize;
   int playfiles;
   int delay;
+  int use_cosine_filter;
 } dsd_opts;
 
 typedef struct
@@ -179,6 +180,8 @@ typedef struct
 #define X2TDMA_MS_DATA_SYNC  "313113333111111133333313"
 #define X2TDMA_MS_VOICE_SYNC "131331111333333311111131"
 
+#define DSTAR_HD	   "131313131333133113131111"
+#define INV_DSTAR_HD   "313131313111311331313333"
 #define DSTAR_SYNC     "313131313133131113313111"
 #define INV_DSTAR_SYNC "131313131311313331131333"
 
@@ -252,3 +255,4 @@ void processTDULC (dsd_opts * opts, dsd_state * state);
 void processProVoice (dsd_opts * opts, dsd_state * state);
 void processX2TDMAdata (dsd_opts * opts, dsd_state * state);
 void processX2TDMAvoice (dsd_opts * opts, dsd_state * state);
+void processDSTAR_HD (dsd_opts * opts, dsd_state * state);

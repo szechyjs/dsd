@@ -16,6 +16,9 @@
  */
 
 #include "dsd.h"
+#if !defined(NULL)
+#define NULL 0
+#endif
 
 void
 printFrameInfo (dsd_opts * opts, dsd_state * state)
@@ -131,6 +134,29 @@ processFrame (dsd_opts * opts, dsd_state * state)
       processDSTAR (opts, state);
       return;
     }
+  else if ((state->synctype == 18) || (state->synctype == 19))
+    {
+      state->nac = 0;
+      state->lastsrc = 0;
+      state->lasttg = 0;
+      if (opts->errorbars == 1)
+        {
+          if (opts->verbose > 0)
+            {
+              level = (int) state->max / 164;
+              printf ("inlvl: %2i%% ", level);
+            }
+        }
+      state->nac = 0;
+      if ((opts->mbe_out_dir[0] != 0) && (opts->mbe_out_f == NULL))
+        {
+          openMbeOutFile (opts, state);
+        }
+      sprintf (state->fsubtype, " DATA         ");
+      processDSTAR_HD (opts, state);
+      return;
+    }
+
   else if ((state->synctype >= 10) && (state->synctype <= 13))
     {
       state->nac = 0;
