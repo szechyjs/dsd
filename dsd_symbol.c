@@ -90,43 +90,13 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
      // printf("res: %zd\n, offset: %lld", result, sf_seek(opts->audio_in_file, 0, SEEK_CUR));
       if (opts->use_cosine_filter)
       {
-      	  #define NZEROS 60
-		  #define GAIN 7.423339364e+00
-
-		  static float xv[NZEROS+1];
-
-		  static float xcoeffs[] =
-		  { -0.0083649323, -0.0265444850, -0.0428141462, -0.0537571943,
-		  -0.0564141052, -0.0489161045, -0.0310068662, -0.0043393881,
-		  +0.0275375106, +0.0595423283, +0.0857543325, +0.1003565948,
-		  +0.0986944931, +0.0782804830, +0.0395670487, -0.0136691535,
-		  -0.0744390415, -0.1331834575, -0.1788967208, -0.2005995448,
-		  -0.1889627181, -0.1378439993, -0.0454976231, +0.0847488694,
-		  +0.2444859269, +0.4209222342, +0.5982295474, +0.7593684540,
-		  +0.8881539892, +0.9712773915, +0.9999999166, +0.9712773915,
-		  +0.8881539892, +0.7593684540, +0.5982295474, +0.4209222342,
-		  +0.2444859269, +0.0847488694, -0.0454976231, -0.1378439993,
-		  -0.1889627181, -0.2005995448, -0.1788967208, -0.1331834575,
-		  -0.0744390415, -0.0136691535, +0.0395670487, +0.0782804830,
-		  +0.0986944931, +0.1003565948, +0.0857543325, +0.0595423283,
-		  +0.0275375106, -0.0043393881, -0.0310068662, -0.0489161045,
-		  -0.0564141052, -0.0537571943, -0.0428141462, -0.0265444850,
-		  -0.0083649323,
-		  };
-
-		  float sum; int i;
-
-		  for (i = 0; i < NZEROS; i++)
-		  xv[i] = xv[i+1];
-
-		  xv[NZEROS] = sample; // unfiltered sample in
-		  sum = 0.0;
-
-		  for (i = 0; i <= NZEROS; i++)
-		  sum += (xcoeffs[i] * xv[i]);
-
-		  sample = sum / GAIN; // filtered sample out
+        if (state->lastsynctype >= 10 && state->lastsynctype <= 13)
+          sample = dmr_filter(sample);
+        else if (state->lastsynctype == 8 || state->lastsynctype == 9 ||
+                 state->lastsynctype == 16 || state->lastsynctype == 17)
+          sample = nxdn_filter(sample);
       }
+
       if ((sample > state->max) && (have_sync == 1) && (state->rf_mod == 0))
         {
           sample = state->max;

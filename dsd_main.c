@@ -257,13 +257,13 @@ usage ()
   printf ("Decoder options:\n");
   printf ("  -fa           Auto-detect frame type (default)\n");
   printf ("  -f1           Decode only P25 Phase 1\n");
-  printf ("  -fd           Decode only D-STAR*\n");
+  printf ("  -fd           Decode only D-STAR\n");
   printf ("  -fi           Decode only NXDN48* (6.25 kHz) / IDAS*\n");
   printf ("  -fn           Decode only NXDN96 (12.5 kHz)\n");
   printf ("  -fp           Decode only ProVoice*\n");
   printf ("  -fr           Decode only DMR/MOTOTRBO\n");
   printf ("  -fx           Decode only X2-TDMA\n");
-  printf ("  -l            Disable cosine filter (improves D-STAR performance)*\n");
+  printf ("  -l            Disable DMR/MOTOTRBO and NXDN input filtering\n");
   printf ("  -ma           Auto-select modulation optimizations (default)\n");
   printf ("  -mc           Use only C4FM modulation optimizations\n");
   printf ("  -mg           Use only GFSK modulation optimizations\n");
@@ -409,13 +409,16 @@ main (int argc, char **argv)
           printf ("Setting datascope frame rate to %i frame per second.\n", opts.scoperate);
           break;
         case 'i':
-          sscanf (optarg, "%s", opts.audio_in_dev);
+          strncpy(opts.audio_in_dev, optarg, 1023);
+          opts.audio_in_dev[1023] = '\0';
           break;
         case 'o':
-          sscanf (optarg, "%s", opts.audio_out_dev);
+          strncpy(opts.audio_out_dev, optarg, 1023);
+          opts.audio_out_dev[1023] = '\0';
           break;
         case 'd':
-          sscanf (optarg, "%s", opts.mbe_out_dir);
+          strncpy(opts.mbe_out_dir, optarg, 1023);
+          opts.mbe_out_dir[1023] = '\0';
           printf ("Writing mbe data files to directory %s\n", opts.mbe_out_dir);
           break;
         case 'g':
@@ -440,7 +443,8 @@ main (int argc, char **argv)
           printf ("Disabling audio output to soundcard.\n");
           break;
         case 'w':
-          sscanf (optarg, "%s", opts.wav_out_file);
+          strncpy(opts.wav_out_file, optarg, 1023);
+          opts.wav_out_file[1023] = '\0';
           printf ("Writing audio to file %s\n", opts.wav_out_file);
           openWavOutFile (&opts, &state);
           break;
@@ -448,7 +452,8 @@ main (int argc, char **argv)
           sscanf (optarg, "%d", &opts.serial_baud);
           break;
         case 'C':
-          sscanf (optarg, "%s", opts.serial_dev);
+          strncpy(opts.serial_dev, optarg, 1023);
+          opts.serial_dev[1023] = '\0';
           break;
         case 'R':
           sscanf (optarg, "%d", &opts.resume);
@@ -675,14 +680,24 @@ main (int argc, char **argv)
       opts.split = 1;
       opts.playoffset = 0;
       opts.delay = 0;
-      openAudioOutDevice (&opts, 8000);
+      if(strlen(opts.wav_out_file) > 0) {
+        openWavOutFile (&opts, &state);
+      }
+      else {
+        openAudioOutDevice (&opts, 8000);
+      }
     }
   else if (strcmp (opts.audio_in_dev, opts.audio_out_dev) != 0)
     {
       opts.split = 1;
       opts.playoffset = 0;
       opts.delay = 0;
-      openAudioOutDevice (&opts, 8000);
+      if(strlen(opts.wav_out_file) > 0) {
+        openWavOutFile (&opts, &state);
+      }
+      else {
+        openAudioOutDevice (&opts, 8000);
+      }
       openAudioInDevice (&opts);
     }
   else
