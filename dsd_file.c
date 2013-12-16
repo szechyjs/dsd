@@ -272,75 +272,30 @@ void
 openWavOutFile (dsd_opts * opts, dsd_state * state)
 {
 
-  opts->wav_out_f = fopen (opts->wav_out_file, "w");
+ // opts->wav_out_f = fopen (opts->wav_out_file, "w");
+  
+  SF_INFO info;
+  info.samplerate = 8000;
+  info.channels = 1;
+  info.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16 | SF_ENDIAN_LITTLE;
+  opts->wav_out_f = sf_open (opts->wav_out_file, SFM_WRITE, &info);
+
   if (opts->wav_out_f == NULL)
-    {
-      printf ("Error - could not open wav output file %s\n", opts->wav_out_file);
-      return;
-    }
-  opts->wav_out_fd = fileno (opts->wav_out_f);
-  state->wav_out_bytes = 0;
+  {
+    printf ("Error - could not open wav output file %s\n", opts->wav_out_file);
+    return;
+  }
 
-  fprintf (opts->wav_out_f, "RIFF");
-  // total length
-  fputc (0, opts->wav_out_f);
-  fputc (0, opts->wav_out_f);
-  fputc (0, opts->wav_out_f);
-  fputc (0, opts->wav_out_f);
-
-  fprintf (opts->wav_out_f, "WAVE");
-  fprintf (opts->wav_out_f, "fmt ");
-
-  // length of format chunk
-  fputc (16, opts->wav_out_f);
-  fputc (0, opts->wav_out_f);
-  fputc (0, opts->wav_out_f);
-  fputc (0, opts->wav_out_f);
-
-  // always 0x1
-  fputc (1, opts->wav_out_f);
-  fputc (0, opts->wav_out_f);
-
-  // channels
-  fputc (1, opts->wav_out_f);
-  fputc (0, opts->wav_out_f);
-
-  // sample rate
-  fputc (64, opts->wav_out_f);
-  fputc (31, opts->wav_out_f);
-  fputc (0, opts->wav_out_f);
-  fputc (0, opts->wav_out_f);
-
-  // bytes per second
-  fputc (176, opts->wav_out_f);
-  fputc (62, opts->wav_out_f);
-  fputc (0, opts->wav_out_f);
-  fputc (0, opts->wav_out_f);
-
-  // block align
-  fputc (2, opts->wav_out_f);
-  fputc (0, opts->wav_out_f);
-
-  // bits/sample
-  fputc (16, opts->wav_out_f);
-  fputc (0, opts->wav_out_f);
-
-  // data chunk header
-  fprintf (opts->wav_out_f, "data");
-
-  // length of data
-  fputc (0, opts->wav_out_f);
-  fputc (0, opts->wav_out_f);
-  fputc (0, opts->wav_out_f);
-  fputc (0, opts->wav_out_f);
-
-  fflush (opts->wav_out_f);
+//  state->wav_out_bytes = 0;
+  
 }
 
 void
 closeWavOutFile (dsd_opts * opts, dsd_state * state)
 {
+  sf_close(opts->wav_out_f);
 
+/*
   int length;
 
   if (opts->wav_out_f != NULL)
@@ -350,7 +305,7 @@ closeWavOutFile (dsd_opts * opts, dsd_state * state)
 
       fprintf (opts->wav_out_f, "RIFF");
       // total length
-      fputc (((36 + length) & 0xff), opts->wav_out_f);
+      fputc (((36 + length) & 0xff), opts->≈≈);
       fputc ((((36 + length) >> 8) & 0xff), opts->wav_out_f);
       fputc ((((36 + length) >> 16) & 0xff), opts->wav_out_f);
       fputc ((((36 + length) >> 24) & 0xff), opts->wav_out_f);
@@ -403,4 +358,5 @@ closeWavOutFile (dsd_opts * opts, dsd_state * state)
 
       fflush (opts->wav_out_f);
     }
+    */
 }

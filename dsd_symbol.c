@@ -78,8 +78,16 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
             }
           state->jitter = -1;
         }
-
-      result = read (opts->audio_in_fd, &sample, 2);
+      if(opts->audio_in_type == 0) {
+          result = read (opts->audio_in_fd, &sample, 2);
+      }
+      else {
+          result = sf_read_short(opts->audio_in_file, &sample, 1);
+          if(result == 0) {
+              cleanupAndExit (opts, state);
+          }
+      }
+     // printf("res: %zd\n, offset: %lld", result, sf_seek(opts->audio_in_file, 0, SEEK_CUR));
       {
       	  #define NZEROS 60
 		  #define GAIN 7.423339364e+00
