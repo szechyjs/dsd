@@ -256,3 +256,5 @@ void processProVoice (dsd_opts * opts, dsd_state * state);
 void processX2TDMAdata (dsd_opts * opts, dsd_state * state);
 void processX2TDMAvoice (dsd_opts * opts, dsd_state * state);
 void processDSTAR_HD (dsd_opts * opts, dsd_state * state);
+short dmr_filter(short sample);
+short nxdn_filter(short sample);
