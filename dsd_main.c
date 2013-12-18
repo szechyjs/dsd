@@ -245,6 +245,7 @@ usage ()
   printf ("  -i <device>   Audio input device (default is /dev/audio)\n");
   printf ("  -o <device>   Audio output device (default is /dev/audio)\n");
   printf ("  -d <dir>      Create mbe data files, use this directory\n");
+  printf ("  -r <files>    Read/Play saved mbe data from file(s)\n");
   printf ("  -g <num>      Audio output gain (default = 0 = auto, disable = -1)\n");
   printf ("  -n            Do not send synthesized speech to audio output device\n");
   printf ("  -w <file>     Output synthesized speech to a .wav file\n");

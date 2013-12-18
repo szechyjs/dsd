@@ -131,6 +131,7 @@ normal users will want to leave disabled as they can severely
 impact performance.
     
 ### Requirements
+* cmake
 * mbelib
 * sndfile
 
