@@ -430,12 +430,13 @@ QPSK mode it indicates noise on the input signal.
 ### Input/Output Options
 
 ````
--i <device>    Audio input device (default is /dev/audio)
--o <device>    Audio output device (default is /dev/audio)
--d <dir>       Create mbe data files, use this directory
--g <num>       Audio output gain (default = 0 = auto)
--n             Do not send synthesized speech to audio output device
--w <file>      Output synthesized speech to a .wav file
+-i <device/file> Audio input device/file (default is /dev/audio)
+-o <device>      Audio output device (default is /dev/audio)
+-d <dir>         Create mbe data files, use this directory
+-r <files>       Read/Play saved mbe data from file(s)
+-g <num>         Audio output gain (default = 0 = auto)
+-n               Do not send synthesized speech to audio output device
+-w <file>        Output synthesized speech to a .wav file
 ````
 
 The audio in device can be a sound card OR a .wav file if the file
