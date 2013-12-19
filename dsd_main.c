@@ -340,7 +340,7 @@ main (int argc, char **argv)
   char versionstr[25];
   mbe_printVersion (versionstr);
 
-  printf ("Digital Speech Decoder 1.6.0\n");
+  printf ("Digital Speech Decoder 1.7.0-dev\n");
   printf ("mbelib version %s\n", versionstr);
 
   initOpts (&opts);

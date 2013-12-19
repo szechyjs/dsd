@@ -1,4 +1,4 @@
-# Digital Speech Decoder 1.6.0
+# Digital Speech Decoder 1.7.0-dev
 Copyright (C) 2010 DSD Author
 GPG Key ID: 0x3F1D7FD0 (74EF 430D F7F2 0A48 FCE6  F630 FAA2 635D 3F1D 7FD0)
 
@@ -19,7 +19,7 @@ tap audio and synthesize  the decoded speech.  Speech
 synthesis requires mbelib, which is a separate package.
 
 
-### Supported formats in version 1.6.0:
+### Supported formats
 
 #### P25 Phase 1
 

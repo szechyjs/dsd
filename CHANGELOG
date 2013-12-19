@@ -1,17 +1,23 @@
+1.7.0-dev
+    New features:
+    CMake build system replaces Makefile
+    Use libsndfile for reading and writing audio files
+    Initial DSTAR voice support
+
 1.6.0
    New features:
    Auto mutes P25 encrypted signals by default.
    Raised cosine filters.
-   
+
    Fixed bugs:
-   Changed the crazy dibit buffer which filled for ever until it 
-   ran out of allocated memory then caused a segmentation error. The 
-   buffer is now allowed to fill to 90% before being returned to the 
-   initial pointer value where it over writes the old samples, it 
+   Changed the crazy dibit buffer which filled for ever until it
+   ran out of allocated memory then caused a segmentation error. The
+   buffer is now allowed to fill to 90% before being returned to the
+   initial pointer value where it over writes the old samples, it
    seems to work ok and no segmentation errors now.
-   Input level is now calculated differently, before when it reported 50% 
+   Input level is now calculated differently, before when it reported 50%
    the soundcard would be fully overloaded. With the new method aim for 30% inlvl.
-   
+
 1.4.1
 	New features:
     Several new sync types for existing formats now recognized:
@@ -43,7 +49,7 @@
 	in conventional scanlists.
 	Auto output gain now has 0.5 second hold time for faster error burst recovery
 	(was 1.5 seconds)
-        Audio output upsampling function simplified and improved 
+        Audio output upsampling function simplified and improved
 
 	Fixed bugs:
 	DSD_Author.pgp now has correct public key (was copy of mbelib_Author key)
@@ -75,7 +81,7 @@
 	P25 metadata (lcinfo, mfid, lfcormat, mi, keyid, algid, lsd) are now
 	  printed out in the correct bit order (MSB -> LSB), was reversed.
 	fixed serveral bugs in dsd_upsample.c, with improved quality
-	
+
 1.1	New features:
 	Scanner control options to allow scan resume during certain TDULC
         Improved upsampling function audio quality
