@@ -100,6 +100,7 @@ typedef struct
   int playfiles;
   int delay;
   int use_cosine_filter;
+  int unmute_encrypted_p25;
 } dsd_opts;
 
 typedef struct

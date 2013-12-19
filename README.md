@@ -499,6 +499,7 @@ rate and serial port device if necessary.
 -mc           Use only C4FM modulation optimizations
 -mg           Use only GFSK modulation optimizations
 -mq           Use only QPSK modulation optimizations
+-pu           Unmute Encrypted P25
 -u <num>      Unvoiced speech quality (default=3)
 -xx           Expect non-inverted X2-TDMA signal
 -xr           Expect inverted DMR/MOTOTRBO signal
