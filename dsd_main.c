@@ -129,6 +129,7 @@ initOpts (dsd_opts * opts)
   opts->playfiles = 0;
   opts->delay = 0;
   opts->use_cosine_filter = 1;
+  opts->unmute_encrypted_p25 = 0;
 }
 
 void
@@ -269,6 +270,7 @@ usage ()
   printf ("  -mc           Use only C4FM modulation optimizations\n");
   printf ("  -mg           Use only GFSK modulation optimizations\n");
   printf ("  -mq           Use only QPSK modulation optimizations\n");
+  printf ("  -pu           Unmute Encrypted P25\n");
   printf ("  -u <num>      Unvoiced speech quality (default=3)\n");
   printf ("  -xx           Expect non-inverted X2-TDMA signal\n");
   printf ("  -xr           Expect inverted DMR/MOTOTRBO signal\n");
@@ -375,6 +377,10 @@ main (int argc, char **argv)
           else if (optarg[0] == 't')
             {
               opts.p25tg = 1;
+            }
+          else if (optarg[0] == 'u')
+            {
+        	  opts.unmute_encrypted_p25 = 1;
             }
           break;
         case 'q':

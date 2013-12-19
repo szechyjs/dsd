@@ -5,7 +5,7 @@ GPG Key ID: 0x3F1D7FD0 (74EF 430D F7F2 0A48 FCE6  F630 FAA2 635D 3F1D 7FD0)
     Permission to use, copy, modify, and/or distribute this software for any
     purpose with or without fee is hereby granted, provided that the above
     copyright notice and this permission notice appear in all copies.
-    
+
     THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
     REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
     AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
@@ -15,7 +15,7 @@ GPG Key ID: 0x3F1D7FD0 (74EF 430D F7F2 0A48 FCE6  F630 FAA2 635D 3F1D 7FD0)
     PERFORMANCE OF THIS SOFTWARE.
 
 DSD is able to decode several digital voice formats from discriminator
-tap audio and synthesize  the decoded speech.  Speech 
+tap audio and synthesize  the decoded speech.  Speech
 synthesis requires mbelib, which is a separate package.
 
 
@@ -25,7 +25,7 @@ synthesis requires mbelib, which is a separate package.
 
 Widely deployed radio standard used in public safety and amateur radio.
 
-Support includes decoding and synthesis of speech, 
+Support includes decoding and synthesis of speech,
 display of all link control info, and the ability to save
 and replay .imb data files
 
@@ -40,7 +40,7 @@ Note: not enabled by default, use `-fp` to enable.
 
 #### X2-TDMA
 
-Two slot TDMA system currently being deployed by several 
+Two slot TDMA system currently being deployed by several
 public safety organizations.   Based on the DMR
 standard with extensions for P25 style signaling.
 
@@ -67,7 +67,7 @@ the ability to save and replay .amb data files.
 
 #### D-STAR
 
-Amateur radio digital voice standard 
+Amateur radio digital voice standard
 
 This is an earlier version of the AMBE codec than the one
 used by most of the protocols. Support for this was added by
@@ -92,7 +92,7 @@ supported by mbelib.  The two slot version does not.
 #### C4FM
 
 Continuous envelope 2 or 4 level FSK with relatively
-sharp transitions between symbols.  Used by most P25 
+sharp transitions between symbols.  Used by most P25
 systems.
 
 Optimizations include calibrating decision points only
@@ -103,7 +103,7 @@ edge timing calibration.
 
 Continuous envelope 2 or 4 level FSK with a narrower
 Gaussian/"raised cosine" filter that affects transitions
-between symbols.  Used by DMR/MOTOTRBO, NXDN and many 
+between symbols.  Used by DMR/MOTOTRBO, NXDN and many
 others.  Noisy C4FM signals may be detected as GFSK
 
 but this is ok, the optimization changes will help with
@@ -117,9 +117,9 @@ middle two samples are used.
 
 Quadrature Phase Shift Keying (and variants) used in
 some P25 systems and all known X2-TDMA systems.  May be
-advertised under the marketing term "LSM"  
+advertised under the marketing term "LSM"
 
-Optimizations include continuous decision point 
+Optimizations include continuous decision point
 calibration, using middle two samples, and using the
 symbol midpoint "spike" for symbol timing.
 
@@ -129,7 +129,7 @@ DSD should easily compile on any Linux or *BSD system with gcc.
 There are some debugging/development options in `config.h` that
 normal users will want to leave disabled as they can severely
 impact performance.
-    
+
 ### Requirements
 * cmake
 * mbelib
@@ -159,7 +159,7 @@ Live Scanner mode takes 48KHz/16 bit mono audio samples from a
 sound card input and decodes speech in real time.  Options are provided
 for controling information display and saving mbe data files.
 
-The synthesized speech can be  output to a soundcard and/or a 
+The synthesized speech can be  output to a soundcard and/or a
 .wav file.
 
     Usage:  dsd [options] -r <files> Read/Play saved mbe data from file(s)
@@ -167,14 +167,14 @@ The synthesized speech can be  output to a soundcard and/or a
 
 Play files mode reads mbe data from files specified on the command
 line (including wildcards) and synthesizes speech from those files.
-The synthesized speech can be  output to a soundcard and/or a 
+The synthesized speech can be  output to a soundcard and/or a
 .wav file. The `-r` command line options is used to activate Play files
 mode.
 
 ### Display modes
 
 There are two main display modes in Live scanner mode.  "Errorbars"
-and "Datascope".  
+and "Datascope".
 
 Errorbars mode output for P25 Phase 1 looks like this:
 
@@ -194,16 +194,16 @@ Sync:  -P25p1   mod: C4FM inlvl: 39% nac:  5C2 src:    52610 tg: 32464  LDU2  e:
 Sync:  -P25p1   mod: C4FM inlvl: 39% nac:  5C2 src:    52610 tg: 32464  LDU1  e:
 ````
 
-* "Sync" indicates the frame type detected and whether the polarity is 
+* "Sync" indicates the frame type detected and whether the polarity is
 positive or negative.  DSD automatically detects and handles either
-polarity except for DMR/MOTOTRBO/X2-TDMA which unfortunatley use both 
-sync polarities.  
+polarity except for DMR/MOTOTRBO/X2-TDMA which unfortunatley use both
+sync polarities.
 
 * Most combinations of transmitter, receiver and soundcard show netagive
 (-) polarity for X2-TDMA signals and (+) polarity for DMR/MOTOTRBO so
 those are the defaults.
 
-    * You may need to use the `-x` option to select non-inverted polarity if 
+    * You may need to use the `-x` option to select non-inverted polarity if
     you are not getting usable X2-TDMA/MOTOTRBO/DMR speech.  As they use both
     normal and inverted sync it is not possible to detect polariy
     automatically.
@@ -230,7 +230,7 @@ bit System ID used in non-P25 trunking control channels.
 frame subtype within DSD.
 
 * "e:" is the beginning of the errorbars display.  Each "=" indicates a
-detected error within the voice data.  "R" and "M" indicat that a voice 
+detected error within the voice data.  "R" and "M" indicat that a voice
 frame was repeated or muted due to excessive errors.
 
 * Values in parentheses () indicate an assumption (soft decision) was
@@ -261,7 +261,7 @@ Datascope mode output looks like this:
 Demod mode:     C4FM                Nac:                      8C3
 Frame Type:     P25 Phase 1         Talkgroup:              16528
 Frame Subtype:  LDU1                Source:                     0
-TDMA activity:   slot0   slot1      Voice errors: 
+TDMA activity:   slot0   slot1      Voice errors:
 +----------------------------------------------------------------+
 |                   #    ^      !|      ^   #                    |
 |                    *           |          *                    |
@@ -280,7 +280,7 @@ TDMA activity:   slot0   slot1      Voice errors:
 Demod mode:     C4FM                Nac:                      126
 Frame Type:     P25 Phase 1         Talkgroup:              25283
 Frame Subtype:  LDU2                Source:                     0
-TDMA activity:   slot0   slot1      Voice errors: 
+TDMA activity:   slot0   slot1      Voice errors:
 +----------------------------------------------------------------+
 |            #      ^            !            ^       #          |
 |                          *     |                               |
@@ -298,7 +298,7 @@ TDMA activity:   slot0   slot1      Voice errors:
 
 At the top is various information about the signal, similar to the
 information provided in Errorbars mode.  The large box is similar to
-a spectrum analyzer viewing the channel bandwidth.  
+a spectrum analyzer viewing the channel bandwidth.
 
 The horizontal axis is the input audio level, minimum on the left and
 maximum on the right.   The vertical axis is the number of samples
@@ -310,9 +310,9 @@ samples that were at each level during the aggregation period.
 as well as the QPSK tracking symbol buffer, so changing that will affect
 QPSK performance as well as the Datascope display.
 
-As you can see from the figures above, clean C4FM signals tend to have 
+As you can see from the figures above, clean C4FM signals tend to have
 four very sharply defined audio levels.  The datascope pattern also
-tends to be faily stable with minor shifts left and right as the 
+tends to be faily stable with minor shifts left and right as the
 receiver tries to frequency track any DC offset.
 
 QPSK signals on the other hand tend to appear much broader (and artifact
@@ -321,7 +321,7 @@ to vary wildly in width and centering.  This is especially true when
 monitoring simulcast systems. Muliple QPSK signals interfere much more
 dramatically with an FM discriminator than C4FM signals.
 
-    For this reason it is important to isolate your receiver to one 
+    For this reason it is important to isolate your receiver to one
     transmitter tower, _especially_ for QPSK signals.
 
     The "#" symbols indicate the detected min/max values that are used
@@ -330,7 +330,7 @@ dramatically with an FM discriminator than C4FM signals.
 
 ### Display Options
 
-There are several options to control the type and quantity of 
+There are several options to control the type and quantity of
 information displayed in Errorbars mode:
 
 ````
@@ -408,7 +408,7 @@ Symbol Timing:
 QPSK example
 ````
 
-Symbol timing is only displayed for symbols during the frame sync 
+Symbol timing is only displayed for symbols during the frame sync
 period.  Each horizontal line represents the 10 audio samples for each
 symbol.  "-" indicates an audio sample below the center reference level
 and "+" represents a sample above center.  "X" indicates a low spike
@@ -449,9 +449,9 @@ output to a .wav file).
 If the audio in device is the same as the audio out device, the
 synthesized speech has to be upsampled to the 48k sample rate required
 for input.  A fast upsample function is provided but still leaves some
-artifacts.  
+artifacts.
 
-    The best sound and minimum cpu usage is achieved with separate sound 
+    The best sound and minimum cpu usage is achieved with separate sound
     cards for input and output
 
 If you specify different input/output devices DSD will use 8k as the
@@ -495,10 +495,12 @@ rate and serial port device if necessary.
 -fp           Decode only ProVoice*
 -fr           Decode only DMR/MOTOTRBO
 -fx           Decode only X2-TDMA
+-l            Disable Filters (not recommended)
 -ma           Auto-select modulation optimizations (default)
 -mc           Use only C4FM modulation optimizations
 -mg           Use only GFSK modulation optimizations
 -mq           Use only QPSK modulation optimizations
+-pu           Unmute Encrypted P25
 -u <num>      Unvoiced speech quality (default=3)
 -xx           Expect non-inverted X2-TDMA signal
 -xr           Expect inverted DMR/MOTOTRBO signal
@@ -506,14 +508,14 @@ rate and serial port device if necessary.
 \* denotes frame types that cannot be auto-detected.
 
 ProVoice and NXDN48 not auto-detected as use different symbol
-rates (9600 and 2400) than most formats (4800).  
+rates (9600 and 2400) than most formats (4800).
 
 MBE speech synthesis is broken down into two main types of sounds,
 "Voiced" and "Unvoiced".  Voiced speech bands are synthesized with
 a single sine wave centered in the frequency band with the appropriate
 phase and amplitude.
 
-Unvoiced speech is supposed to be generated with a noise source, 256 
+Unvoiced speech is supposed to be generated with a noise source, 256
 point DFT a number of band filters, followed by a 256 point inverse DFT.
 For computational simplicity mbelib uses a different method.  For each
 unvoiced speech band, a number of sine waves are generated, each with a
@@ -524,7 +526,7 @@ bands is 56, and very low frequencies are not synthesized.  Values less
 than 3 have a noticable lack of unvoiced speech and/or artifacts.  The
 defualt of 3 provides good speech quality with reasonable cpu use.
 Increasing the quality above the default rapidly consumes more CPU for
-increasingly diminishing returns.  
+increasingly diminishing returns.
 
 
 #### Advanced decoder options
@@ -541,13 +543,13 @@ increasingly diminishing returns.
 Decryption of speech is **NOT** supported, even if you lawfully posess the
 encryption keys.  Decryption support will not be added in the future as
 the authors wish to steer as far away from the legal issues associated
-with encryption as possible.  
+with encryption as possible.
 
 
-    We realize that there are many legitemate and lawful uses of decryption 
+    We realize that there are many legitemate and lawful uses of decryption
     software including system/interoperability testing and lawful monitoring.
-    This software is distributed under a liberal BSD license so there is 
-    nothing to stop others from supplying patches, forking this project or 
+    This software is distributed under a liberal BSD license so there is
+    nothing to stop others from supplying patches, forking this project or
     incorporating it into a commercial product and adding decryption support.
 
     There is support for displaying the encryption sync bits transmitted in
