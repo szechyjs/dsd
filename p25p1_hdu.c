@@ -22,7 +22,7 @@ processHDU (dsd_opts * opts, dsd_state * state)
 {
 
   char mi[73], mfid[9], algid[9], kid[17], tgid[17], tmpstr[255];
-  int dibit, count, i, j;
+  int dibit, i, j;
   long talkgroup;
   int algidhex, kidhex;
 
@@ -32,8 +32,7 @@ processHDU (dsd_opts * opts, dsd_state * state)
   kid[16] = 0;
   tgid[16] = 0;
 
-  skipDibit (opts, state, 25);
-  count = 57;
+  // Now processing NID
 
   dibit = getDibit (opts, state);
   mi[0] = (1 & (dibit >> 1)) + 48;      // bit 1

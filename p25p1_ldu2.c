@@ -21,8 +21,8 @@
 void
 processLDU2 (dsd_opts * opts, dsd_state * state)
 {
-  // extracts IMBE frames rom LDU frame
-  int i, j, k, dibit, stats, count, scount;
+  // extracts IMBE frames from LDU frame
+  int i, j, k, dibit, stats, scount;
   char imbe_fr[8][23];
   char mi[73], algid[9], kid[17], lsd3[9], lsd4[9], status[25];
   const int *w, *x, *y, *z;
@@ -35,12 +35,9 @@ processLDU2 (dsd_opts * opts, dsd_state * state)
   lsd3[8] = 0;
   lsd4[8] = 0;
 
-  skipDibit (opts, state, 3);
-  status[0] = getDibit (opts, state) + 48;
-  skipDibit (opts, state, 21);
+  // Now processing NID
+  status[0] = 0;
   scount = 1;
-
-  count = 57;
 
   if (opts->errorbars == 1)
     {
@@ -65,14 +62,12 @@ processLDU2 (dsd_opts * opts, dsd_state * state)
               status[scount] = getDibit (opts, state) + 48;
               scount++;
               stats = 1;
-              count++;
             }
           else
             {
               stats++;
             }
           dibit = getDibit (opts, state);
-          count++;
           imbe_fr[*w][*x] = (1 & (dibit >> 1)); // bit 1
           imbe_fr[*y][*z] = (1 & dibit);        // bit 0
           w++;
@@ -106,7 +101,6 @@ processLDU2 (dsd_opts * opts, dsd_state * state)
             {
               status[scount] = getDibit (opts, state) + 48;
               scount++;
-              count++;
               stats = 1;
             }
           else
@@ -114,7 +108,6 @@ processLDU2 (dsd_opts * opts, dsd_state * state)
               stats++;
             }
           skipDibit (opts, state, 1);
-          count++;
         }
 
       if (i == 1)

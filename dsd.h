@@ -168,6 +168,10 @@ typedef struct
   mbe_parms *prev_mp;
   mbe_parms *prev_mp_enhanced;
   int p25kid;
+
+  unsigned int debug_audio_errors;
+  unsigned int debug_header_errors;
+
 } dsd_state;
 
 /*

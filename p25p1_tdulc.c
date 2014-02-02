@@ -22,14 +22,13 @@ processTDULC (dsd_opts * opts, dsd_state * state)
 {
 
   char lcinfo[57], lcformat[9], mfid[9];
-  int dibit, count;
+  int dibit;
 
   lcformat[8] = 0;
   mfid[8] = 0;
   lcinfo[56] = 0;
 
-  skipDibit (opts, state, 25);
-  count = 57;
+  // Now processing NID
 
   dibit = getDibit (opts, state);
   lcformat[0] = (1 & (dibit >> 1)) + 48;        // bit 1

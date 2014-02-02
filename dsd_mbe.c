@@ -43,7 +43,7 @@ playMbeFiles (dsd_opts * opts, dsd_state * state, int argc, char **argv)
                   writeSynthesizedVoice (opts, state);
                 }
 
-              if (opts->audio_out != 1)
+              if (opts->audio_out == 1)
                 {
                   playSynthesizedVoice (opts, state);
                 }
@@ -103,13 +103,13 @@ processMbeFrame (dsd_opts * opts, dsd_state * state, char imbe_fr[8][23], char a
         }
     }
   else if ((state->synctype == 6) || (state->synctype == 7))
-  	  {
-	     mbe_processAmbe3600x2400Framef (state->audio_out_temp_buf, &state->errs, &state->errs2, state->err_str, ambe_fr, ambe_d, state->cur_mp, state->prev_mp, state->prev_mp_enhanced, opts->uvquality);
-	     if (opts->mbe_out_f != NULL)
-	        {
-	          saveAmbe2450Data (opts, state, ambe_d);
-	        }
-	}
+    {
+      mbe_processAmbe3600x2400Framef (state->audio_out_temp_buf, &state->errs, &state->errs2, state->err_str, ambe_fr, ambe_d, state->cur_mp, state->prev_mp, state->prev_mp_enhanced, opts->uvquality);
+      if (opts->mbe_out_f != NULL)
+        {
+          saveAmbe2450Data (opts, state, ambe_d);
+        }
+    }
   else
     {
       mbe_processAmbe3600x2450Framef (state->audio_out_temp_buf, &state->errs, &state->errs2, state->err_str, ambe_fr, ambe_d, state->cur_mp, state->prev_mp, state->prev_mp_enhanced, opts->uvquality);
@@ -133,6 +133,8 @@ processMbeFrame (dsd_opts * opts, dsd_state * state, char imbe_fr[8][23], char a
     {
       printf ("%s", state->err_str);
     }
+
+  state->debug_audio_errors += state->errs2;
 
   processAudio (opts, state);
   if (opts->wav_out_f != NULL)
