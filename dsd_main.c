@@ -220,6 +220,10 @@ initState (dsd_state * state)
   state->prev_mp_enhanced = malloc (sizeof (mbe_parms));
   mbe_initMbeParms (state->cur_mp, state->prev_mp, state->prev_mp_enhanced);
   state->p25kid = 0;
+
+  state->debug_audio_errors = 0;
+  state->debug_header_errors = 0;
+  state->debug_header_critical_errors = 0;
 }
 
 void
@@ -318,6 +322,12 @@ cleanupAndExit (dsd_opts * opts, dsd_state * state)
     {
       closeWavOutFile (opts, state);
     }
+
+  printf("\n");
+  printf("Total audio errors: %i\n", state->debug_audio_errors);
+  printf("Total header errors: %i\n", state->debug_header_errors);
+  printf("Total irrecoverable header errors: %i\n", state->debug_header_critical_errors);
+
   printf ("Exiting.\n");
   exit (0);
 }
@@ -325,8 +335,8 @@ cleanupAndExit (dsd_opts * opts, dsd_state * state)
 void
 sigfun (int sig)
 {
-  exitflag = 1;
-  signal (SIGINT, SIG_DFL);
+    exitflag = 1;
+    signal (SIGINT, SIG_DFL);
 }
 
 int
@@ -381,7 +391,7 @@ main (int argc, char **argv)
             }
           else if (optarg[0] == 'u')
             {
-        	  opts.unmute_encrypted_p25 = 1;
+             opts.unmute_encrypted_p25 = 1;
             }
           break;
         case 'q':
@@ -688,24 +698,28 @@ main (int argc, char **argv)
       opts.split = 1;
       opts.playoffset = 0;
       opts.delay = 0;
-      if(strlen(opts.wav_out_file) > 0) {
-        openWavOutFile (&opts, &state);
-      }
-      else {
-        openAudioOutDevice (&opts, 8000);
-      }
+      if (strlen(opts.wav_out_file) > 0)
+        {
+          openWavOutFile (&opts, &state);
+        }
+      else
+        {
+          openAudioOutDevice (&opts, 8000);
+        }
     }
   else if (strcmp (opts.audio_in_dev, opts.audio_out_dev) != 0)
     {
       opts.split = 1;
       opts.playoffset = 0;
       opts.delay = 0;
-      if(strlen(opts.wav_out_file) > 0) {
-        openWavOutFile (&opts, &state);
-      }
-      else {
-        openAudioOutDevice (&opts, 8000);
-      }
+      if (strlen(opts.wav_out_file) > 0)
+        {
+          openWavOutFile (&opts, &state);
+        }
+      else
+        {
+          openAudioOutDevice (&opts, 8000);
+        }
       openAudioInDevice (&opts);
     }
   else
@@ -723,7 +737,7 @@ main (int argc, char **argv)
     }
   else
     {
-      liveScanner (&opts, &state);
+        liveScanner (&opts, &state);
     }
   cleanupAndExit (&opts, &state);
   return (0);

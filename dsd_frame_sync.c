@@ -53,7 +53,7 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
    * 7 = -D-STAR
    * 8 = +NXDN (non inverted voice frame)
    * 9 = -NXDN (inverted voice frame)
-   * 10 = +DMR (non inverted singlan data frame)
+   * 10 = +DMR (non inverted signal data frame)
    * 11 = -DMR (inverted signal voice frame)
    * 12 = +DMR (non inverted signal voice frame)
    * 13 = -DMR (inverted signal data frame)
@@ -64,6 +64,7 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
    * 18 = +D-STAR_HD
    * 19 = -D-STAR_HD
    */
+
 
   int i, j, t, o, dibit, sync, symbol, synctest_pos, lastt;
   char synctest[25];
@@ -104,6 +105,7 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
     {
       t++;
       symbol = getSymbol (opts, state, 0);
+
       lbuf[lidx] = symbol;
       state->sbuf[state->sidx] = symbol;
       if (lidx == 23)
@@ -164,13 +166,13 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
         {
           *state->dibit_buf_p = 1;
           state->dibit_buf_p++;
-          dibit = 49;
+          dibit = 49;               // '1'
         }
       else
         {
           *state->dibit_buf_p = 3;
           state->dibit_buf_p++;
-          dibit = 51;
+          dibit = 51;               // '3'
         }
 
       *synctest_p = dibit;
@@ -673,33 +675,33 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                   return (7);
                 }
               if (strcmp (synctest, DSTAR_HD) == 0)
-				  {
-					state->carrier = 1;
-					state->offset = synctest_pos;
-					state->max = ((state->max) + lmax) / 2;
-					state->min = ((state->min) + lmin) / 2;
-					sprintf (state->ftype, " D-STAR_HD   ");
-					if (opts->errorbars == 1)
-					  {
-						printFrameSync (opts, state, " +D-STAR_HD   ", synctest_pos + 1, modulation);
-					  }
-					state->lastsynctype = 18;
-					return (18);
-				  }
+                 {
+                   state->carrier = 1;
+                   state->offset = synctest_pos;
+                   state->max = ((state->max) + lmax) / 2;
+                   state->min = ((state->min) + lmin) / 2;
+                   sprintf (state->ftype, " D-STAR_HD   ");
+                   if (opts->errorbars == 1)
+                     {
+                       printFrameSync (opts, state, " +D-STAR_HD   ", synctest_pos + 1, modulation);
+                     }
+                   state->lastsynctype = 18;
+                   return (18);
+                 }
               if (strcmp (synctest, INV_DSTAR_HD) == 0)
-				  {
-					state->carrier = 1;
-					state->offset = synctest_pos;
-					state->max = ((state->max) + lmax) / 2;
-					state->min = ((state->min) + lmin) / 2;
-					sprintf (state->ftype, " D-STAR_HD   ");
-					if (opts->errorbars == 1)
-					  {
-						printFrameSync (opts, state, " -D-STAR_HD   ", synctest_pos + 1, modulation);
-					  }
-					state->lastsynctype = 19;
-					return (19);
-				  }
+                {
+                   state->carrier = 1;
+                   state->offset = synctest_pos;
+                   state->max = ((state->max) + lmax) / 2;
+                   state->min = ((state->min) + lmin) / 2;
+                   sprintf (state->ftype, " D-STAR_HD   ");
+                   if (opts->errorbars == 1)
+                     {
+                       printFrameSync (opts, state, " -D-STAR_HD   ", synctest_pos + 1, modulation);
+                     }
+                   state->lastsynctype = 19;
+                   return (19);
+                 }
 
             }
 

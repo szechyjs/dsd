@@ -20,6 +20,8 @@
 #define NULL 0
 #endif
 
+#include "p25p1_check_nid.h"
+
 void
 printFrameInfo (dsd_opts * opts, dsd_state * state)
 {
@@ -52,6 +54,16 @@ processFrame (dsd_opts * opts, dsd_state * state)
   char nac[13];
   int level;
 
+  char status_0, status_1;
+  char bch_code[63];
+  int index_bch_code;
+  unsigned char parity;
+  char v;
+  int new_nac;
+  char new_duid[3];
+  int check_result;
+
+  nac[12] = 0;
   duid[2] = 0;
   j = 0;
 
@@ -234,26 +246,92 @@ processFrame (dsd_opts * opts, dsd_state * state)
     }
   else
     {
+      // Read the NAC, 12 bits
       j = 0;
+      index_bch_code = 0;
       for (i = 0; i < 6; i++)
         {
           dibit = getDibit (opts, state);
-          nac[j] = (1 & (dibit >> 1)) + 48;     // bit 1
+
+          v = 1 & (dibit >> 1); // bit 1
+          nac[j] = v + 48;
           j++;
-          nac[j] = (1 & dibit) + 48;    // bit 0
+          bch_code[index_bch_code] = v;
+          index_bch_code++;
+
+          v = 1 & dibit;        // bit 0
+          nac[j] = v + 48;
           j++;
+          bch_code[index_bch_code] = v;
+          index_bch_code++;
         }
-      nac[12] = 0;
       state->nac = strtol (nac, NULL, 2);
 
+      // Read the DUID, 4 bits
       for (i = 0; i < 2; i++)
         {
-          duid[i] = getDibit (opts, state) + 48;
+          dibit = getDibit (opts, state);
+          duid[i] = dibit + 48;
+
+          bch_code[index_bch_code] = 1 & (dibit >> 1);  // bit 1
+          index_bch_code++;
+          bch_code[index_bch_code] = 1 & dibit;         // bit 0
+          index_bch_code++;
         }
+
+      // Read the BCH data for error correction of NAC and DUID
+      for (i = 0; i < 3; i++)
+        {
+          dibit = getDibit (opts, state);
+
+          bch_code[index_bch_code] = 1 & (dibit >> 1);  // bit 1
+          index_bch_code++;
+          bch_code[index_bch_code] = 1 & dibit;         // bit 0
+          index_bch_code++;
+        }
+      status_0 = getDibit (opts, state) + 48;
+      for (i = 0; i < 20; i++)
+        {
+          dibit = getDibit (opts, state);
+
+          bch_code[index_bch_code] = 1 & (dibit >> 1);  // bit 1
+          index_bch_code++;
+          bch_code[index_bch_code] = 1 & dibit;         // bit 0
+          index_bch_code++;
+        }
+
+      // Read the parity bit
+      dibit = getDibit (opts, state);
+      bch_code[index_bch_code] = 1 & (dibit >> 1);      // bit 1
+      parity = (1 & dibit);     // bit 0
+
+      // Check if the NID is correct
+      check_result = check_NID (bch_code, &new_nac, new_duid, parity);
+      if (check_result) {
+          if (new_nac != state->nac) {
+              // NAC fixed by error correction
+              state->nac = new_nac;
+              state->debug_header_errors++;
+          }
+          if (strcmp(new_duid, duid) != 0) {
+              // DUID fixed by error correction
+              //printf("Fixing DUID %s -> %s\n", duid, new_duid);
+              duid[0] = new_duid[0];
+              duid[1] = new_duid[1];
+              state->debug_header_errors++;
+          }
+      } else {
+          // Check of NID failed and unable to recover its value
+          //printf("NID error\n");
+          duid[0] = 'E';
+          duid[1] = 'E';
+          state->debug_header_critical_errors ++;
+      }
     }
 
   if (strcmp (duid, "00") == 0)
     {
+      // Header Data Unit
       if (opts->errorbars == 1)
         {
           printFrameInfo (opts, state);
@@ -271,6 +349,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
     }
   else if (strcmp (duid, "11") == 0)
     {
+      // Logical Link Data Unit 1
       if (opts->errorbars == 1)
         {
           printFrameInfo (opts, state);
@@ -290,6 +369,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
     }
   else if (strcmp (duid, "22") == 0)
     {
+      // Logical Link Data Unit 2
       if (state->lastp25type != 1)
         {
           if (opts->errorbars == 1)
@@ -322,6 +402,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
     }
   else if (strcmp (duid, "33") == 0)
     {
+      // Terminator with subsequent Link Control
       if (opts->errorbars == 1)
         {
           printFrameInfo (opts, state);
@@ -347,6 +428,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
     }
   else if (strcmp (duid, "03") == 0)
     {
+      // Terminator without subsequent Link Control
       if (opts->errorbars == 1)
         {
           printFrameInfo (opts, state);
@@ -362,7 +444,11 @@ processFrame (dsd_opts * opts, dsd_state * state)
       state->lastp25type = 0;
       state->err_str[0] = 0;
       sprintf (state->fsubtype, " TDU          ");
-      skipDibit (opts, state, 40);
+
+      // Now processing NID
+
+      skipDibit (opts, state, 14);    // 28 null bits
+      status_1 = getDibit (opts, state) + 48;
     }
   else if (strcmp (duid, "13") == 0)
     {
@@ -379,7 +465,10 @@ processFrame (dsd_opts * opts, dsd_state * state)
       state->lastsrc = 0;
       state->lastp25type = 3;
       sprintf (state->fsubtype, " TSDU         ");
-      skipDibit (opts, state, 328);
+
+      // Now processing NID
+
+      skipDibit (opts, state, 328-25);
     }
   else if (strcmp (duid, "30") == 0)
     {
@@ -417,7 +506,9 @@ processFrame (dsd_opts * opts, dsd_state * state)
               openMbeOutFile (opts, state);
             }
         }
-      state->lastp25type = 0;
+      //state->lastp25type = 0;
+      // Guess that the state is LDU2
+      state->lastp25type = 2;
       sprintf (state->fsubtype, "(LDU2)        ");
       state->numtdulc = 0;
       processLDU2 (opts, state);
@@ -436,7 +527,9 @@ processFrame (dsd_opts * opts, dsd_state * state)
               openMbeOutFile (opts, state);
             }
         }
-      state->lastp25type = 0;
+      //state->lastp25type = 0;
+      // Guess that the state is LDU1
+      state->lastp25type = 1;
       sprintf (state->fsubtype, "(LDU1)        ");
       state->numtdulc = 0;
       processLDU1 (opts, state);
@@ -448,9 +541,14 @@ processFrame (dsd_opts * opts, dsd_state * state)
           printFrameInfo (opts, state);
           printf (" (TSDU)\n");
         }
-      state->lastp25type = 0;
+      //state->lastp25type = 0;
+      // Guess that the state is TSDU
+      state->lastp25type = 3;
       sprintf (state->fsubtype, "(TSDU)        ");
-      skipDibit (opts, state, 328);
+
+      // Now processing NID
+
+      skipDibit (opts, state, 328-25);
     }
   else if (state->lastp25type == 4)
     {
