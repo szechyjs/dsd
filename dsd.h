@@ -171,6 +171,7 @@ typedef struct
 
   unsigned int debug_audio_errors;
   unsigned int debug_header_errors;
+  unsigned int debug_header_critical_errors;
 
 } dsd_state;
 

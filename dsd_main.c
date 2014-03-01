@@ -223,6 +223,7 @@ initState (dsd_state * state)
 
   state->debug_audio_errors = 0;
   state->debug_header_errors = 0;
+  state->debug_header_critical_errors = 0;
 }
 
 void
@@ -325,6 +326,7 @@ cleanupAndExit (dsd_opts * opts, dsd_state * state)
   printf("\n");
   printf("Total audio errors: %i\n", state->debug_audio_errors);
   printf("Total header errors: %i\n", state->debug_header_errors);
+  printf("Total irrecoverable header errors: %i\n", state->debug_header_critical_errors);
 
   printf ("Exiting.\n");
   exit (0);
