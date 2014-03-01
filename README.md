@@ -134,6 +134,7 @@ impact performance.
 * cmake
 * mbelib
 * sndfile
+* itpp (IT++) >= v4.3
 
 ### Example building instructions on Ubuntu:
 
