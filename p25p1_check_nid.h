@@ -1,5 +1,5 @@
-#ifndef __CHECK_NID_H__
-#define __CHECK_NID_H__
+#ifndef __P25P1_CHECK_NID_H__
+#define __P25P1_CHECK_NID_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,4 +21,4 @@ int check_NID(char* bch_code, int* new_nac, char* new_duid, unsigned char parity
 }
 #endif
 
-#endif // __CHECK_NID_H__
+#endif // __P25P1_CHECK_NID_H__
