@@ -3,3 +3,4 @@ dsd
 *.so*
 *.dylib
 build
+.DS_Store
