@@ -80,12 +80,12 @@ static void
 correct_hex_word (dsd_state* state, char* hex, char* parity)
 {
   int fixed_errors;
-  int unrecoverable_errors;
+  int irrecoverable_errors;
 
-  unrecoverable_errors = check_and_fix_golay24(hex, parity, &fixed_errors);
+  irrecoverable_errors = check_and_fix_golay24(hex, parity, &fixed_errors);
 
   state->debug_header_errors += fixed_errors;
-  if (unrecoverable_errors != 0)
+  if (irrecoverable_errors != 0)
     {
       state->debug_header_critical_errors++;
     }
@@ -120,6 +120,7 @@ processHDU (dsd_opts * opts, dsd_state * state)
   char parity[12];
   int status_count;
   int status;
+  int irrecoverable_errors;
 
   char hex_data[20][6];    // Data in hex-words (6 bit words). A total of 20 hex words.
   char hex_parity[16][6];  // Parity of the data, again in hex-word format. A total of 16 parity hex words.
@@ -150,7 +151,11 @@ processHDU (dsd_opts * opts, dsd_state * state)
     }
 
   // Use the Reed-Solomon algorithm to correct the data. hex_data is modified in place
-  check_and_fix_redsolomon63((char*)hex_data, (char*)hex_parity);
+  irrecoverable_errors = check_and_fix_redsolomon63((char*)hex_data, (char*)hex_parity);
+  if (irrecoverable_errors != 0)
+    {
+      state->debug_header_critical_errors++;
+    }
 
   mi[72] = 0;
   mfid[8] = 0;
