@@ -15,11 +15,12 @@ extern "C" {
 int check_and_fix_golay24(char* hex, char* parity, int* fixed_errors);
 
 /**
- * Attempts to correct 20 hex words using the Reed-Solomon(63,20,17) FEC.
+ * Attempts to correct 20 hex words using the Reed-Solomon(36,20,17) FEC.
  * \param data The packed hex words, each of 6 chars, one after the other.
  * \param parity The corresponding 16 hex words with the parity information.
+ * \return 1 if irrecoverable errors have been detected, 0 otherwise.
  */
-void check_and_fix_redsolomon63(char* data, char* parity);
+int check_and_fix_redsolomon_36_20_17(char* data, char* parity);
 
 #ifdef __cplusplus
 }

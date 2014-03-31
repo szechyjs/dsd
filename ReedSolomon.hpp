@@ -61,16 +61,18 @@
 
 // Constants to adapt the code to DSD/P25 needs
 
-#define mm  6           /* RS code over GF(2**4) - change to suit */
-#define nn  63          /* nn=2**mm -1   length of codeword */
-#define tt  8           /* number of errors that can be corrected */
-#define kk  47          /* kk = nn-2*tt  */
-// distance = nn-kk+1 = 63-47+1 = 17
-
-class ReedSolomon_63_47_17
+class ReedSolomon_63
 {
 private:
-    int alpha_to[nn + 1], index_of[nn + 1], gg[nn - kk + 1];
+    static const int mm = 6;             /* RS code over GF(2**mm) */
+    static const int nn = 63;            /* nn=2**mm -1   length of codeword */
+    int tt;             /* number of errors that can be corrected */
+    int kk;             /* kk = nn-2*tt  */
+    // distance = nn-kk+1 = 2*tt+1
+
+    int* alpha_to;
+    int* index_of;
+    int* gg;
 
     void generate_gf(int* generator_polinomial)
     /* generate GF(2**mm) from the irreducible polynomial p(X) in pp[0]..pp[mm]
@@ -126,13 +128,28 @@ private:
     }
 
 public:
-    ReedSolomon_63_47_17()
+    ReedSolomon_63(int a_tt)
     {
+        tt = a_tt;        /* number of errors that can be corrected */
+        kk = nn-2*tt;
+
+        alpha_to = new int[nn + 1];
+        index_of = new int[nn + 1];
+        gg       = new int[nn - kk + 1];
+
         // Polynom used in P25 is alpha**6+alpha+1
-        int generator_polinomial[mm + 1] = { 1, 1, 0, 0, 0, 0, 1 }; /* specify irreducible polynomial coeffts */
+        int generator_polinomial[] = { 1, 1, 0, 0, 0, 0, 1 }; /* specify irreducible polynomial coeffts */
+
         generate_gf(generator_polinomial);
 
         gen_poly();
+    }
+
+    virtual ~ReedSolomon_63()
+    {
+        delete[] gg;
+        delete[] index_of;
+        delete[] alpha_to;
     }
 
     void encode(int* data, int* bb)
@@ -165,7 +182,7 @@ public:
         }
     }
 
-    void decode(const int* input, int* recd)
+    int decode(const int* input, int* recd)
     /* assume we have received bits grouped into mm-bit symbols in recd[i],
      i=0..(nn-1),  and recd[i] is polynomial form.
      We first compute the 2*tt syndromes by substituting alpha**i into rec(X) and
@@ -190,6 +207,8 @@ public:
                 + 2], s[nn - kk + 1];
         int count = 0, syn_error = 0, root[tt], loc[tt], z[tt + 1], err[nn], reg[tt
                 + 1];
+
+        int irrecoverable_error = 0;
 
         for (int i = 0; i < nn; i++)
             recd[i] = index_of[input[i]]; /* put recd[i] into index form (ie as powers of alpha) */
@@ -315,6 +334,7 @@ public:
                         count++;
                     };
                 };
+
                 if (count == l[u]) /* no. roots = degree of elp hence <= tt errors */
                 {
                     /* form polynomial z(x) */
@@ -360,37 +380,37 @@ public:
                             recd[loc[i]] ^= err[loc[i]]; /*recd[i] must be in polynomial form */
                         }
                     }
-                } else
+                } else {
                     /* no. roots != degree of elp => >tt errors and cannot solve */
-                    for (i = 0; i < nn; i++) /* could return error flag if desired */
-                        if (recd[i] != -1) /* convert recd[] to polynomial form */
-                            recd[i] = alpha_to[recd[i]];
-                        else
-                            recd[i] = 0; /* just output received codeword as is */
-            } else
-                /* elp has degree has degree >tt hence cannot solve */
-                for (i = 0; i < nn; i++) /* could return error flag if desired */
-                    if (recd[i] != -1) /* convert recd[] to polynomial form */
-                        recd[i] = alpha_to[recd[i]];
-                    else
-                        recd[i] = 0; /* just output received codeword as is */
-        } else
+                    irrecoverable_error = 1;
+                }
+
+            } else {
+                /* elp has degree >tt hence cannot solve */
+                irrecoverable_error = 1;
+            }
+
+        } else {
             /* no non-zero syndromes => no errors: output received codeword */
             for (i = 0; i < nn; i++)
                 if (recd[i] != -1) /* convert recd[] to polynomial form */
                     recd[i] = alpha_to[recd[i]];
                 else
                     recd[i] = 0;
-    }
-};
+        }
 
-/**
- * Convenience class that does a Reed-Solomon (63,20,17) error correction adapting input and output to
- * the DSD data format: hex words packed as char arrays.
- */
-class DSDReedSolomon_63_20_17 : public ReedSolomon_63_47_17
-{
-private:
+        if (irrecoverable_error) {
+            for (i = 0; i < nn; i++) /* could return error flag if desired */
+                if (recd[i] != -1) /* convert recd[] to polynomial form */
+                    recd[i] = alpha_to[recd[i]];
+                else
+                    recd[i] = 0; /* just output received codeword as is */
+        }
+
+        return irrecoverable_error;
+    }
+
+protected:
     int bin_to_hex(char* input)
     {
         int output = ((input[0] != 0)? 32 : 0) |
@@ -412,20 +432,35 @@ private:
         output[4] = ((input &  2) != 0)?  1 : 0;
         output[5] = ((input &  1) != 0)?  1 : 0;
     }
+};
 
+/**
+ * Convenience class that does a Reed-Solomon (36,20,17) error correction adapting input and output to
+ * the DSD data format: hex words packed as char arrays.
+ */
+class DSDReedSolomon_36_20_17 : public ReedSolomon_63
+{
 public:
+    // tt = (dd-1)/2
+    // dd = 17 --> tt = 8
+    DSDReedSolomon_36_20_17() : ReedSolomon_63(8)
+    {
+        // Does nothing
+    }
+
     /**
      * Does a Reed-Solomon decode adapting the input and output to the expected DSD data format.
      * \param hex_data Data packed bits, originally a char[20][6], so containing 20 hex works, each char
      *                 is a bit.
      * \param hex_parity Parity packed bits, originally a char[16][6], 16 hex words.
+     * \return 1 if irrecoverable errors have been detected, 0 otherwise.
      */
-    void decode(char* hex_data, char* hex_parity)
+    int decode(char* hex_data, char* hex_parity)
     {
         int input[63];
         int output[63];
 
-        // First put the parity data, 16
+        // First put the parity data, 16 hex words
         for(unsigned int i=0; i<16; i++) {
             input[i] = bin_to_hex(hex_parity + i*6);
         }
@@ -436,18 +471,128 @@ public:
         }
 
         // Fill up with zeros to complete the 47 expected hex words of data
-        for(unsigned int i=36; i<63; i++) {
+        for(unsigned int i=16+20; i<63; i++) {
             input[i] = 0;
         }
 
         // Now we can call decode on the base class
-        ReedSolomon_63_47_17::decode(input, output);
+        int irrecoverable_errors = ReedSolomon_63::decode(input, output);
 
         // Convert it back to binary and put it into hex_data. If decode failed we should have
         // the input unchanged.
         for(unsigned int i=16; i<16+20; i++) {
             hex_to_bin(output[i], hex_data + (i-16)*6);
         }
+
+        return irrecoverable_errors;
+    }
+};
+
+/**
+ * Convenience class that does a Reed-Solomon (24,12,13) error correction adapting input and output to
+ * the DSD data format: hex words packed as char arrays.
+ */
+class DSDReedSolomon_24_12_13 : public ReedSolomon_63
+{
+public:
+    // tt = (dd-1)/2
+    // dd = 13 --> tt = 6
+    DSDReedSolomon_24_12_13() : ReedSolomon_63(6)
+    {
+        // Does nothing
+    }
+
+    /**
+     * Does a Reed-Solomon decode adapting the input and output to the expected DSD data format.
+     * \param hex_data Data packed bits, originally a char[12][6], so containing 12 hex works, each char
+     *                 is a bit.
+     * \param hex_parity Parity packed bits, originally a char[12][6], 12 hex words.
+     * \return 1 if irrecoverable errors have been detected, 0 otherwise.
+     */
+    int decode(char* hex_data, char* hex_parity)
+    {
+        int input[63];
+        int output[63];
+
+        // First put the parity data, 12 hex words
+        for(unsigned int i=0; i<12; i++) {
+            input[i] = bin_to_hex(hex_parity + i*6);
+        }
+
+        // Then the 12 hex words of data
+        for(unsigned int i=12; i<12+12; i++) {
+            input[i] = bin_to_hex(hex_data + (i-12)*6);
+        }
+
+        // Fill up with zeros to complete the 51 expected hex words of data
+        for(unsigned int i=12+12; i<63; i++) {
+            input[i] = 0;
+        }
+
+        // Now we can call decode on the base class
+        int irrecoverable_errors = ReedSolomon_63::decode(input, output);
+
+        // Convert it back to binary and put it into hex_data. If decode failed we should have
+        // the input unchanged.
+        for(unsigned int i=12; i<12+12; i++) {
+            hex_to_bin(output[i], hex_data + (i-12)*6);
+        }
+
+        return irrecoverable_errors;
+    }
+};
+
+/**
+ * Convenience class that does a Reed-Solomon (24,16,9) error correction adapting input and output to
+ * the DSD data format: hex words packed as char arrays.
+ */
+class DSDReedSolomon_24_16_9 : public ReedSolomon_63
+{
+public:
+    // tt = (dd-1)/2
+    // dd = 9 --> tt = 4
+    DSDReedSolomon_24_16_9() : ReedSolomon_63(4)
+    {
+        // Does nothing
+    }
+
+    /**
+     * Does a Reed-Solomon decode adapting the input and output to the expected DSD data format.
+     * \param hex_data Data packed bits, originally a char[16][6], so containing 16 hex works, each char
+     *                 is a bit.
+     * \param hex_parity Parity packed bits, originally a char[8][6], 8 hex words.
+     * \return 1 if irrecoverable errors have been detected, 0 otherwise.
+     */
+    int decode(char* hex_data, char* hex_parity)
+    {
+        int input[63];
+        int output[63];
+
+        // First put the parity data, 8 hex words
+        for(unsigned int i=0; i<8; i++) {
+            input[i] = bin_to_hex(hex_parity + i*6);
+        }
+
+        // Then the 16 hex words of data
+        for(unsigned int i=8; i<8+12; i++) {
+            input[i] = bin_to_hex(hex_data + (i-8)*6);
+        }
+
+        // Fill up with zeros to complete the 55 expected hex words of data
+        for(unsigned int i=8+12; i<63; i++) {
+            input[i] = 0;
+        }
+
+        // Now we can call decode on the base class
+        int irrecoverable_errors = ReedSolomon_63::decode(input, output);
+
+        // Convert it back to binary and put it into hex_data. If decode failed we should have
+        // the input unchanged.
+        for(unsigned int i=8; i<8+12; i++) {
+            hex_to_bin(output[i], hex_data + (i-8)*6);
+        }
+
+        return irrecoverable_errors;
     }
 };
 

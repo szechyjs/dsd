@@ -1,5 +1,10 @@
+/**
+ * Unit tests for the Golay24 implementation.
+ */
+
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
+
 #include "Golay24.hpp"
 
 class Golay24Test : public testing::Test

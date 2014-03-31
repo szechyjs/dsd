@@ -24,7 +24,7 @@
  * Read two bits from the stream of data. Takes into account the periodic occurrence of status bits.
  * Those are discarded.
  */
-static void
+void
 read_dibit (dsd_opts* opts, dsd_state* state, char* output, int* status_count)
 {
     int dibit;
@@ -47,7 +47,7 @@ read_dibit (dsd_opts* opts, dsd_state* state, char* output, int* status_count)
 /**
  * Read an hex word from the stream of data.
  */
-static void
+void
 read_hex (dsd_opts* opts, dsd_state* state, char* hex, int* status_count)
 {
   unsigned int i;
@@ -98,7 +98,6 @@ static void
 read_and_correct_hex_word (dsd_opts* opts, dsd_state* state, char* hex, int* status_count)
 {
   char parity[12];
-  unsigned int i;
 
   // Read the hex word
   read_hex (opts, state, hex, status_count);
@@ -111,19 +110,19 @@ read_and_correct_hex_word (dsd_opts* opts, dsd_state* state, char* hex, int* sta
 void
 processHDU (dsd_opts * opts, dsd_state * state)
 {
-
   char mi[73], mfid[9], algid[9], kid[17], tgid[17], tmpstr[255];
   int dibit, i, j;
   long talkgroup;
   int algidhex, kidhex;
   char hex[6];
-  char parity[12];
+
   int status_count;
   int status;
-  int irrecoverable_errors;
 
   char hex_data[20][6];    // Data in hex-words (6 bit words). A total of 20 hex words.
   char hex_parity[16][6];  // Parity of the data, again in hex-word format. A total of 16 parity hex words.
+
+  int irrecoverable_errors;
 
   status_count = 35 - 14;
 
@@ -151,7 +150,7 @@ processHDU (dsd_opts * opts, dsd_state * state)
     }
 
   // Use the Reed-Solomon algorithm to correct the data. hex_data is modified in place
-  irrecoverable_errors = check_and_fix_redsolomon63((char*)hex_data, (char*)hex_parity);
+  irrecoverable_errors = check_and_fix_redsolomon_36_20_17((char*)hex_data, (char*)hex_parity);
   if (irrecoverable_errors != 0)
     {
       state->debug_header_critical_errors++;
@@ -338,10 +337,10 @@ processHDU (dsd_opts * opts, dsd_state * state)
           tmpstr[j] = tgid[i];
           j++;
         }
-      tmpstr[12] = 48;
-      tmpstr[13] = 48;
-      tmpstr[14] = 48;
-      tmpstr[15] = 48;
+      tmpstr[12] = '0';
+      tmpstr[13] = '0';
+      tmpstr[14] = '0';
+      tmpstr[15] = '0';
     }
   else
     {
