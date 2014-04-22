@@ -1,3 +1,5 @@
+#ifndef DSD_H
+#define DSD_H
 /*
  * Copyright (C) 2010 DSD Author
  * GPG Key ID: 0x3F1D7FD0 (74EF 430D F7F2 0A48 FCE6  F630 FAA2 635D 3F1D 7FD0)
@@ -264,3 +266,5 @@ void processX2TDMAvoice (dsd_opts * opts, dsd_state * state);
 void processDSTAR_HD (dsd_opts * opts, dsd_state * state);
 short dmr_filter(short sample);
 short nxdn_filter(short sample);
+
+#endif

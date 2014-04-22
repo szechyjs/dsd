@@ -19,7 +19,7 @@ static void byte_to_binary(char* b, int x)
 
 TEST(ReedSolomonTest, Test1)
 {
-    ReedSolomon_63_47_17 rs;
+    ReedSolomon_63 rs(8);
     int recd[63] = {};
     int expected[63] = {};
     int output[63];
