@@ -3,12 +3,13 @@ project(dsdtest)
 add_subdirectory(gtest)
 add_subdirectory(gmock)
 
-FILE(GLOB SRCS *.cpp)
+FILE(GLOB SRCS *.cpp ${dsdtest_SOURCE_DIR}/../Hamming.cpp)
 
 include_directories(
     ${PROJECT_SOURCE_DIR}/gtest/include
     ${PROJECT_SOURCE_DIR}/gmock/include
-    ${dsd_SOURCE_DIR}
+    ${dsdtest_SOURCE_DIR}
+    ${dsdtest_SOURCE_DIR}/..
 )
 
 add_custom_target(test

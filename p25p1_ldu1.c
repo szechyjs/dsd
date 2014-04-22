@@ -18,265 +18,139 @@
 #include "dsd.h"
 #include "p25p1_const.h"
 
+#include "p25p1_ldu.h"
+#include "p25p1_check_ldu.h"
+
+
+
 void
-processLDU1 (dsd_opts * opts, dsd_state * state)
+processLDU1 (dsd_opts* opts, dsd_state* state)
 {
   // extracts IMBE frames from LDU frame
-  int i, j, k, dibit, stats, scount;
-  char imbe_fr[8][23];
-  char lcformat[9], mfid[9], lcinfo[57], lsd1[9], lsd2[9], status[25];
-  const int *w, *x, *y, *z;
+  int i, j, k, dibit;
+  char lcformat[9], mfid[9], lcinfo[57];
+  char lsd1[9], lsd2[9];
+
+  int status_count;
+
+  char hex_data[12][6];    // Data in hex-words (6 bit words). A total of 12 hex words.
+  char hex_parity[12][6];  // Parity of the data, again in hex-word format. A total of 12 parity hex words.
+
+  int irrecoverable_errors;
 
   lcformat[8] = 0;
   mfid[8] = 0;
   lcinfo[56] = 0;
   lsd1[8] = 0;
   lsd2[8] = 0;
-  status[24] = 0;
 
-  // Now processing NID
-  status[0] = 0;
-  scount = 1;
+  // we skip the status dibits that occur every 36 symbols
+  // the first IMBE frame starts 14 symbols before next status
+  // so we start counter at 22
+  status_count = 21;
 
   if (opts->errorbars == 1)
     {
       printf ("e:");
     }
 
-  // separate imbe frames and deinterleave
-  stats = 21;                   // we skip the status dibits that occur every 36 symbols
-  // the first IMBE frame starts 14 symbols before next status
-  // so we start counter at 22
-  for (i = 0; i < 9; i++)
-    {                           // 9 IMBE frames per LDU
-      w = iW;
-      x = iX;
-      y = iY;
-      z = iZ;
-      for (j = 0; j < 72; j++)
-        {
-          if (stats == 35)
-            {
-              status[scount] = getDibit (opts, state) + 48;
-              scount++;
-              stats = 1;
-            }
-          else
-            {
-              stats++;
-            }
-          dibit = getDibit (opts, state);
-          imbe_fr[*w][*x] = (1 & (dibit >> 1)); // bit 1
-          imbe_fr[*y][*z] = (1 & dibit);        // bit 0
-          w++;
-          x++;
-          y++;
-          z++;
-        }
-      if (state->p25kid == 0 || opts->unmute_encrypted_p25 == 1)
-        {
-          processMbeFrame (opts, state, imbe_fr, NULL, NULL);
-        }
+  // IMBE 1
+  process_IMBE (opts, state, &status_count);
 
-      // skip over non imbe data sometimes between frames
-      if ((i < 4) || (i == 8))
-        {
-          k = 0;
-        }
-      else if (i == 7)
-        {
-          //k=16;
-          k = 0;
-        }
-      else
-        {
-          k = 20;
-        }
-      for (j = 0; j < k; j++)
-        {
-          if (stats == 35)
-            {
-              status[scount] = getDibit (opts, state) + 48;
-              scount++;
-              stats = 1;
-            }
-          else
-            {
-              stats++;
-            }
-          skipDibit (opts, state, 1);
-        }
+  // IMBE 2
+  process_IMBE (opts, state, &status_count);
 
-      if (i == 1)
-        {
-          dibit = getDibit (opts, state);
-          lcformat[0] = (1 & (dibit >> 1)) + 48;        // bit 1
-          lcformat[1] = (1 & dibit) + 48;       // bit 0
-          dibit = getDibit (opts, state);
-          lcformat[2] = (1 & (dibit >> 1)) + 48;        // bit 1
-          lcformat[3] = (1 & dibit) + 48;       // bit 0
-          dibit = getDibit (opts, state);
-          lcformat[4] = (1 & (dibit >> 1)) + 48;        // bit 1
-          lcformat[5] = (1 & dibit) + 48;       // bit 0
-          skipDibit (opts, state, 2);
-          dibit = getDibit (opts, state);
-          lcformat[6] = (1 & (dibit >> 1)) + 48;        // bit 1
-          lcformat[7] = (1 & dibit) + 48;       // bit 0
-          dibit = getDibit (opts, state);
-          mfid[0] = (1 & (dibit >> 1)) + 48;    // bit 1
-          mfid[1] = (1 & dibit) + 48;   // bit 0
-          dibit = getDibit (opts, state);
-          mfid[2] = (1 & (dibit >> 1)) + 48;    // bit 1
-          mfid[3] = (1 & dibit) + 48;   // bit 0
-          skipDibit (opts, state, 2);
-          status[scount] = getDibit (opts, state) + 48;
-          scount++;
-          dibit = getDibit (opts, state);
-          mfid[4] = (1 & (dibit >> 1)) + 48;    // bit 1
-          mfid[5] = (1 & dibit) + 48;   // bit 0
-          dibit = getDibit (opts, state);
-          mfid[6] = (1 & (dibit >> 1)) + 48;    // bit 1
-          mfid[7] = (1 & dibit) + 48;   // bit 0
-          dibit = getDibit (opts, state);
-          lcinfo[0] = (1 & (dibit >> 1)) + 48;  // bit 1
-          lcinfo[1] = (1 & dibit) + 48; // bit 0
-          skipDibit (opts, state, 2);
-          dibit = getDibit (opts, state);
-          lcinfo[2] = (1 & (dibit >> 1)) + 48;  // bit 1
-          lcinfo[3] = (1 & dibit) + 48; // bit 0
-          dibit = getDibit (opts, state);
-          lcinfo[4] = (1 & (dibit >> 1)) + 48;  // bit 1
-          lcinfo[5] = (1 & dibit) + 48; // bit 0
-          dibit = getDibit (opts, state);
-          lcinfo[6] = (1 & (dibit >> 1)) + 48;  // bit 1
-          lcinfo[7] = (1 & dibit) + 48; // bit 0
-          skipDibit (opts, state, 2);
-          stats = 10;
-        }
-      else if (i == 2)
-        {
-          dibit = getDibit (opts, state);
-          lcinfo[8] = (1 & (dibit >> 1)) + 48;  // bit 1
-          lcinfo[9] = (1 & dibit) + 48; // bit 0
-          dibit = getDibit (opts, state);
-          lcinfo[10] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[11] = (1 & dibit) + 48;        // bit 0
-          dibit = getDibit (opts, state);
-          lcinfo[12] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[13] = (1 & dibit) + 48;        // bit 0
-          skipDibit (opts, state, 2);
-          dibit = getDibit (opts, state);
-          lcinfo[14] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[15] = (1 & dibit) + 48;        // bit 0
-          dibit = getDibit (opts, state);
-          lcinfo[16] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[17] = (1 & dibit) + 48;        // bit 0
-          dibit = getDibit (opts, state);
-          lcinfo[18] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[19] = (1 & dibit) + 48;        // bit 0
-          skipDibit (opts, state, 2);
-          dibit = getDibit (opts, state);
-          lcinfo[20] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[21] = (1 & dibit) + 48;        // bit 0
-          dibit = getDibit (opts, state);
-          lcinfo[22] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[23] = (1 & dibit) + 48;        // bit 0
-          dibit = getDibit (opts, state);
-          lcinfo[24] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[25] = (1 & dibit) + 48;        // bit 0
-          skipDibit (opts, state, 2);
-          dibit = getDibit (opts, state);
-          lcinfo[26] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[27] = (1 & dibit) + 48;        // bit 0
-          dibit = getDibit (opts, state);
-          lcinfo[28] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[29] = (1 & dibit) + 48;        // bit 0
-          dibit = getDibit (opts, state);
-          lcinfo[30] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[31] = (1 & dibit) + 48;        // bit 0
-          skipDibit (opts, state, 2);
-          stats = 32;
-        }
-      else if (i == 3)
-        {
-          dibit = getDibit (opts, state);
-          lcinfo[32] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[33] = (1 & dibit) + 48;        // bit 0
-          status[scount] = getDibit (opts, state) + 48;
-          scount++;
-          dibit = getDibit (opts, state);
-          lcinfo[34] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[35] = (1 & dibit) + 48;        // bit 0
-          dibit = getDibit (opts, state);
-          lcinfo[36] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[37] = (1 & dibit) + 48;        // bit 0
-          skipDibit (opts, state, 2);
-          dibit = getDibit (opts, state);
-          lcinfo[38] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[39] = (1 & dibit) + 48;        // bit 0
-          dibit = getDibit (opts, state);
-          lcinfo[40] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[41] = (1 & dibit) + 48;        // bit 0
-          dibit = getDibit (opts, state);
-          lcinfo[42] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[43] = (1 & dibit) + 48;        // bit 0
-          skipDibit (opts, state, 2);
-          dibit = getDibit (opts, state);
-          lcinfo[44] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[45] = (1 & dibit) + 48;        // bit 0
-          dibit = getDibit (opts, state);
-          lcinfo[46] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[47] = (1 & dibit) + 48;        // bit 0
-          dibit = getDibit (opts, state);
-          lcinfo[48] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[49] = (1 & dibit) + 48;        // bit 0
-          skipDibit (opts, state, 2);
-          dibit = getDibit (opts, state);
-          lcinfo[50] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[51] = (1 & dibit) + 48;        // bit 0
-          dibit = getDibit (opts, state);
-          lcinfo[52] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[53] = (1 & dibit) + 48;        // bit 0
-          dibit = getDibit (opts, state);
-          lcinfo[54] = (1 & (dibit >> 1)) + 48; // bit 1
-          lcinfo[55] = (1 & dibit) + 48;        // bit 0
-          skipDibit (opts, state, 2);
-          stats = 19;
-        }
-      else if (i == 7)
-        {
-          dibit = getDibit (opts, state);
-          lsd1[0] = (1 & (dibit >> 1)) + 48;    // bit 1
-          lsd1[1] = (1 & dibit) + 48;   // bit 0
-          dibit = getDibit (opts, state);
-          lsd1[2] = (1 & (dibit >> 1)) + 48;    // bit 1
-          lsd1[3] = (1 & dibit) + 48;   // bit 0
-          dibit = getDibit (opts, state);
-          lsd1[4] = (1 & (dibit >> 1)) + 48;    // bit 1
-          lsd1[5] = (1 & dibit) + 48;   // bit 0
-          dibit = getDibit (opts, state);
-          lsd1[6] = (1 & (dibit >> 1)) + 48;    // bit 1
-          lsd1[7] = (1 & dibit) + 48;   // bit 0
-          skipDibit (opts, state, 4);
-          dibit = getDibit (opts, state);
-          lsd2[0] = (1 & (dibit >> 1)) + 48;    // bit 1
-          lsd2[1] = (1 & dibit) + 48;   // bit 0
-          dibit = getDibit (opts, state);
-          lsd2[2] = (1 & (dibit >> 1)) + 48;    // bit 1
-          lsd2[3] = (1 & dibit) + 48;   // bit 0
-          dibit = getDibit (opts, state);
-          lsd2[4] = (1 & (dibit >> 1)) + 48;    // bit 1
-          lsd2[5] = (1 & dibit) + 48;   // bit 0
-          dibit = getDibit (opts, state);
-          lsd2[6] = (1 & (dibit >> 1)) + 48;    // bit 1
-          lsd2[7] = (1 & dibit) + 48;   // bit 0
-          skipDibit (opts, state, 4);
-          stats = 33;
-        }
-    }
-  // trailing status symbol
-  status[scount] = getDibit (opts, state) + 48;
-  scount++;
+  // Read data after IMBE 2
+  read_and_correct_hex_word (opts, state, &(hex_data[11][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_data[10][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_data[ 9][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_data[ 8][0]), &status_count);
+
+  // IMBE 3
+  process_IMBE (opts, state, &status_count);
+
+  // Read data after IMBE 3
+  read_and_correct_hex_word (opts, state, &(hex_data[ 7][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_data[ 6][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_data[ 5][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_data[ 4][0]), &status_count);
+
+  // IMBE 4
+  process_IMBE (opts, state, &status_count);
+
+  // Read data after IMBE 4
+  read_and_correct_hex_word (opts, state, &(hex_data[ 3][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_data[ 2][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_data[ 1][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_data[ 0][0]), &status_count);
+
+  // IMBE 5
+  process_IMBE (opts, state, &status_count);
+
+  // Read data after IMBE 5
+  read_and_correct_hex_word (opts, state, &(hex_parity[11][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_parity[10][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_parity[ 9][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_parity[ 8][0]), &status_count);
+
+  // IMBE 6
+  process_IMBE (opts, state, &status_count);
+
+  // Read data after IMBE 6
+  read_and_correct_hex_word (opts, state, &(hex_parity[ 7][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_parity[ 6][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_parity[ 5][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_parity[ 4][0]), &status_count);
+
+  // IMBE 7
+  process_IMBE (opts, state, &status_count);
+
+  // Read data after IMBE 7
+  read_and_correct_hex_word (opts, state, &(hex_parity[ 3][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_parity[ 2][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_parity[ 1][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_parity[ 0][0]), &status_count);
+
+  // IMBE 8
+  process_IMBE (opts, state, &status_count);
+
+  // Read data after IMBE 8: LSD (low speed data)
+  {
+    char lsd[8];
+    char cyclic_parity[8];
+
+    for (i=0; i<=6; i+=2)
+      {
+        read_dibit(opts, state, lsd+i, &status_count);
+      }
+    for (i=0; i<=6; i+=2)
+      {
+        read_dibit(opts, state, cyclic_parity+i, &status_count);
+      }
+    for (i=0; i<8; i++)
+      {
+        lsd1[i] = lsd[i] + '0';
+      }
+
+    for (i=0; i<=6; i+=2)
+      {
+        read_dibit(opts, state, lsd+i, &status_count);
+      }
+    for (i=0; i<=6; i+=2)
+      {
+        read_dibit(opts, state, cyclic_parity+i, &status_count);
+      }
+    for (i=0; i<8; i++)
+      {
+        lsd2[i] = lsd[i] + '0';
+      }
+
+    // TODO: error correction of the LSD bytes...
+    // TODO: do something useful with the LSD bytes...
+  }
+
+  // IMBE 9
+  process_IMBE (opts, state, &status_count);
 
   if (opts->errorbars == 1)
     {
@@ -285,8 +159,107 @@ processLDU1 (dsd_opts * opts, dsd_state * state)
 
   if (opts->p25status == 1)
     {
-      printf ("status: %s lsd1: %s lsd2: %s\n", status, lsd1, lsd2);
+      printf ("lsd1: %s lsd2: %s\n", lsd1, lsd2);
     }
+
+  // trailing status symbol
+  {
+      int status;
+      status = getDibit (opts, state) + 48;
+      // TODO: do something useful with the status bits...
+  }
+
+  // Error correct the hex_data using Reed-Solomon hex_parity
+  irrecoverable_errors = check_and_fix_redsolomon_24_12_13((char*)hex_data, (char*)hex_parity);
+  if (irrecoverable_errors == 1) {
+      state->debug_header_critical_errors++;
+  }
+
+
+  // Put the corrected data into the DSD structures
+  lcformat[0] = hex_data[11][0] + '0';
+  lcformat[1] = hex_data[11][1] + '0';
+  lcformat[2] = hex_data[11][2] + '0';
+  lcformat[3] = hex_data[11][3] + '0';
+  lcformat[4] = hex_data[11][4] + '0';
+  lcformat[5] = hex_data[11][5] + '0';
+
+  lcformat[6] = hex_data[10][0] + '0';
+  lcformat[7] = hex_data[10][1] + '0';
+  mfid[0]     = hex_data[10][2] + '0';
+  mfid[1]     = hex_data[10][3] + '0';
+  mfid[2]     = hex_data[10][4] + '0';
+  mfid[3]     = hex_data[10][5] + '0';
+
+  mfid[4]     = hex_data[ 9][0] + '0';
+  mfid[5]     = hex_data[ 9][1] + '0';
+  mfid[6]     = hex_data[ 9][2] + '0';
+  mfid[7]     = hex_data[ 9][3] + '0';
+  lcinfo[0]   = hex_data[ 9][4] + '0';
+  lcinfo[1]   = hex_data[ 9][5] + '0';
+
+  lcinfo[2]   = hex_data[ 8][0] + '0';
+  lcinfo[3]   = hex_data[ 8][1] + '0';
+  lcinfo[4]   = hex_data[ 8][2] + '0';
+  lcinfo[5]   = hex_data[ 8][3] + '0';
+  lcinfo[6]   = hex_data[ 8][4] + '0';
+  lcinfo[7]   = hex_data[ 8][5] + '0';
+
+  lcinfo[8]   = hex_data[ 7][0] + '0';
+  lcinfo[9]   = hex_data[ 7][1] + '0';
+  lcinfo[10]  = hex_data[ 7][2] + '0';
+  lcinfo[11]  = hex_data[ 7][3] + '0';
+  lcinfo[12]  = hex_data[ 7][4] + '0';
+  lcinfo[13]  = hex_data[ 7][5] + '0';
+
+  lcinfo[14]  = hex_data[ 6][0] + '0';
+  lcinfo[15]  = hex_data[ 6][1] + '0';
+  lcinfo[16]  = hex_data[ 6][2] + '0';
+  lcinfo[17]  = hex_data[ 6][3] + '0';
+  lcinfo[18]  = hex_data[ 6][4] + '0';
+  lcinfo[19]  = hex_data[ 6][5] + '0';
+
+  lcinfo[20]  = hex_data[ 5][0] + '0';
+  lcinfo[21]  = hex_data[ 5][1] + '0';
+  lcinfo[22]  = hex_data[ 5][2] + '0';
+  lcinfo[23]  = hex_data[ 5][3] + '0';
+  lcinfo[24]  = hex_data[ 5][4] + '0';
+  lcinfo[25]  = hex_data[ 5][5] + '0';
+
+  lcinfo[26]  = hex_data[ 4][0] + '0';
+  lcinfo[27]  = hex_data[ 4][1] + '0';
+  lcinfo[28]  = hex_data[ 4][2] + '0';
+  lcinfo[29]  = hex_data[ 4][3] + '0';
+  lcinfo[30]  = hex_data[ 4][4] + '0';
+  lcinfo[31]  = hex_data[ 4][5] + '0';
+
+  lcinfo[32]  = hex_data[ 3][0] + '0';
+  lcinfo[33]  = hex_data[ 3][1] + '0';
+  lcinfo[34]  = hex_data[ 3][2] + '0';
+  lcinfo[35]  = hex_data[ 3][3] + '0';
+  lcinfo[36]  = hex_data[ 3][4] + '0';
+  lcinfo[37]  = hex_data[ 3][5] + '0';
+
+  lcinfo[38]  = hex_data[ 2][0] + '0';
+  lcinfo[39]  = hex_data[ 2][1] + '0';
+  lcinfo[40]  = hex_data[ 2][2] + '0';
+  lcinfo[41]  = hex_data[ 2][3] + '0';
+  lcinfo[42]  = hex_data[ 2][4] + '0';
+  lcinfo[43]  = hex_data[ 2][5] + '0';
+
+  lcinfo[44]  = hex_data[ 1][0] + '0';
+  lcinfo[45]  = hex_data[ 1][1] + '0';
+  lcinfo[46]  = hex_data[ 1][2] + '0';
+  lcinfo[47]  = hex_data[ 1][3] + '0';
+  lcinfo[48]  = hex_data[ 1][4] + '0';
+  lcinfo[49]  = hex_data[ 1][5] + '0';
+
+  lcinfo[50]  = hex_data[ 0][0] + '0';
+  lcinfo[51]  = hex_data[ 0][1] + '0';
+  lcinfo[52]  = hex_data[ 0][2] + '0';
+  lcinfo[53]  = hex_data[ 0][3] + '0';
+  lcinfo[54]  = hex_data[ 0][4] + '0';
+  lcinfo[55]  = hex_data[ 0][5] + '0';
 
   processP25lcw (opts, state, lcformat, mfid, lcinfo);
 }
