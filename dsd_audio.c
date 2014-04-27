@@ -221,7 +221,15 @@ playSynthesizedVoice (dsd_opts * opts, dsd_state * state)
   if (state->audio_out_idx > opts->delay)
     {
       // output synthesized speech to sound card
+#ifdef LINUX
+      while((result = snd_pcm_writei (opts->audio_out_handle,  (state->audio_out_buf_p - state->audio_out_idx), state->audio_out_idx)) < 0)
+      {
+      	snd_pcm_prepare(opts->audio_out_handle);
+      }
+     
+#else
       result = write (opts->audio_out_fd, (state->audio_out_buf_p - state->audio_out_idx), (state->audio_out_idx * 2));
+#endif
       state->audio_out_idx = 0;
     }
 
@@ -238,6 +246,122 @@ playSynthesizedVoice (dsd_opts * opts, dsd_state * state)
 void
 openAudioOutDevice (dsd_opts * opts, int speed)
 {
+#ifdef LINUX
+  int err;
+  snd_pcm_hw_params_t *hw_params;
+  snd_pcm_sw_params_t *sw_params;
+
+  if((err = snd_pcm_open (&opts->audio_out_handle, opts->audio_out_dev, SND_PCM_STREAM_PLAYBACK, 0)) < 0)
+    {
+	fprintf (stderr, "cannot open audio device %s (%s)\n", 
+			opts->audio_out_dev,
+			snd_strerror (err));
+	exit(1);
+    }
+  if((err = snd_pcm_hw_params_malloc (&hw_params)) < 0)
+    {
+	fprintf (stderr, "cannot allocate hardware parameter structure %s (%s)\n",
+			opts->audio_out_dev,
+			snd_strerror (err));
+	exit(1);
+    }
+				 
+  if((err = snd_pcm_hw_params_any (opts->audio_out_handle, hw_params)) < 0)
+    {
+	fprintf (stderr, "cannot initialize hardware parameter structure %s (%s)\n",
+			opts->audio_out_dev,
+	    		snd_strerror (err));
+	exit(1);
+    }
+  if((err = snd_pcm_hw_params_set_access (opts->audio_out_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
+    {
+	fprintf (stderr, "cannot set access type %s (%s)\n",
+			opts->audio_out_dev,
+			snd_strerror (err));
+	exit(1);
+    }
+  if((err = snd_pcm_hw_params_set_format (opts->audio_out_handle, hw_params, SND_PCM_FORMAT_S16_LE)) < 0)
+    {
+	fprintf (stderr, "cannot set sample format %s (%s)\n",
+			opts->audio_out_dev,
+			snd_strerror (err));
+	exit(1);
+    }
+  if((err = snd_pcm_hw_params_set_rate (opts->audio_out_handle, hw_params, speed, 0)) < 0)
+    {
+	fprintf (stderr, "cannot set sample rate %s (%s)\n",
+			opts->audio_out_dev,
+			snd_strerror (err));
+	exit(1);
+    }
+  if((err = snd_pcm_hw_params_set_channels (opts->audio_out_handle, hw_params, 1)) < 0)
+    {
+	fprintf (stderr, "cannot set channel count %s (%s)\n",
+			opts->audio_out_dev,
+			snd_strerror (err));
+	exit(1);
+    }
+  snd_pcm_uframes_t buffer_size = (snd_pcm_uframes_t)(speed / 5);
+  if ((err = snd_pcm_hw_params_set_buffer_size_near (opts->audio_out_handle, hw_params, &buffer_size)) < 0)
+    {
+	fprintf (stderr, "cannot set channel count %s (%s)\n",
+			opts->audio_out_dev,
+			snd_strerror (err));
+	exit(1);
+    }
+  snd_pcm_uframes_t period_size = (snd_pcm_uframes_t)(speed / 50);
+  if ((err = snd_pcm_hw_params_set_period_size_near (opts->audio_out_handle, hw_params, &period_size, 0)) < 0)
+    {
+		fprintf (stderr, "cannot set channel count %s (%s)\n",
+			opts->audio_out_dev,
+			snd_strerror (err));
+	exit(1);
+    }
+  if ((err = snd_pcm_hw_params (opts->audio_out_handle, hw_params)) < 0)
+    {
+	fprintf (stderr, "cannot set hw parameters %s (%s)\n",
+			opts->audio_out_dev,
+			snd_strerror (err));
+	exit(1);
+    }
+  if ((err = snd_pcm_sw_params_malloc (&sw_params)) < 0)
+    {
+        fprintf (stderr, "cannot allocate software parameter structure %s (%s)\n",
+			opts->audio_out_dev,
+			snd_strerror (err));
+	exit(1);
+    }
+  if ((err = snd_pcm_sw_params_current (opts->audio_out_handle, sw_params)) < 0)
+    {
+	fprintf (stderr, "cannot initialize software parameter structure %s (%s)\n",
+			opts->audio_out_dev,
+	    		snd_strerror (err));
+	exit(1);
+    }
+  if ((err = snd_pcm_sw_params_set_start_threshold(opts->audio_out_handle, sw_params, (snd_pcm_uframes_t)8 * period_size)) < 0)
+    {
+	fprintf (stderr, "cannot set start threshold %s (%s)\n",
+			opts->audio_out_dev,
+			snd_strerror (err));
+	exit(1);
+    }
+  if ((err = snd_pcm_sw_params (opts->audio_out_handle, sw_params)) < 0)
+    {
+	fprintf (stderr, "cannot set sw parameters %s (%s)\n",
+			opts->audio_out_dev,
+			snd_strerror (err));
+	exit(1);
+    }
+  snd_pcm_hw_params_free (hw_params);
+  snd_pcm_sw_params_free (sw_params);
+  if ((err = snd_pcm_prepare (opts->audio_out_handle)) < 0)
+    {
+	fprintf (stderr, "cannot prepare audio interface for use %s (%s)\n",
+			opts->audio_out_dev,
+			snd_strerror (err));
+	exit(1);
+   }
+#else
   // get info of device/file
   struct stat stat_buf;
   if(stat(opts->audio_out_dev, &stat_buf) != 0) {
@@ -249,6 +373,8 @@ openAudioOutDevice (dsd_opts * opts, int speed)
     printf("Error, %s is not a device. use -w filename for wav output.\n", opts->audio_out_dev);
     exit(1);
   }
+#endif /* LINUX */
+
 #ifdef SOLARIS
   sample_info_t aset, aget;
 
@@ -281,7 +407,6 @@ openAudioOutDevice (dsd_opts * opts, int speed)
 #if defined(BSD) && !defined(__APPLE__)
 
   int fmt;
-
   opts->audio_out_fd = open (opts->audio_out_dev, O_WRONLY);
   if (opts->audio_out_fd == -1)
     {
@@ -320,6 +445,19 @@ openAudioInDevice (dsd_opts * opts)
 {
   // get info of device/file
   struct stat stat_buf;
+
+#ifdef LINUX
+  if ((stat(opts->audio_in_dev, &stat_buf) == 0) && (S_ISREG(stat_buf.st_mode))) {
+    opts->audio_in_type = 1;
+    opts->audio_in_file_info = calloc(1, sizeof(SF_INFO));
+    opts->audio_in_file_info->channels = 1;
+    opts->audio_in_file = sf_open(opts->audio_in_dev, SFM_READ, opts->audio_in_file_info);
+    if(opts->audio_in_file == NULL) {
+        printf ("Error, couldn't open file %s\n", opts->audio_in_dev);
+        exit(1);
+    }
+  }
+#else
   if (stat(opts->audio_in_dev, &stat_buf) != 0) {
     printf("Error, couldn't open %s\n", opts->audio_in_dev);
     exit(1);
@@ -334,8 +472,80 @@ openAudioInDevice (dsd_opts * opts)
         exit(1);
     }
   }
+#endif
   else { // this is a device, use old handling
-  opts->audio_in_type = 0;
+    opts->audio_in_type = 0;
+    
+#ifdef LINUX
+    int err;
+    snd_pcm_hw_params_t *hw_params;
+
+    if ((err = snd_pcm_open (&opts->audio_in_handle, opts->audio_in_dev, SND_PCM_STREAM_CAPTURE, 0)) < 0)
+      {
+ 	fprintf (stderr, "cannot open audio device %s (%s)\n", 
+			 opts->audio_in_dev,
+			 snd_strerror (err));
+	exit(1);
+      }
+    if ((err = snd_pcm_hw_params_malloc (&hw_params)) < 0)
+      {
+	fprintf (stderr, "cannot allocate hardware parameter structure %s (%s)\n",
+			opts->audio_in_dev,
+			snd_strerror (err));
+	exit(1);
+      }
+    if ((err = snd_pcm_hw_params_any (opts->audio_in_handle, hw_params)) < 0)
+      {
+	fprintf (stderr, "cannot initialize hardware parameter structure %s (%s)\n",
+			opts->audio_in_dev,
+	    		snd_strerror (err));
+	exit(1);
+      }
+    if ((err = snd_pcm_hw_params_set_access (opts->audio_in_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
+      {
+	fprintf (stderr, "cannot set access type %s (%s)\n",
+			opts->audio_in_dev,
+			snd_strerror (err));
+	exit(1);
+      }
+    if ((err = snd_pcm_hw_params_set_format (opts->audio_in_handle, hw_params, SND_PCM_FORMAT_S16_LE)) < 0)
+      {
+	fprintf (stderr, "cannot set sample format %s (%s)\n",
+			opts->audio_in_dev,
+			snd_strerror (err));
+	exit(1);
+      }
+    if ((err = snd_pcm_hw_params_set_rate (opts->audio_in_handle, hw_params, 48000, 0)) < 0)
+      {
+	fprintf (stderr, "cannot set sample rate %s (%s)\n",
+			opts->audio_in_dev,
+			snd_strerror (err));
+	exit(1);
+      }
+    if ((err = snd_pcm_hw_params_set_channels (opts->audio_in_handle, hw_params, 1)) < 0)
+      {
+	fprintf (stderr, "cannot set channel count %s (%s)\n",
+			opts->audio_in_dev,
+			snd_strerror (err));
+	exit(1);
+      }
+    if ((err = snd_pcm_hw_params (opts->audio_in_handle, hw_params)) < 0)
+      {
+	fprintf (stderr, "cannot set parameters %s (%s)\n",
+			opts->audio_in_dev,
+			snd_strerror (err));
+	exit(1);
+      }
+    snd_pcm_hw_params_free (hw_params);
+    if ((err = snd_pcm_prepare (opts->audio_in_handle)) < 0)
+      {
+	fprintf (stderr, "cannot prepare audio interface for use %s (%s)\n",
+			opts->audio_in_dev,
+			snd_strerror (err));
+	exit(1);
+      }
+#endif
+
 #ifdef SOLARIS
     sample_info_t aset, aget;
     int rgain;
