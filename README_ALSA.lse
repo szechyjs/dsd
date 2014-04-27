@@ -1,0 +1,28 @@
+
+Linux ALSA Support
+
+Recent distributions of Linux use PulseAudio. DSD needed the PulseAudio OSS
+wrapper program (padsp) to work on those systems. Some people had problems
+using padsp.
+
+PulseAudio works better with ALSA, so ALSA support was added to DSD. Uncomment
+the #define LINUX line in the config.h file and comment out the following two
+lines to enable Linux ALSA support. Recompile the program.
+
+The aplay -l command at a shell prompt will list ALSA devices.
+
+~/dsd$ aplay -l
+**** List of PLAYBACK Hardware Devices ****
+card 0: PCH [HDA Intel PCH], device 0: ALC269VC Analog [ALC269VC Analog]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 1: CODEC [USB Audio CODEC], device 0: USB Audio [USB Audio]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+
+The ALSA device can be specified by using hw:<card>,<subdevice> on the command
+line. To use the USB Audio CODEC in the sample above the following command
+line could be used. The -i hw:1,0 option specifies card 1, subdevice 0.
+
+~/dsd$ dsd -i hw:1,0
+
