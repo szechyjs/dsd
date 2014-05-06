@@ -53,11 +53,11 @@ upsample (dsd_state * state, float invalue)
             {
               sum = 0;
               outbuf1 -= 2;
-              sum += *outbuf1;
+              sum += (int)*outbuf1;
               outbuf1 += 2;
-              sum += *outbuf1;
+              sum += (int)*outbuf1;
               outbuf1 += 2;
-              sum += *outbuf1;
+              sum += (int)*outbuf1;
               outbuf1 -= 2;
               *outbuf1 = (sum / (float) 3);
               outbuf1++;
