@@ -189,32 +189,43 @@ getDibit (dsd_opts * opts, dsd_state * state)
         {
           *state->dibit_buf_p = 1;
           state->dibit_buf_p++;
-          return (0);
+          return (0);               // +1
         }
       else
         {
           *state->dibit_buf_p = 3;
           state->dibit_buf_p++;
-          return (1);
+          return (1);               // +3
         }
     }
   else if ((state->synctype == 7) || (state->synctype == 15)|| (state->synctype == 19))
     {
+      //  7 -D-STAR
+      // 15 -ProVoice
+      // 19 -D-STAR_HD
+
       if (symbol > state->center)
         {
           *state->dibit_buf_p = 1;
           state->dibit_buf_p++;
-          return (1);
+          return (1);               // +3
         }
       else
         {
           *state->dibit_buf_p = 3;
           state->dibit_buf_p++;
-          return (0);
+          return (0);               // +1
         }
     }
   else if ((state->synctype == 1) || (state->synctype == 3) || (state->synctype == 5) || (state->synctype == 9) || (state->synctype == 11) || (state->synctype == 13))
     {
+      //  1 -P25p1
+      //  3 -X2-TDMA (inverted signal voice frame)
+      //  5 -X2-TDMA (inverted signal data frame)
+      //  9 -NXDN (inverted voice frame)
+      // 11 -DMR (inverted signal voice frame)
+      // 13 -DMR (inverted signal data frame)
+
       if (symbol > state->center)
         {
           if (symbol > state->umid)
@@ -248,6 +259,15 @@ getDibit (dsd_opts * opts, dsd_state * state)
     }
   else
     {
+      //  0 +P25p1
+      //  2 +X2-TDMA (non inverted signal data frame)
+      //  4 +X2-TDMA (non inverted signal voice frame)
+      //  8 +NXDN (non inverted voice frame)
+      // 10 +DMR (non inverted signal data frame)
+      // 12 +DMR (non inverted signal voice frame)
+      // 16 +NXDN (non inverted data frame)
+      // 17 -NXDN (inverted data frame)             ???
+
       if (symbol > state->center)
         {
           if (symbol > state->umid)

@@ -166,15 +166,20 @@ void viterbiDecode (int n, int *data, int *m_pathMemory0, int *m_pathMemory1, in
 int FECdecoder (int * in, int * out) {
 int outLen;
 
-int m_pathMemory0[330]; memset(m_pathMemory0,0,330*sizeof(int));
-int m_pathMemory1[330]; memset(m_pathMemory1,0,330*sizeof(int));
-int m_pathMemory2[330]; memset(m_pathMemory2,0,330*sizeof(int));
-int m_pathMemory3[330]; memset(m_pathMemory3,0,330*sizeof(int));
+int m_pathMemory0[330];
+int m_pathMemory1[330];
+int m_pathMemory2[330];
+int m_pathMemory3[330];
 int m_pathMetric[4];
 
 int loop,loop2;
 
 int n=0;
+
+memset(m_pathMemory0,0,330*sizeof(int));
+memset(m_pathMemory1,0,330*sizeof(int));
+memset(m_pathMemory2,0,330*sizeof(int));
+memset(m_pathMemory3,0,330*sizeof(int));
 
 for (loop=0;loop<4;loop++) {
 	m_pathMetric[loop]=0;

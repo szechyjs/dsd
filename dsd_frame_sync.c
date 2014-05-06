@@ -43,16 +43,16 @@ int
 getFrameSync (dsd_opts * opts, dsd_state * state)
 {
   /* detects frame sync and returns frame type
-   * 0 = +P25p1
-   * 1 = -P25p1
-   * 2 = +X2-TDMA (non inverted signal data frame)
-   * 3 = +X2-TDMA (inverted signal voice frame)
-   * 4 = -X2-TDMA (non inverted signal voice frame)
-   * 5 = -X2-TDMA (inverted signal data frame)
-   * 6 = +D-STAR
-   * 7 = -D-STAR
-   * 8 = +NXDN (non inverted voice frame)
-   * 9 = -NXDN (inverted voice frame)
+   *  0 = +P25p1
+   *  1 = -P25p1
+   *  2 = +X2-TDMA (non inverted signal data frame)
+   *  3 = -X2-TDMA (inverted signal voice frame)
+   *  4 = +X2-TDMA (non inverted signal voice frame)
+   *  5 = -X2-TDMA (inverted signal data frame)
+   *  6 = +D-STAR
+   *  7 = -D-STAR
+   *  8 = +NXDN (non inverted voice frame)
+   *  9 = -NXDN (inverted voice frame)
    * 10 = +DMR (non inverted signal data frame)
    * 11 = -DMR (inverted signal voice frame)
    * 12 = +DMR (non inverted signal voice frame)
@@ -211,8 +211,8 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                 }
               state->max = lsum / opts->msize;
               state->center = ((state->max) + (state->min)) / 2;
-              state->maxref = ((state->max) * 0.80);
-              state->minref = ((state->min) * 0.80);
+              state->maxref = (int)((state->max) * 0.80F);
+              state->minref = (int)((state->min) * 0.80F);
             }
           else
             {
