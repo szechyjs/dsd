@@ -7,19 +7,9 @@
 
 #include "ReedSolomon.hpp"
 
-static void byte_to_binary(char* b, int x)
-{
-    int z, i;
-
-    for (z = 32, i=0; z > 0; z >>= 1, i++) {
-        b[i] = ((x & z) != 0) ? 'X' : ' ';
-    }
-    b[6] = 0;
-}
-
 TEST(ReedSolomonTest, Test1)
 {
-    ReedSolomon_63_47_17 rs;
+    ReedSolomon_63<8> rs;
     int recd[63] = {};
     int expected[63] = {};
     int output[63];
@@ -89,4 +79,69 @@ TEST(ReedSolomonTest, Test1)
     */
 
     EXPECT_THAT(expected, testing::ElementsAreArray(output, 63));
+}
+
+static void generate_random_bits(char* p, unsigned int count)
+{
+    for (unsigned int i=0; i<count; i++) {
+        p[i] = (rand() > RAND_MAX/2)? 1 : 0;
+    }
+}
+
+TEST(ReedSolomonTest, Test_encode_24_12_13)
+{
+    char hex[12*6];
+    char parity[12*6];
+
+    DSDReedSolomon_24_12_13 rs;
+
+    for (unsigned i=0; i<1000; i++) {
+        generate_random_bits((char*)hex, 12*6);
+
+        // Make a copy
+        char expected[12*6];
+
+        memcpy(expected, hex, 12*6);
+
+
+
+        // Encode
+        rs.encode(hex, parity);
+
+        // Decode back, should have the same result and no errors
+        int irrecoverable_errors = rs.decode(hex, parity);
+
+        EXPECT_EQ(0, irrecoverable_errors);
+
+        EXPECT_THAT(expected, testing::ElementsAreArray(hex, 12*6));
+    }
+}
+
+TEST(ReedSolomonTest, Test_encode_24_16_9)
+{
+    char hex[16*6];
+    char parity[8*6];
+
+    DSDReedSolomon_24_16_9 rs;
+
+    for (unsigned i=0; i<1000; i++) {
+        generate_random_bits((char*)hex, 16*6);
+
+        // Make a copy
+        char expected[16*6];
+
+        memcpy(expected, hex, 16*6);
+
+
+
+        // Encode
+        rs.encode(hex, parity);
+
+        // Decode back, should have the same result and no errors
+        int irrecoverable_errors = rs.decode(hex, parity);
+
+        EXPECT_EQ(0, irrecoverable_errors);
+
+        EXPECT_THAT(expected, testing::ElementsAreArray(hex, 16*6));
+    }
 }

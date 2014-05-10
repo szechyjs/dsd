@@ -447,10 +447,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
       state->err_str[0] = 0;
       sprintf (state->fsubtype, " TDU          ");
 
-      // Now processing NID
-
-      skipDibit (opts, state, 14);    // 28 null bits
-      status_1 = getDibit (opts, state) + '0';
+      processTDU (opts, state);
     }
   else if (strcmp (duid, "13") == 0)
     {

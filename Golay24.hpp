@@ -1,3 +1,7 @@
+
+#ifndef GOLAY24_HPP_7a68240afda9406facf81fcad3851111
+#define GOLAY24_HPP_7a68240afda9406facf81fcad3851111
+
 /**
  * Based on the work of Mr Hank Wallace.
  *
@@ -8,7 +12,7 @@
  */
 
 #include <stdio.h>
-
+#include <assert.h>
 
 #define POLY  0xAE3
 
@@ -129,7 +133,7 @@ private:
     }
 
 public:
-    unsigned int correct(unsigned int cw, int *errs)
+    unsigned int correct(unsigned int cw, int *errs, unsigned int *errors_detected)
     /* This function corrects Golay [23,12] codeword cw, returning the
        corrected codeword. This function will produce the corrected codeword
        for three or fewer errors. It will produce some other valid Golay
@@ -148,6 +152,8 @@ public:
 
       cwsaver=cw;         /* save */
       *errs=0;
+      *errors_detected = 0;
+
       w=3;                /* initial syndrome weight threshold */
       j=-1;               /* -1 = no trial bit flipping on first pass */
       mask=1;
@@ -167,6 +173,7 @@ public:
           s=syndrome(cw); /* look for errors */
           if (s) /* errors exist */
             {
+              (*errors_detected)++;
               for (i=0; i<23; i++) /* check syndrome of each cyclic shift */
                 {
                   if ((*errs=weight(s)) <= w) /* syndrome matches error pattern */
@@ -184,7 +191,9 @@ public:
               j++; /* toggle next trial bit */
             }
           else
-            return(cw); /* return corrected codeword */
+            {
+              return(cw); /* return corrected codeword */
+            }
         }
 
       return(cwsaver); /* return original if no corrections */
@@ -200,6 +209,11 @@ public:
         return codeword;
     }
 
+    unsigned int encode23(unsigned int data)
+    {
+        return golay(data); /* make a test codeword */
+    }
+
     int decode(int *errs, unsigned int *cw)
     /* This function decodes codeword *cw. Here error correction is attempted,
        with *errs set to the number of
@@ -207,11 +221,11 @@ public:
        exist. */
     {
       unsigned int parity_bit;
-
+      unsigned int detected_errors;
       parity_bit=*cw & 0x800000l; /* save parity bit */
       *cw&=~0x800000l;            /* remove parity bit for correction */
 
-      *cw=correct(*cw, errs);     /* correct up to three bits */
+      *cw=correct(*cw, errs, &detected_errors);     /* correct up to three bits */
       *cw|=parity_bit;            /* restore parity bit */
 
       /* check for 4 bit errors */
@@ -226,8 +240,6 @@ public:
        returning 0 if no errors exist, 1 if an overall parity error exists, and
        2 if a codeword error exists. */
     {
-      unsigned int parity_bit;
-
       *errs=0;
       if (parity(cw)) /* odd parity is an error */
         {
@@ -254,32 +266,57 @@ public:
 class DSDGolay24 : public Golay24
 {
 public:
-    unsigned int adapt_to_codeword(const char* hex, const char* parity)
+    unsigned int adapt_to_codeword(const char* word, unsigned int length, const char* parity)
     {
         unsigned int codeword = 0;
 
         // Data needs to be packed with the 12 bits of parity as the most significant
         // bits and 12 bits of data as the less significant. All these discovered by trial and error.
         for (unsigned int i=0; i<12; i++) {
+            assert(parity[11-i] == 0 || parity[11-i] == 1);
+            codeword <<= 1;
             codeword |= parity[11-i];
-            codeword <<= 1;
         }
-        for (unsigned int i=0; i<6; i++) {
-            codeword |= hex[5-i];
+        for (unsigned int i=0; i<length; i++) {
+            char bit = word[length-1-i];
+            assert(bit == 0 || bit == 1);
             codeword <<= 1;
+            codeword |= bit;
         }
-        // We only have 6 bits of data. We fill up the less 6 significant bits of codeword with zeros.
-        codeword <<= 5;
+        // We only have length bits of data. We fill up the less significant bits of codeword with zeros.
+        if (length < 12) {
+            codeword <<= (12 - length);
+        }
 
         return codeword;
     }
 
-    void adapt_to_hex(unsigned int codeword, char* hex)
+    void adapt_to_word(unsigned int codeword, char* word, unsigned int length)
     {
-        // put back in hex the bits from 6 to 11 of codeword
-        for (unsigned int i=0, mask = 1<<6; i<6; i++, mask<<=1) {
-            hex[i] = (codeword & mask) != 0? 1 : 0;
+        // put back in word the bits from codeword
+        for (unsigned int i=0, mask = 1<<(12-length); i<length; i++, mask<<=1) {
+            word[i] = (codeword & mask) != 0? 1 : 0;
         }
+    }
+
+    unsigned int adapt_from_word(char* word, unsigned int length)
+    {
+        unsigned int codeword = 0;
+
+        // encode the hex bits into a codeword
+        for (unsigned int i=0; i<length; i++) {
+            int bit = word[length-1-i];
+            assert(bit == 0 || bit == 1);
+            codeword <<= 1;
+            codeword |= bit;
+        }
+
+        // We only have length bits of data. We fill up the less significant bits of codeword with zeros.
+        if (length < 12) {
+            codeword <<= (12-length);
+        }
+
+        return codeword;
     }
 
     /**
@@ -292,10 +329,10 @@ public:
      *           in this case the original data remains unchanged.
      *         0 if the data was successfully error corrected.
      */
-    int decode(char* hex, const char* parity, int* fixed_errors)
+    int decode_6(char* hex, const char* parity, int* fixed_errors)
     {
-        unsigned int codeword = adapt_to_codeword(hex, parity);
-        // codeword contains:
+        unsigned int codeword = adapt_to_codeword(hex, 6, parity);
+        // codeword now contains:
         // bits  0- 5: zeros
         // bits  6-11: hex bits
         // bits 12-23: golay (24,12) parity bits
@@ -314,10 +351,62 @@ public:
             // discard, don't touch hex
         } else {
             // put it back into our hex format
-            adapt_to_hex(codeword, hex);
+            adapt_to_word(codeword, hex, 6);
             uncorrectable_errors = 0;
         }
 
         return uncorrectable_errors;
     }
+
+    int decode_12(char* dodeca, const char* parity, int* fixed_errors)
+    {
+        unsigned int codeword = adapt_to_codeword(dodeca, 12, parity);
+        // codeword contains:
+        // bits  0-11: dodeca bits
+        // bits 12-23: golay (24,12) parity bits
+
+        // bits are ordered from left to right, so bit 0 is the most significant and bit 23 is the less.
+
+        int uncorrectable_errors = Golay24::decode(fixed_errors, &codeword);
+
+        // codeword is now hopefully fixed
+
+        // If there are uncorrectable errors and the fixed proposal includes ones
+        // in bits 0-5 then probably the fix is not good and we discard it.
+        // Bits 0-5 should always be zero, if there is a problem it's on the other bits
+        // from 6 to 24.
+        if (uncorrectable_errors == 1 && (codeword & 0x3f) != 0) {
+            // discard, don't touch hex
+        } else {
+            // put it back into our hex format
+            adapt_to_word(codeword, dodeca, 12);
+            uncorrectable_errors = 0;
+        }
+
+        return uncorrectable_errors;
+    }
+
+    void encode_6(char* hex, char* out_parity)
+    {
+        unsigned int data = adapt_from_word(hex, 6);
+        unsigned int codeword = Golay24::encode(data);
+
+        // Fill up the parity
+        for (unsigned int i=0, mask = 1<<12; i<12; i++, mask<<=1) {
+            out_parity[i] = (codeword & mask) != 0? 1 : 0;
+        }
+    }
+
+    void encode_12(char* dodeca, char* out_parity)
+    {
+        unsigned int data = adapt_from_word(dodeca, 12);
+        unsigned int codeword = Golay24::encode(data);
+
+        // Fill up the parity
+        for (unsigned int i=0, mask = 1<<12; i<12; i++, mask<<=1) {
+            out_parity[i] = (codeword & mask) != 0? 1 : 0;
+        }
+    }
 };
+
+#endif // GOLAY24_HPP_7a68240afda9406facf81fcad3851111
