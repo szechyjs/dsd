@@ -13,7 +13,8 @@ using namespace itpp;
 
 itpp::BCH bch(63, 16, 11, "6 3 3 1 1 4 1 3 6 7 2 3 5 4 5 3", true);
 
-/** Convenience class to calculate the parity of the DUID values. Keeps a table with the expected outcomes
+/**
+ * Convenience class to calculate the parity of the DUID values. Keeps a table with the expected outcomes
  * for fast lookup.
  */
 class ParityTable

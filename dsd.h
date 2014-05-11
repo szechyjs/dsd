@@ -39,6 +39,9 @@
 #include <math.h>
 #include <mbelib.h>
 #include <sndfile.h>
+
+#include "p25p1_heuristics.h"
+
 /*
  * global variables
  */
@@ -175,6 +178,26 @@ typedef struct
   unsigned int debug_header_errors;
   unsigned int debug_header_critical_errors;
 
+  // Last dibit read
+  int last_dibit;
+
+  // Heuristics state data for +P5 signals
+  P25Heuristics p25_heuristics;
+
+  // Heuristics state data for -P5 signals
+  P25Heuristics inv_p25_heuristics;
+
+#ifdef TRACE_DSD
+  char debug_prefix;
+  char debug_prefix_2;
+  unsigned int debug_sample_index;
+  unsigned int debug_sample_left_edge;
+  unsigned int debug_sample_right_edge;
+  FILE* debug_label_file;
+  FILE* debug_label_dibit_file;
+  FILE* debug_label_imbe_file;
+#endif
+
 } dsd_state;
 
 /*
@@ -188,7 +211,7 @@ typedef struct
 #define X2TDMA_MS_DATA_SYNC  "313113333111111133333313"
 #define X2TDMA_MS_VOICE_SYNC "131331111333333311111131"
 
-#define DSTAR_HD	   "131313131333133113131111"
+#define DSTAR_HD       "131313131333133113131111"
 #define INV_DSTAR_HD   "313131313111311331313333"
 #define DSTAR_SYNC     "313131313133131113313111"
 #define INV_DSTAR_SYNC "131313131311313331131333"
@@ -222,7 +245,10 @@ void writeSynthesizedVoice (dsd_opts * opts, dsd_state * state);
 void playSynthesizedVoice (dsd_opts * opts, dsd_state * state);
 void openAudioOutDevice (dsd_opts * opts, int speed);
 void openAudioInDevice (dsd_opts * opts);
+
 int getDibit (dsd_opts * opts, dsd_state * state);
+int get_dibit_and_analog_signal (dsd_opts * opts, dsd_state * state, int * out_analog_signal);
+
 void skipDibit (dsd_opts * opts, dsd_state * state, int count);
 void saveImbe4400Data (dsd_opts * opts, dsd_state * state, char *imbe_d);
 void saveAmbe2450Data (dsd_opts * opts, dsd_state * state, char *ambe_d);
@@ -259,6 +285,7 @@ void processP25lcw (dsd_opts * opts, dsd_state * state, char *lcformat, char *mf
 void processHDU (dsd_opts * opts, dsd_state * state);
 void processLDU1 (dsd_opts * opts, dsd_state * state);
 void processLDU2 (dsd_opts * opts, dsd_state * state);
+void processTDU (dsd_opts * opts, dsd_state * state);
 void processTDULC (dsd_opts * opts, dsd_state * state);
 void processProVoice (dsd_opts * opts, dsd_state * state);
 void processX2TDMAdata (dsd_opts * opts, dsd_state * state);
@@ -267,4 +294,4 @@ void processDSTAR_HD (dsd_opts * opts, dsd_state * state);
 short dmr_filter(short sample);
 short nxdn_filter(short sample);
 
-#endif
+#endif // DSD_H

@@ -1,5 +1,5 @@
 
-#include <Hamming.hpp>
+#include "Hamming.hpp"
 
 // definition outside class declaration
 Hamming_10_6_3_data Hamming_10_6_3::data;
@@ -50,6 +50,18 @@ int Hamming_10_6_3::decode(std::bitset<10>& input)
     return error_count;
 }
 
+int Hamming_10_6_3::encode(std::bitset<6>& input)
+{
+    // Compute syndromes
+    int s0 = ((data.gt0 & input).count() & 1) << 3;
+    int s1 = ((data.gt1 & input).count() & 1) << 2;
+    int s2 = ((data.gt2 & input).count() & 1) << 1;
+    int s3 = ((data.gt3 & input).count() & 1);
+    int parity = s0 | s1 | s2 | s3;
+
+    return parity;
+}
+
 int Hamming_10_6_3_TableImpl::decode(int input, int* output)
 {
     assert (input < 1024 && input >= 0);
@@ -59,4 +71,13 @@ int Hamming_10_6_3_TableImpl::decode(int input, int* output)
     *output = data.fixed_values[input];
 
     return data.error_counts[input];
+}
+
+int Hamming_10_6_3_TableImpl::encode(int input)
+{
+    assert (input < 64 && input >= 0);
+
+    // Making use of a table...
+
+    return data.encode_parities[input];
 }

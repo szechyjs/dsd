@@ -20,6 +20,7 @@
 
 #include "p25p1_ldu.h"
 #include "p25p1_check_ldu.h"
+#include "p25p1_hdu.h"
 
 
 
@@ -27,27 +28,26 @@ void
 processLDU2 (dsd_opts * opts, dsd_state * state)
 {
   // extracts IMBE frames from LDU frame
-  int i, j, k, dibit;
+  int i;
   char mi[73], algid[9], kid[17];
   char lsd1[9], lsd2[9];
   int algidhex, kidhex;
 
   int status_count;
 
-  char hex_data[16][6];   // Data in hex-words (6 bit words). A total of 12 hex words.
-  char hex_parity[8][6];  // Parity of the data, again in hex-word format. A total of 12 parity hex words.
+  char hex_data[16][6];    // Data in hex-words (6 bit words). A total of 16 hex words.
+  char hex_parity[8][6];   // Parity of the data, again in hex-word format. A total of 12 parity hex words.
 
   int irrecoverable_errors;
 
-  mi[72] = 0;
-  algid[8] = 0;
-  kid[16] = 0;
-  lsd1[8] = 0;
-  lsd2[8] = 0;
+  AnalogSignal analog_signal_array[16*(3+2)+8*(3+2)];
+  int analog_signal_index;
+
+  analog_signal_index = 0;
 
   // we skip the status dibits that occur every 36 symbols
   // the first IMBE frame starts 14 symbols before next status
-  // so we start counter at 22
+  // so we start counter at 36-14-1 = 21
   status_count = 21;
 
   if (opts->errorbars == 1)
@@ -56,63 +56,93 @@ processLDU2 (dsd_opts * opts, dsd_state * state)
     }
 
   // IMBE 1
+#ifdef TRACE_DSD
+  state->debug_prefix_2 = '0';
+#endif
   process_IMBE (opts, state, &status_count);
 
   // IMBE 2
+#ifdef TRACE_DSD
+  state->debug_prefix_2 = '1';
+#endif
   process_IMBE (opts, state, &status_count);
 
   // Read data after IMBE 2
-  read_and_correct_hex_word (opts, state, &(hex_data[15][0]), &status_count);
-  read_and_correct_hex_word (opts, state, &(hex_data[14][0]), &status_count);
-  read_and_correct_hex_word (opts, state, &(hex_data[13][0]), &status_count);
-  read_and_correct_hex_word (opts, state, &(hex_data[12][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_data[15][0]), &status_count, analog_signal_array, &analog_signal_index);
+  read_and_correct_hex_word (opts, state, &(hex_data[14][0]), &status_count, analog_signal_array, &analog_signal_index);
+  read_and_correct_hex_word (opts, state, &(hex_data[13][0]), &status_count, analog_signal_array, &analog_signal_index);
+  read_and_correct_hex_word (opts, state, &(hex_data[12][0]), &status_count, analog_signal_array, &analog_signal_index);
+  analog_signal_array[0*5].sequence_broken = 1;
 
   // IMBE 3
+#ifdef TRACE_DSD
+  state->debug_prefix_2 = '2';
+#endif
   process_IMBE (opts, state, &status_count);
 
   // Read data after IMBE 3
-  read_and_correct_hex_word (opts, state, &(hex_data[11][0]), &status_count);
-  read_and_correct_hex_word (opts, state, &(hex_data[10][0]), &status_count);
-  read_and_correct_hex_word (opts, state, &(hex_data[ 9][0]), &status_count);
-  read_and_correct_hex_word (opts, state, &(hex_data[ 8][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_data[11][0]), &status_count, analog_signal_array, &analog_signal_index);
+  read_and_correct_hex_word (opts, state, &(hex_data[10][0]), &status_count, analog_signal_array, &analog_signal_index);
+  read_and_correct_hex_word (opts, state, &(hex_data[ 9][0]), &status_count, analog_signal_array, &analog_signal_index);
+  read_and_correct_hex_word (opts, state, &(hex_data[ 8][0]), &status_count, analog_signal_array, &analog_signal_index);
+  analog_signal_array[4*5].sequence_broken = 1;
 
   // IMBE 4
+#ifdef TRACE_DSD
+  state->debug_prefix_2 = '3';
+#endif
   process_IMBE (opts, state, &status_count);
 
   // Read data after IMBE 4
-  read_and_correct_hex_word (opts, state, &(hex_data[ 7][0]), &status_count);
-  read_and_correct_hex_word (opts, state, &(hex_data[ 6][0]), &status_count);
-  read_and_correct_hex_word (opts, state, &(hex_data[ 5][0]), &status_count);
-  read_and_correct_hex_word (opts, state, &(hex_data[ 4][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_data[ 7][0]), &status_count, analog_signal_array, &analog_signal_index);
+  read_and_correct_hex_word (opts, state, &(hex_data[ 6][0]), &status_count, analog_signal_array, &analog_signal_index);
+  read_and_correct_hex_word (opts, state, &(hex_data[ 5][0]), &status_count, analog_signal_array, &analog_signal_index);
+  read_and_correct_hex_word (opts, state, &(hex_data[ 4][0]), &status_count, analog_signal_array, &analog_signal_index);
+  analog_signal_array[8*5].sequence_broken = 1;
 
   // IMBE 5
+#ifdef TRACE_DSD
+  state->debug_prefix_2 = '4';
+#endif
   process_IMBE (opts, state, &status_count);
 
   // Read data after IMBE 5
-  read_and_correct_hex_word (opts, state, &(hex_data[ 3][0]), &status_count);
-  read_and_correct_hex_word (opts, state, &(hex_data[ 2][0]), &status_count);
-  read_and_correct_hex_word (opts, state, &(hex_data[ 1][0]), &status_count);
-  read_and_correct_hex_word (opts, state, &(hex_data[ 0][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_data[ 3][0]), &status_count, analog_signal_array, &analog_signal_index);
+  read_and_correct_hex_word (opts, state, &(hex_data[ 2][0]), &status_count, analog_signal_array, &analog_signal_index);
+  read_and_correct_hex_word (opts, state, &(hex_data[ 1][0]), &status_count, analog_signal_array, &analog_signal_index);
+  read_and_correct_hex_word (opts, state, &(hex_data[ 0][0]), &status_count, analog_signal_array, &analog_signal_index);
+  analog_signal_array[12*5].sequence_broken = 1;
 
   // IMBE 6
+#ifdef TRACE_DSD
+  state->debug_prefix_2 = '5';
+#endif
   process_IMBE (opts, state, &status_count);
 
   // Read data after IMBE 6
-  read_and_correct_hex_word (opts, state, &(hex_parity[ 7][0]), &status_count);
-  read_and_correct_hex_word (opts, state, &(hex_parity[ 6][0]), &status_count);
-  read_and_correct_hex_word (opts, state, &(hex_parity[ 5][0]), &status_count);
-  read_and_correct_hex_word (opts, state, &(hex_parity[ 4][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_parity[ 7][0]), &status_count, analog_signal_array, &analog_signal_index);
+  read_and_correct_hex_word (opts, state, &(hex_parity[ 6][0]), &status_count, analog_signal_array, &analog_signal_index);
+  read_and_correct_hex_word (opts, state, &(hex_parity[ 5][0]), &status_count, analog_signal_array, &analog_signal_index);
+  read_and_correct_hex_word (opts, state, &(hex_parity[ 4][0]), &status_count, analog_signal_array, &analog_signal_index);
+  analog_signal_array[16*5].sequence_broken = 1;
 
   // IMBE 7
+#ifdef TRACE_DSD
+  state->debug_prefix_2 = '6';
+#endif
   process_IMBE (opts, state, &status_count);
 
   // Read data after IMBE 7
-  read_and_correct_hex_word (opts, state, &(hex_parity[ 3][0]), &status_count);
-  read_and_correct_hex_word (opts, state, &(hex_parity[ 2][0]), &status_count);
-  read_and_correct_hex_word (opts, state, &(hex_parity[ 1][0]), &status_count);
-  read_and_correct_hex_word (opts, state, &(hex_parity[ 0][0]), &status_count);
+  read_and_correct_hex_word (opts, state, &(hex_parity[ 3][0]), &status_count, analog_signal_array, &analog_signal_index);
+  read_and_correct_hex_word (opts, state, &(hex_parity[ 2][0]), &status_count, analog_signal_array, &analog_signal_index);
+  read_and_correct_hex_word (opts, state, &(hex_parity[ 1][0]), &status_count, analog_signal_array, &analog_signal_index);
+  read_and_correct_hex_word (opts, state, &(hex_parity[ 0][0]), &status_count, analog_signal_array, &analog_signal_index);
+  analog_signal_array[20*5].sequence_broken = 1;
 
   // IMBE 8
+#ifdef TRACE_DSD
+  state->debug_prefix_2 = '7';
+#endif
   process_IMBE (opts, state, &status_count);
 
   // Read data after IMBE 8: LSD (low speed data)
@@ -122,11 +152,11 @@ processLDU2 (dsd_opts * opts, dsd_state * state)
 
     for (i=0; i<=6; i+=2)
       {
-        read_dibit(opts, state, lsd+i, &status_count);
+        read_dibit(opts, state, lsd+i, &status_count, NULL, NULL);
       }
     for (i=0; i<=6; i+=2)
       {
-        read_dibit(opts, state, cyclic_parity+i, &status_count);
+        read_dibit(opts, state, cyclic_parity+i, &status_count, NULL, NULL);
       }
     for (i=0; i<8; i++)
       {
@@ -135,11 +165,11 @@ processLDU2 (dsd_opts * opts, dsd_state * state)
 
     for (i=0; i<=6; i+=2)
       {
-        read_dibit(opts, state, lsd+i, &status_count);
+        read_dibit(opts, state, lsd+i, &status_count, NULL, NULL);
       }
     for (i=0; i<=6; i+=2)
       {
-        read_dibit(opts, state, cyclic_parity+i, &status_count);
+        read_dibit(opts, state, cyclic_parity+i, &status_count, NULL, NULL);
       }
     for (i=0; i<8; i++)
       {
@@ -151,6 +181,9 @@ processLDU2 (dsd_opts * opts, dsd_state * state)
   }
 
   // IMBE 9
+#ifdef TRACE_DSD
+  state->debug_prefix_2 = '8';
+#endif
   process_IMBE (opts, state, &status_count);
 
   if (opts->errorbars == 1)
@@ -166,18 +199,55 @@ processLDU2 (dsd_opts * opts, dsd_state * state)
   // trailing status symbol
   {
       int status;
-      status = getDibit (opts, state) + 48;
+      status = getDibit (opts, state) + '0';
       // TODO: do something useful with the status bits...
   }
 
   // Error correct the hex_data using Reed-Solomon hex_parity
-  irrecoverable_errors = check_and_fix_redsolomon_24_16_9((char*)hex_data, (char*)hex_parity);
-  if (irrecoverable_errors == 1) {
+  irrecoverable_errors = check_and_fix_reedsolomon_24_16_9((char*)hex_data, (char*)hex_parity);
+  if (irrecoverable_errors == 1)
+    {
       state->debug_header_critical_errors++;
-  }
+
+      // We can correct (9-1)/2 = 4 errors. If we failed, it means that there were more than 4 errors in
+      // these 12+12 words. But take into account that each hex word was already error corrected with
+      // Hamming(10,6,3), which can correct 1 bits on each sequence of (6+4) bits. We could say that there
+      // were 5 errors of 2 bits.
+      update_error_stats(&state->p25_heuristics, 12*6+12*6, 5*2);
+    }
+  else
+    {
+      // Same comments as in processHDU. See there.
+
+      char fixed_parity[8*6];
+
+      // Correct the dibits that we read according with hex_data values
+      correct_hamming_dibits((char*)hex_data, 16, analog_signal_array);
+
+      // Generate again the Reed-Solomon parity
+      encode_reedsolomon_24_16_9((char*)hex_data, fixed_parity);
+
+      // Correct the dibits that we read according with the fixed parity values
+      correct_hamming_dibits(fixed_parity, 8, analog_signal_array+16*(3+2));
+
+      // Once corrected, contribute this information to the heuristics module
+      contribute_to_heuristics(state->rf_mod, &(state->p25_heuristics), analog_signal_array, 16*(3+2)+8*(3+2));
+    }
 
 
-  // Put the corrected data into the DSD structures
+#ifdef HEURISTICS_DEBUG
+  printf("(audio errors, header errors, critical header errors) (%i,%i,%i)\n",
+          state->debug_audio_errors, state->debug_header_errors, state->debug_header_critical_errors);
+#endif
+
+  // Now put the corrected data into the DSD structures
+
+  mi[72] = 0;
+  algid[8] = 0;
+  kid[16] = 0;
+  lsd1[8] = 0;
+  lsd2[8] = 0;
+
   mi[ 0]   = hex_data[15][0] + '0';
   mi[ 1]   = hex_data[15][1] + '0';
   mi[ 2]   = hex_data[15][2] + '0';
