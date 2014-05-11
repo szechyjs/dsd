@@ -297,4 +297,4 @@ void processDSTAR_HD (dsd_opts * opts, dsd_state * state);
 short dmr_filter(short sample);
 short nxdn_filter(short sample);
 
-#endif // DSD_H__f8398b5f0d5d49a1be2f1645325dfdb2
+#endif // DSD_H

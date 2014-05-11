@@ -132,7 +132,7 @@ static void update_p25_heuristics(P25Heuristics* heuristics, int previous_dibit,
             // Interpreting a "00" as "11", "11" as "00", "01" as "10" or "10" as "01" counts as 2 errors
             number_errors = 2;
         } else {
-            // The other 12 combinations count as 1 error.
+            // The other 8 combinations count (where original_dibit != dibit) as 1 error.
             number_errors = 1;
         }
     }
