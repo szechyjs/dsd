@@ -10,6 +10,7 @@
 TEST(ReedSolomonTest, Test1)
 {
     ReedSolomon_63<8> rs;
+
     int recd[63] = {};
     int expected[63] = {};
     int output[63];
