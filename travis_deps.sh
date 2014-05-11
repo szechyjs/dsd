@@ -8,7 +8,7 @@ tar -xzf mbelib.tar.gz
 cd mbelib-master
 mkdir build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=/usr
+cmake -DCMAKE_INSTALL_PREFIX=/usr ..
 make
 make install
 
@@ -19,6 +19,6 @@ tar -xzf itpp-4.3.1.tar.gz
 cd itpp-4.3.1
 mkdir build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=/usr
+cmake -DCMAKE_INSTALL_PREFIX=/usr ..
 make
 make install
