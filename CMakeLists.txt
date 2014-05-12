@@ -9,6 +9,7 @@ git_describe(GIT_TAG)
 find_package(LibSndFile REQUIRED)
 find_package(LibMbe REQUIRED)
 find_package(ITPP REQUIRED)
+find_package(RTLSDR REQUIRED)
 
 FILE(GLOB SRCS *.c *.cpp)
 
@@ -20,12 +21,17 @@ INCLUDE_DIRECTORIES(
     "${LIBSNDFILE_INCLUDE_DIR}"
     "${LIBMBE_INCLUDE_DIR}"
     "${ITPP_INCLUDE_DIR}"
+    "${RTLSDR_INCLUDE_DIR}"
 )
 
-SET(LIBS ${LIBS} ${LIBMBE_LIBRARY} ${LIBSNDFILE_LIBRARY} ${ITPP_LIBRARY})
+SET(LIBS ${LIBS} ${LIBMBE_LIBRARY} ${LIBSNDFILE_LIBRARY} ${ITPP_LIBRARY} ${RTLSDR_LIBRARY})
 
 ADD_EXECUTABLE(dsd ${SRCS})
 TARGET_LINK_LIBRARIES(dsd ${LIBS})
+
+# create a library for use with unit tests
+ADD_LIBRARY(libdsd ${SRCS})
+TARGET_LINK_LIBRARIES(libdsd ${LIBS})
 
 install(TARGETS dsd DESTINATION bin)
 

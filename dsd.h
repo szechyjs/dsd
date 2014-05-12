@@ -39,6 +39,7 @@
 #include <math.h>
 #include <mbelib.h>
 #include <sndfile.h>
+#include <rtl-sdr.h>
 /*
  * global variables
  */
@@ -63,7 +64,9 @@ typedef struct
   int audio_in_fd;
   SNDFILE *audio_in_file;
   SF_INFO *audio_in_file_info;
-  int audio_in_type; // 0 for device, 1 for file
+  int audio_in_type; // 0 for device, 1 for file, 2 for sdr
+  rtlsdr_dev_t *audio_in_sdr_dev;
+  int sdr_freq;
   char audio_out_dev[1024];
   int audio_out_fd;
   SNDFILE *audio_out_file;

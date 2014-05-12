@@ -162,7 +162,7 @@ writeSynthesizedVoice (dsd_opts * opts, dsd_state * state)
 //  for(n=0; n<160; n++)
 //    printf("%d ", ((short*)(state->audio_out_temp_buf))[n]);
 //  printf("\n");
-  
+
   aout_buf_p = aout_buf;
   state->audio_out_temp_buf_p = state->audio_out_temp_buf;
 
@@ -318,6 +318,37 @@ openAudioOutDevice (dsd_opts * opts, int speed)
 void
 openAudioInDevice (dsd_opts * opts)
 {
+  if (opts->audio_in_type == 2)
+  {
+    if (rtlsdr_get_device_count() > 0)
+    {
+        int res = rtlsdr_open(&opts->audio_in_sdr_dev, 0);
+        if (res)
+        {
+          printf("Error, couldn't open sdr\n");
+          exit(1);
+        }
+        res = rtlsdr_set_center_freq(opts->audio_in_sdr_dev, opts->sdr_freq);
+        if (res)
+        {
+            printf("Error, cound't set sdr frequency\n");
+            exit(1);
+        }
+        res = rtlsdr_set_sample_rate(opts->audio_in_sdr_dev, 1500000);
+        if (res)
+        {
+            printf("Error, couldn't set sdr sample rate\n");
+            exit(1);
+        }
+        res = rtlsdr_reset_buffer(opts->audio_in_sdr_dev);
+        if (res)
+        {
+            printf("Error, couldn't reset sdr buffer\n");
+            exit(1);
+        }
+    }
+    return;
+  }
   // get info of device/file
   struct stat stat_buf;
   if (stat(opts->audio_in_dev, &stat_buf) != 0) {
@@ -339,9 +370,9 @@ openAudioInDevice (dsd_opts * opts)
 #ifdef SOLARIS
     sample_info_t aset, aget;
     int rgain;
-  
+
     rgain = 64;
-  
+
     if (opts->split == 1)
       {
         opts->audio_in_fd = open (opts->audio_in_dev, O_RDONLY);
@@ -355,10 +386,10 @@ openAudioInDevice (dsd_opts * opts)
         printf ("Error, couldn't open %s\n", opts->audio_in_dev);
         exit(1);
       }
-  
+
     // get current
     ioctl (opts->audio_in_fd, AUDIO_GETINFO, &aset);
-  
+
     aset.record.sample_rate = 48000;
     aset.play.sample_rate = 48000;
     aset.record.channels = 1;
@@ -369,7 +400,7 @@ openAudioInDevice (dsd_opts * opts)
     aset.play.encoding = AUDIO_ENCODING_LINEAR;
     aset.record.port = AUDIO_LINE_IN;
     aset.record.gain = rgain;
-  
+
     if (ioctl (opts->audio_in_fd, AUDIO_SETINFO, &aset) == -1)
       {
         printf ("Error setting sample device parameters\n");
@@ -379,7 +410,7 @@ openAudioInDevice (dsd_opts * opts)
 
 #if defined(BSD) && !defined(__APPLE__)
     int fmt;
-  
+
     if (opts->split == 1)
       {
         opts->audio_in_fd = open (opts->audio_in_dev, O_RDONLY);
@@ -388,13 +419,13 @@ openAudioInDevice (dsd_opts * opts)
       {
         opts->audio_in_fd = open (opts->audio_in_dev, O_RDWR);
       }
-  
+
     if (opts->audio_in_fd == -1)
       {
         printf ("Error, couldn't open %s\n", opts->audio_in_dev);
         opts->audio_out = 0;
       }
-  
+
     fmt = 0;
     if (ioctl (opts->audio_in_fd, SNDCTL_DSP_RESET) < 0)
       {
