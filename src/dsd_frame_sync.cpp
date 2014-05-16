@@ -19,7 +19,7 @@
 #include "options.h"
 
 void
-printFrameSync (dsd_opts * opts, dsd_state * state, char *frametype, int offset, char *modulation)
+printFrameSync (dsd_opts * opts, dsd_state * state, const char *frametype, int offset, char *modulation)
 {
   int verbose = Options::Instance().GetVerboseLevel();
   if (verbose > 0)

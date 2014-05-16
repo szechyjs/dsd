@@ -268,7 +268,7 @@ void openWavOutFile (dsd_opts * opts, dsd_state * state);
 void closeWavOutFile (dsd_opts * opts, dsd_state * state);
 void printFrameInfo (dsd_opts * opts, dsd_state * state);
 void processFrame (dsd_opts * opts, dsd_state * state);
-void printFrameSync (dsd_opts * opts, dsd_state * state, char *frametype, int offset, char *modulation);
+void printFrameSync (dsd_opts * opts, dsd_state * state, const char *frametype, int offset, char *modulation);
 int getFrameSync (dsd_opts * opts, dsd_state * state);
 int comp (const void *a, const void *b);
 void noCarrier (dsd_opts * opts, dsd_state * state);
