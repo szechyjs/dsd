@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/szechyjs/dsd.png?branch=master)](https://travis-ci.org/szechyjs/dsd)
+[![Build Status](https://travis-ci.org/szechyjs/dsd.svg?branch=master)](https://travis-ci.org/szechyjs/dsd)
 [![Stories in Ready](https://badge.waffle.io/szechyjs/dsd.png?label=ready&title=Ready)](https://waffle.io/szechyjs/dsd)
 # Digital Speech Decoder 1.7.0-dev
 DSD is able to decode [several digital voice formats](https://github.com/szechyjs/dsd/wiki/Supported-formats) from discriminator
