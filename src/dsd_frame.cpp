@@ -53,7 +53,7 @@ void processFrame (dsd_opts * opts, dsd_state * state)
   char nac[13];
   int level;
 
-  char status_0, status_1;
+  char status_0;
   char bch_code[63];
   int index_bch_code;
   unsigned char parity;
@@ -71,8 +71,8 @@ void processFrame (dsd_opts * opts, dsd_state * state)
 
   if (state->rf_mod == 1)
     {
-      state->maxref = (state->max * 0.80);
-      state->minref = (state->min * 0.80);
+      state->maxref = (int)(state->max * 0.80F);
+      state->minref = (int)(state->min * 0.80F);
     }
   else
     {
@@ -449,10 +449,7 @@ void processFrame (dsd_opts * opts, dsd_state * state)
       state->err_str[0] = 0;
       sprintf (state->fsubtype, " TDU          ");
 
-      // Now processing NID
-
-      skipDibit (opts, state, 14);    // 28 null bits
-      status_1 = getDibit (opts, state) + '0';
+      processTDU (opts, state);
     }
   else if (strcmp (duid, "13") == 0)
     {

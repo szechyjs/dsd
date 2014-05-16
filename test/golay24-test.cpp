@@ -40,12 +40,12 @@ protected:
   {
       DSDGolay24 golay24;
 
-      unsigned int trashed_codeword = golay24.adapt_to_codeword(hex, sgp);
+      unsigned int trashed_codeword = golay24.adapt_to_codeword(hex, 6, sgp);
 
       //printf("[%s]", hex_to_bin24(trashed_codeword));
 
       int fixed_errors = 0;
-      int many_errors = golay24.decode(hex, sgp, &fixed_errors); // try to correct bit errors
+      int many_errors = golay24.decode_6(hex, sgp, &fixed_errors); // try to correct bit errors
 
       /*
       printf(" -> ");
@@ -71,6 +71,18 @@ protected:
       }
 
       //printf("\n");
+  }
+
+  static void check_encode(char* hex, char* expected_parity)
+  {
+      DSDGolay24 golay24;
+      char parity[12];
+
+      golay24.encode_6(hex, parity);
+
+      for(unsigned int i=0; i<12; i++) {
+          EXPECT_EQ(expected_parity[i], parity[i]);
+      }
   }
 };
 
@@ -135,4 +147,28 @@ TEST_F(Golay24Test, Test7)
     char expected[6] = { 0, 0, 1, 0, 0, 0};
 
     fix_golay24(hex, parity, expected, 2);
+}
+
+TEST_F(Golay24Test, Test_encode_1)
+{
+    char hex[6] = { 1, 0, 1, 0, 1, 0};
+    char expected_parity[12] = { 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1};
+
+    check_encode(hex, expected_parity);
+}
+
+TEST_F(Golay24Test, Test_encode_2)
+{
+    char hex[6] = { 0, 0, 1, 0, 0, 0};
+    char expected_parity[12] = { 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0};
+
+    check_encode(hex, expected_parity);
+}
+
+TEST_F(Golay24Test, Test_encode_3)
+{
+    char hex[6] = { 0, 0, 0, 0, 0, 0};
+    char expected_parity[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+    check_encode(hex, expected_parity);
 }
