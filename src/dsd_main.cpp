@@ -98,7 +98,6 @@ initOpts (dsd_opts * opts)
   opts->scoperate = 15;
   sprintf (opts->audio_in_dev, "/dev/audio");
   opts->audio_in_fd = -1;
-  opts->audio_in_sdr_dev = NULL;
   sprintf (opts->audio_out_dev, "/dev/audio");
   opts->audio_out_fd = -1;
   opts->split = 0;
@@ -340,10 +339,6 @@ void
 cleanupAndExit (dsd_opts * opts, dsd_state * state)
 {
   noCarrier (opts, state);
-  if (opts->audio_in_sdr_dev)
-  {
-    rtlsdr_close(opts->audio_in_sdr_dev);
-  }
   if (opts->wav_out_f != NULL)
     {
       closeWavOutFile (opts, state);
@@ -407,7 +402,7 @@ main (int argc, char **argv)
   exitflag = 0;
   signal (SIGINT, sigfun);
 
-  while ((c = getopt (argc, argv, "hep:qstv:z:i:o:F:d:g:nw:B:C:R:f:m:u:x:A:S:M:rl")) != -1)
+  while ((c = getopt (argc, argv, "hep:qstv:z:i:o:d:g:nw:B:C:R:f:m:u:x:A:S:M:rl")) != -1)
     {
       opterr = 0;
       switch (c)
@@ -481,10 +476,6 @@ main (int argc, char **argv)
         case 'o':
           strncpy(opts.audio_out_dev, optarg, 1023);
           opts.audio_out_dev[1023] = '\0';
-          break;
-        case 'F':
-          opts.audio_in_type = 2;
-          opts.sdr_freq = atoi(optarg);
           break;
         case 'd':
           strncpy(opts.mbe_out_dir, optarg, 1023);

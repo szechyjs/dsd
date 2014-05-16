@@ -11,8 +11,6 @@ git_describe(GIT_TAG)
 find_package(LibSndFile REQUIRED)
 find_package(LibMbe REQUIRED)
 find_package(ITPP REQUIRED)
-find_package(RTLSDR REQUIRED)
-find_package(Threads REQUIRED)
 
 # Add srouce files
 FILE(GLOB SRCS src/*.c src/*.cpp)
@@ -27,11 +25,10 @@ INCLUDE_DIRECTORIES(
     "${LIBSNDFILE_INCLUDE_DIR}"
     "${LIBMBE_INCLUDE_DIR}"
     "${ITPP_INCLUDE_DIR}"
-    "${RTLSDR_INCLUDE_DIR}"
 )
 
 # Set libraries for linking
-SET(LIBS ${LIBS} ${LIBMBE_LIBRARY} ${LIBSNDFILE_LIBRARY} ${ITPP_LIBRARY} ${RTLSDR_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
+SET(LIBS ${LIBS} ${LIBMBE_LIBRARY} ${LIBSNDFILE_LIBRARY} ${ITPP_LIBRARY})
 
 # Create dsd executable
 ADD_EXECUTABLE(dsd ${SRCS})

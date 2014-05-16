@@ -322,37 +322,6 @@ openAudioOutDevice (dsd_opts * opts, int speed)
 void
 openAudioInDevice (dsd_opts * opts)
 {
-  if (opts->audio_in_type == 2)
-  {
-    if (rtlsdr_get_device_count() > 0)
-    {
-        int res = rtlsdr_open(&opts->audio_in_sdr_dev, 0);
-        if (res)
-        {
-          printf("Error, couldn't open sdr\n");
-          exit(1);
-        }
-        res = rtlsdr_set_center_freq(opts->audio_in_sdr_dev, opts->sdr_freq);
-        if (res)
-        {
-            printf("Error, cound't set sdr frequency\n");
-            exit(1);
-        }
-        res = rtlsdr_set_sample_rate(opts->audio_in_sdr_dev, 1500000);
-        if (res)
-        {
-            printf("Error, couldn't set sdr sample rate\n");
-            exit(1);
-        }
-        res = rtlsdr_reset_buffer(opts->audio_in_sdr_dev);
-        if (res)
-        {
-            printf("Error, couldn't reset sdr buffer\n");
-            exit(1);
-        }
-    }
-    return;
-  }
   // get info of device/file
   struct stat stat_buf;
   if (stat(opts->audio_in_dev, &stat_buf) != 0)

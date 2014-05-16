@@ -22,7 +22,7 @@ int
 getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
 {
   short sample;
-  int i, sum, symbol, count, nread;
+  int i, sum, symbol, count;
   ssize_t result;
 
   sum = 0;
@@ -82,12 +82,6 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
       // Read the new sample from the input
       if(opts->audio_in_type == 0) {
           result = read (opts->audio_in_fd, &sample, 2);
-      }
-      else if (opts->audio_in_type == 2) {
-        result = rtlsdr_read_sync(opts->audio_in_sdr_dev, &sample, 1, &nread);
-        if (result == 0) {
-            cleanupAndExit(opts, state);
-        }
       }
       else {
           result = sf_read_short(opts->audio_in_file, &sample, 1);
