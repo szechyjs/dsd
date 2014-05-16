@@ -1,4 +1,5 @@
 #include "dsd.h"
+#include "options.h"
 #include "nxdn_const.h"
 
 void
@@ -9,7 +10,7 @@ processNXDNVoice (dsd_opts * opts, dsd_state * state)
   const int *w, *x, *y, *z;
   const char *pr;
 
-  if (opts->errorbars == 1)
+  if (Options::Instance().GetErrorBars())
     {
       printf ("VOICE e:");
     }
@@ -52,7 +53,7 @@ processNXDNVoice (dsd_opts * opts, dsd_state * state)
 #endif
     }
 
-  if (opts->errorbars == 1)
+  if (Options::Instance().GetErrorBars())
     {
       printf ("\n");
     }

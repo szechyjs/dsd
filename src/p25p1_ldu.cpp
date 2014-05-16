@@ -2,6 +2,7 @@
 #include "dsd.h"
 #include "p25p1_const.h"
 #include "p25p1_hdu.h"
+#include "p25p1_check_ldu.h"
 
 // separate imbe frames and deinterleave
 void

@@ -1,4 +1,5 @@
 #include "dsd.h"
+#include "options.h"
 #include "nxdn96_const.h"
 
 void
@@ -9,7 +10,7 @@ processNXDN96 (dsd_opts * opts, dsd_state * state)
   char ambe_fr[4][24];
   const int *w, *x, *y, *z;
 
-  if (opts->errorbars == 1)
+  if (Options::Instance().GetErrorBars())
     {
       printf ("VOICE e:");
     }
@@ -116,7 +117,7 @@ processNXDN96 (dsd_opts * opts, dsd_state * state)
   printf ("\n");
 #endif
 
-  if (opts->errorbars == 1)
+  if (Options::Instance().GetErrorBars())
     {
       printf ("\n");
     }

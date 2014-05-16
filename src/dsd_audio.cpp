@@ -357,7 +357,7 @@ openAudioInDevice (dsd_opts * opts)
   }
   if(S_ISREG(stat_buf.st_mode)) { // is this a regular file? then process with libsndfile.
     opts->audio_in_type = 1;
-    opts->audio_in_file_info = calloc(1, sizeof(SF_INFO));
+    opts->audio_in_file_info = (SF_INFO*)calloc(1, sizeof(SF_INFO));
     opts->audio_in_file_info->channels = 1;
     opts->audio_in_file = sf_open(opts->audio_in_dev, SFM_READ, opts->audio_in_file_info);
     if(opts->audio_in_file == NULL) {

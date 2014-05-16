@@ -19,15 +19,7 @@
  * X2TDMA AMBE interleave schedule
  */
 
-#ifndef _MAIN
-extern const int aW[36];
-extern const int aX[36];
-extern const int aY[36];
-extern const int aZ[36];
-
-#else
-
-const int aW[36] = { 0, 1, 0, 1, 0, 1,
+static const int aW[36] = { 0, 1, 0, 1, 0, 1,
   0, 1, 0, 1, 0, 1,
   0, 1, 0, 1, 0, 1,
   0, 1, 0, 1, 0, 2,
@@ -35,7 +27,7 @@ const int aW[36] = { 0, 1, 0, 1, 0, 1,
   0, 2, 0, 2, 0, 2
 };
 
-const int aX[36] = { 23, 10, 22, 9, 21, 8,
+static const int aX[36] = { 23, 10, 22, 9, 21, 8,
   20, 7, 19, 6, 18, 5,
   17, 4, 16, 3, 15, 2,
   14, 1, 13, 0, 12, 10,
@@ -43,7 +35,7 @@ const int aX[36] = { 23, 10, 22, 9, 21, 8,
   8, 6, 7, 5, 6, 4
 };
 
-const int aY[36] = { 0, 2, 0, 2, 0, 2,
+static const int aY[36] = { 0, 2, 0, 2, 0, 2,
   0, 2, 0, 3, 0, 3,
   1, 3, 1, 3, 1, 3,
   1, 3, 1, 3, 1, 3,
@@ -51,12 +43,10 @@ const int aY[36] = { 0, 2, 0, 2, 0, 2,
   1, 3, 1, 3, 1, 3
 };
 
-const int aZ[36] = { 5, 3, 4, 2, 3, 1,
+static const int aZ[36] = { 5, 3, 4, 2, 3, 1,
   2, 0, 1, 13, 0, 12,
   22, 11, 21, 10, 20, 9,
   19, 8, 18, 7, 17, 6,
   16, 5, 15, 4, 14, 3,
   13, 2, 12, 1, 11, 0
 };
-
-#endif

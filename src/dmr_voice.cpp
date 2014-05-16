@@ -16,6 +16,7 @@
  */
 
 #include "dsd.h"
+#include "options.h"
 #include "dmr_const.h"
 
 void
@@ -224,7 +225,7 @@ processDMRvoice (dsd_opts * opts, dsd_state * state)
           msMode = 1;
         }
 
-      if ((j == 0) && (opts->errorbars == 1))
+      if ((j == 0) && (Options::Instance().GetErrorBars()))
         {
           printf ("%s %s  VOICE e:", state->slot0light, state->slot1light);
         }
@@ -374,7 +375,7 @@ processDMRvoice (dsd_opts * opts, dsd_state * state)
         }
     }
 
-  if (opts->errorbars == 1)
+  if (Options::Instance().GetErrorBars())
     {
       printf ("\n");
     }

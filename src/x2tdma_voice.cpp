@@ -16,6 +16,7 @@
  */
 
 #include "dsd.h"
+#include "options.h"
 #include "x2tdma_const.h"
 
 void
@@ -238,7 +239,7 @@ processX2TDMAvoice (dsd_opts * opts, dsd_state * state)
           msMode = 1;
         }
 
-      if ((j == 0) && (opts->errorbars == 1))
+      if ((j == 0) && (Options::Instance().GetErrorBars()))
         {
           printf ("%s %s  VOICE e:", state->slot0light, state->slot1light);
         }
@@ -621,7 +622,7 @@ processX2TDMAvoice (dsd_opts * opts, dsd_state * state)
         }
     }
 
-  if (opts->errorbars == 1)
+  if (Options::Instance().GetErrorBars())
     {
       printf ("\n");
     }

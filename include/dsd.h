@@ -37,13 +37,18 @@
 #include <sys/soundcard.h>
 #endif
 #include <math.h>
-#include <mbelib.h>
 #include <sndfile.h>
 #include <rtl-sdr.h>
+
+extern "C"
+{
+  #include <mbelib.h>
+}
+
 /*
  * global variables
  */
-int exitflag;
+static int exitflag;
 
 
 typedef struct
@@ -51,10 +56,10 @@ typedef struct
   int onesymbol;
   char mbe_in_file[1024];
   FILE *mbe_in_f;
-  int errorbars;
-  int datascope;
-  int symboltiming;
-  int verbose;
+  bool errorbars;
+  bool datascope;
+  bool symboltiming;
+  char verbose;
   int p25enc;
   int p25lc;
   int p25status;
@@ -102,7 +107,7 @@ typedef struct
   int mod_threshold;
   int ssize;
   int msize;
-  int playfiles;
+  bool playfiles;
   int delay;
   int use_cosine_filter;
   int unmute_encrypted_p25;

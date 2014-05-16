@@ -1,3 +1,6 @@
+#ifndef PROVOICE_CONST_H
+#define PROVOICE_CONST_H
+
 /*
  * Copyright (C) 2010 DSD Author
  * GPG Key ID: 0x3F1D7FD0 (74EF 430D F7F2 0A48 FCE6  F630 FAA2 635D 3F1D 7FD0)
@@ -15,17 +18,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef _MAIN
-
-extern const int pW[142];
-extern const int pX[142];
-
-#else
 /*
  * ProVoice IMBE interleave schedule
  */
 
-const int pW[142] = {
+static const int pW[142] = {
   0, 1, 2, 3, 4, 6,
   0, 1, 2, 3, 4, 6,
   0, 1, 2, 3, 4, 6,
@@ -52,7 +49,7 @@ const int pW[142] = {
   1, 2, 3, 4, 6
 };
 
-const int pX[142] = {
+static const int pX[142] = {
   18, 18, 17, 16, 7, 21,
   15, 15, 14, 13, 4, 18,
   12, 12, 11, 10, 1, 15,

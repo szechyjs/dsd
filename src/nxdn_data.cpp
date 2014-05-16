@@ -1,11 +1,12 @@
 #include "dsd.h"
+#include "options.h"
 
 void
 processNXDNData (dsd_opts * opts, dsd_state * state)
 {
   int i, dibit;
 
-  if (opts->errorbars == 1)
+  if (Options::Instance().GetErrorBars())
     {
       printf ("DATA    ");
     }
@@ -29,7 +30,7 @@ processNXDNData (dsd_opts * opts, dsd_state * state)
 #endif
     }
 
-  if (opts->errorbars == 1)
+  if (Options::Instance().GetErrorBars())
     {
       printf ("\n");
     }

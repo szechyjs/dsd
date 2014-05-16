@@ -1,3 +1,6 @@
+#ifndef DMR_CONST_H
+#define DMR_CONST_H
+
 /*
  * Copyright (C) 2010 DSD Author
  * GPG Key ID: 0x3F1D7FD0 (74EF 430D F7F2 0A48 FCE6  F630 FAA2 635D 3F1D 7FD0)
@@ -15,17 +18,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef _MAIN
-extern const int rW[36];
-extern const int rX[36];
-extern const int rY[36];
-extern const int rZ[36];
-
-#else
 /*
  * DMR AMBE interleave schedule
  */
-const int rW[36] = {
+static const int rW[36] = {
   0, 1, 0, 1, 0, 1,
   0, 1, 0, 1, 0, 1,
   0, 1, 0, 1, 0, 1,
@@ -34,7 +30,7 @@ const int rW[36] = {
   0, 2, 0, 2, 0, 2
 };
 
-const int rX[36] = {
+static const int rX[36] = {
   23, 10, 22, 9, 21, 8,
   20, 7, 19, 6, 18, 5,
   17, 4, 16, 3, 15, 2,
@@ -43,7 +39,7 @@ const int rX[36] = {
   8, 6, 7, 5, 6, 4
 };
 
-const int rY[36] = {
+static const int rY[36] = {
   0, 2, 0, 2, 0, 2,
   0, 2, 0, 3, 0, 3,
   1, 3, 1, 3, 1, 3,
@@ -52,7 +48,7 @@ const int rY[36] = {
   1, 3, 1, 3, 1, 3
 };
 
-const int rZ[36] = {
+static const int rZ[36] = {
   5, 3, 4, 2, 3, 1,
   2, 0, 1, 13, 0, 12,
   22, 11, 21, 10, 20, 9,

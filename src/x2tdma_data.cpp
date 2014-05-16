@@ -16,6 +16,7 @@
  */
 
 #include "dsd.h"
+#include "options.h"
 
 void
 processX2TDMAdata (dsd_opts * opts, dsd_state * state)
@@ -219,7 +220,7 @@ processX2TDMAdata (dsd_opts * opts, dsd_state * state)
         }
     }
 
-  if (opts->errorbars == 1)
+  if (Options::Instance().GetErrorBars())
     {
       printf ("%s %s ", state->slot0light, state->slot1light);
     }
@@ -227,7 +228,7 @@ processX2TDMAdata (dsd_opts * opts, dsd_state * state)
   // current slot second half, cach, next slot 1st half
   skipDibit (opts, state, 120);
 
-  if (opts->errorbars == 1)
+  if (Options::Instance().GetErrorBars())
     {
       if (strcmp (state->fsubtype, "              ") == 0)
         {

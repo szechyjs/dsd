@@ -25,6 +25,7 @@
 #include "dmr_const.h"
 #include "provoice_const.h"
 #include "git_ver.h"
+#include "options.h"
 
 int
 comp (const void *a, const void *b)
@@ -85,10 +86,10 @@ initOpts (dsd_opts * opts)
   opts->onesymbol = 10;
   opts->mbe_in_file[0] = 0;
   opts->mbe_in_f = NULL;
-  opts->errorbars = 1;
-  opts->datascope = 0;
-  opts->symboltiming = 0;
-  opts->verbose = 2;
+  Options::Instance().SetErrorBars(true);
+  Options::Instance().SetDataScope(false);
+  Options::Instance().SetSymbolTiming(false);
+  Options::Instance().SetVerboseLevel(2);
   opts->p25enc = 0;
   opts->p25lc = 0;
   opts->p25status = 0;
@@ -96,6 +97,7 @@ initOpts (dsd_opts * opts)
   opts->scoperate = 15;
   sprintf (opts->audio_in_dev, "/dev/audio");
   opts->audio_in_fd = -1;
+  opts->audio_in_sdr_dev = NULL;
   sprintf (opts->audio_out_dev, "/dev/audio");
   opts->audio_out_fd = -1;
   opts->split = 0;
@@ -127,7 +129,7 @@ initOpts (dsd_opts * opts)
   opts->mod_threshold = 26;
   opts->ssize = 36;
   opts->msize = 15;
-  opts->playfiles = 0;
+  Options::Instance().SetPlayFiles(false);
   opts->delay = 0;
   opts->use_cosine_filter = 1;
   opts->unmute_encrypted_p25 = 0;
@@ -139,14 +141,14 @@ initState (dsd_state * state)
 
   int i, j;
 
-  state->dibit_buf = malloc (sizeof (int) * 1000000);
+  state->dibit_buf = (int*) malloc (sizeof (int) * 1000000);
   state->dibit_buf_p = state->dibit_buf + 200;
   memset (state->dibit_buf, 0, sizeof (int) * 200);
   state->repeat = 0;
-  state->audio_out_buf = malloc (sizeof (short) * 1000000);
+  state->audio_out_buf = (short*) malloc (sizeof (short) * 1000000);
   memset (state->audio_out_buf, 0, 100 * sizeof (short));
   state->audio_out_buf_p = state->audio_out_buf + 100;
-  state->audio_out_float_buf = malloc (sizeof (float) * 1000000);
+  state->audio_out_float_buf = (float*) malloc (sizeof (float) * 1000000);
   memset (state->audio_out_float_buf, 0, 100 * sizeof (float));
   state->audio_out_float_buf_p = state->audio_out_float_buf + 100;
   state->audio_out_idx = 0;
@@ -215,9 +217,9 @@ initState (dsd_state * state)
   sprintf (state->algid, "________");
   sprintf (state->keyid, "________________");
   state->currentslot = 0;
-  state->cur_mp = malloc (sizeof (mbe_parms));
-  state->prev_mp = malloc (sizeof (mbe_parms));
-  state->prev_mp_enhanced = malloc (sizeof (mbe_parms));
+  state->cur_mp = (mbe_parms*) malloc (sizeof (mbe_parms));
+  state->prev_mp = (mbe_parms*) malloc (sizeof (mbe_parms));
+  state->prev_mp_enhanced = (mbe_parms*) malloc (sizeof (mbe_parms));
   mbe_initMbeParms (state->cur_mp, state->prev_mp, state->prev_mp_enhanced);
   state->p25kid = 0;
 
@@ -318,7 +320,7 @@ void
 cleanupAndExit (dsd_opts * opts, dsd_state * state)
 {
   noCarrier (opts, state);
-  if (opts->audio_in_sdr_dev != NULL)
+  if (opts->audio_in_sdr_dev)
   {
     rtlsdr_close(opts->audio_in_sdr_dev);
   }
@@ -373,8 +375,8 @@ main (int argc, char **argv)
           usage ();
           exit (0);
         case 'e':
-          opts.errorbars = 1;
-          opts.datascope = 0;
+          Options::Instance().SetErrorBars(true);
+          Options::Instance().SetDataScope(false);
           break;
         case 'p':
           if (optarg[0] == 'e')
@@ -399,35 +401,36 @@ main (int argc, char **argv)
             }
           break;
         case 'q':
-          opts.errorbars = 0;
-          opts.verbose = 0;
+          Options::Instance().SetErrorBars(false);
+          Options::Instance().SetVerboseLevel(0);
           break;
         case 's':
-          opts.errorbars = 0;
+          Options::Instance().SetErrorBars(false);
           opts.p25enc = 0;
           opts.p25lc = 0;
           opts.p25status = 0;
           opts.p25tg = 0;
-          opts.datascope = 1;
-          opts.symboltiming = 0;
+          Options::Instance().SetDataScope(true);
+          Options::Instance().SetSymbolTiming(false);
           break;
         case 't':
-          opts.symboltiming = 1;
-          opts.errorbars = 1;
-          opts.datascope = 0;
+          Options::Instance().SetSymbolTiming(true);
+          Options::Instance().SetErrorBars(true);
+          Options::Instance().SetDataScope(false);
           break;
         case 'v':
           sscanf (optarg, "%d", &opts.verbose);
+          Options::Instance().SetVerboseLevel(opts.verbose);
           break;
         case 'z':
           sscanf (optarg, "%d", &opts.scoperate);
-          opts.errorbars = 0;
+          Options::Instance().SetErrorBars(false);
           opts.p25enc = 0;
           opts.p25lc = 0;
           opts.p25status = 0;
           opts.p25tg = 0;
-          opts.datascope = 1;
-          opts.symboltiming = 0;
+          Options::Instance().SetDataScope(true);
+          Options::Instance().SetSymbolTiming(false);
           printf ("Setting datascope frame rate to %i frame per second.\n", opts.scoperate);
           break;
         case 'i':
@@ -681,9 +684,9 @@ main (int argc, char **argv)
           printf ("Setting QPSK Min/Max buffer to %i\n", opts.msize);
           break;
         case 'r':
-          opts.playfiles = 1;
-          opts.errorbars = 0;
-          opts.datascope = 0;
+          Options::Instance().SetPlayFiles(true);
+          Options::Instance().SetErrorBars(false);
+          Options::Instance().SetDataScope(false);
           state.optind = optind;
           break;
         case 'l':
@@ -701,7 +704,7 @@ main (int argc, char **argv)
       openSerial (&opts, &state);
     }
 
-  if (opts.playfiles == 1)
+  if (Options::Instance().GetPlayFiles())
     {
       opts.split = 1;
       opts.playoffset = 0;
@@ -739,7 +742,7 @@ main (int argc, char **argv)
       opts.audio_out_fd = opts.audio_in_fd;
     }
 
-  if (opts.playfiles == 1)
+  if (Options::Instance().GetPlayFiles())
     {
       playMbeFiles (&opts, &state, argc, argv);
     }

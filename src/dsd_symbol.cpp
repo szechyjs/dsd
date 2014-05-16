@@ -16,6 +16,7 @@
  */
 
 #include "dsd.h"
+#include "options.h"
 
 int
 getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
@@ -128,14 +129,14 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
                 {               // first spike out of place
                   state->jitter = i;
                 }
-              if ((opts->symboltiming == 1) && (have_sync == 0) && (state->lastsynctype != -1))
+              if ((Options::Instance().GetSymbolTiming()) && (have_sync == 0) && (state->lastsynctype != -1))
                 {
                   printf ("O");
                 }
             }
           else
             {
-              if ((opts->symboltiming == 1) && (have_sync == 0) && (state->lastsynctype != -1))
+              if ((Options::Instance().GetSymbolTiming()) && (have_sync == 0) && (state->lastsynctype != -1))
                 {
                   printf ("+");
                 }
@@ -161,14 +162,14 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
                 {               // first spike out of place
                   state->jitter = i;
                 }
-              if ((opts->symboltiming == 1) && (have_sync == 0) && (state->lastsynctype != -1))
+              if ((Options::Instance().GetSymbolTiming()) && (have_sync == 0) && (state->lastsynctype != -1))
                 {
                   printf ("X");
                 }
             }
           else
             {
-              if ((opts->symboltiming == 1) && (have_sync == 0) && (state->lastsynctype != -1))
+              if ((Options::Instance().GetSymbolTiming()) && (have_sync == 0) && (state->lastsynctype != -1))
                 {
                   printf ("-");
                 }
@@ -206,7 +207,7 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
     }
   symbol = (sum / count);
 
-  if ((opts->symboltiming == 1) && (have_sync == 0) && (state->lastsynctype != -1))
+  if ((Options::Instance().GetSymbolTiming()) && (have_sync == 0) && (state->lastsynctype != -1))
     {
       if (state->jitter >= 0)
         {

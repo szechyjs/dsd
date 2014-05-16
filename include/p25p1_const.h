@@ -1,3 +1,6 @@
+#ifndef P25P1_CONST_H
+#define P25P1_CONST_H
+
 /*
  * Copyright (C) 2010 DSD Author
  * GPG Key ID: 0x3F1D7FD0 (74EF 430D F7F2 0A48 FCE6  F630 FAA2 635D 3F1D 7FD0)
@@ -15,19 +18,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef _MAIN
-
-extern const int iW[72];
-extern const int iX[72];
-extern const int iY[72];
-extern const int iZ[72];
-
-#else
 /*
  * P25 Phase1 IMBE interleave schedule
  */
 
-const int iW[72] = {
+static const int iW[72] = {
   0, 2, 4, 1, 3, 5,
   0, 2, 4, 1, 3, 6,
   0, 2, 4, 1, 3, 6,
@@ -42,7 +37,7 @@ const int iW[72] = {
   0, 3, 5, 2, 4, 7
 };
 
-const int iX[72] = {
+static const int iX[72] = {
   22, 20, 10, 20, 18, 0,
   20, 18, 8, 18, 16, 13,
   18, 16, 6, 16, 14, 11,
@@ -57,7 +52,7 @@ const int iX[72] = {
   0, 21, 3, 21, 11, 0
 };
 
-const int iY[72] = {
+static const int iY[72] = {
   1, 3, 5, 0, 2, 4,
   1, 3, 6, 0, 2, 4,
   1, 3, 6, 0, 2, 4,
@@ -72,7 +67,7 @@ const int iY[72] = {
   2, 4, 7, 1, 3, 5
 };
 
-const int iZ[72] = {
+static const int iZ[72] = {
   21, 19, 1, 21, 19, 9,
   19, 17, 14, 19, 17, 7,
   17, 15, 12, 17, 15, 5,
@@ -86,4 +81,5 @@ const int iZ[72] = {
   1, 14, 3, 1, 22, 4,
   22, 12, 1, 22, 20, 2
 };
+
 #endif

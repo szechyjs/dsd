@@ -1,4 +1,5 @@
 #include "dsd.h"
+#include "options.h"
 #include "provoice_const.h"
 
 void
@@ -10,7 +11,7 @@ processProVoice (dsd_opts * opts, dsd_state * state)
   char imbe7100_fr2[7][24];
   const int *w, *x;
 
-  if (opts->errorbars == 1)
+  if (Options::Instance().GetErrorBars())
     {
       printf ("VOICE e:");
     }
@@ -512,7 +513,7 @@ processProVoice (dsd_opts * opts, dsd_state * state)
   printf (" ");
 #endif
 
-  if (opts->errorbars == 1)
+  if (Options::Instance().GetErrorBars())
     {
       printf ("\n");
     }

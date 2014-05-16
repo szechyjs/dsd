@@ -16,6 +16,7 @@
  */
 
 #include "dsd.h"
+#include "options.h"
 
 int
 getDibit (dsd_opts * opts, dsd_state * state)
@@ -83,7 +84,7 @@ getDibit (dsd_opts * opts, dsd_state * state)
 
       state->sidx = 0;
 
-      if (opts->datascope == 1)
+      if (Options::Instance().GetDataScope())
         {
           if (state->rf_mod == 0)
             {

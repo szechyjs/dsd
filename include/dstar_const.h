@@ -1,3 +1,6 @@
+#ifndef DSTAR_CONST_H
+#define DSTAR_CONST_H
+
 /*
  * Copyright (C) 2010 DSD Author
  * GPG Key ID: 0x3F1D7FD0 (74EF 430D F7F2 0A48 FCE6  F630 FAA2 635D 3F1D 7FD0)
@@ -16,16 +19,10 @@
  */
 
 /*
- *  dstar interleave experiments 
+ *  dstar interleave experiments
  */
 
-#ifndef _MAIN
-
-extern const int dW[72];
-extern const int dX[72];
-
-#else
-const int dW[72] = {
+static const int dW[72] = {
 
 		// 0-11
 		0, 0,
@@ -75,7 +72,8 @@ const int dW[72] = {
 		0, 0,
 		3, 3,
 };
-const int dX[72] = {
+
+static const int dX[72] = {
 
 		// 0-11
 		10, 22,

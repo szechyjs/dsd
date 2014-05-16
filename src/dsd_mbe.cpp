@@ -16,6 +16,7 @@
  */
 
 #include "dsd.h"
+#include "options.h"
 
 void
 playMbeFiles (dsd_opts * opts, dsd_state * state, int argc, char **argv)
@@ -129,7 +130,7 @@ processMbeFrame (dsd_opts * opts, dsd_state * state, char imbe_fr[8][23], char a
         }
     }
 
-  if (opts->errorbars == 1)
+  if (Options::Instance().GetErrorBars())
     {
       printf ("%s", state->err_str);
     }

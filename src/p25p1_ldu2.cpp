@@ -16,11 +16,12 @@
  */
 
 #include "dsd.h"
+#include "options.h"
 #include "p25p1_const.h"
 
 #include "p25p1_ldu.h"
 #include "p25p1_check_ldu.h"
-
+#include "p25p1_hdu.h"
 
 
 void
@@ -50,7 +51,7 @@ processLDU2 (dsd_opts * opts, dsd_state * state)
   // so we start counter at 22
   status_count = 21;
 
-  if (opts->errorbars == 1)
+  if (Options::Instance().GetErrorBars())
     {
       printf ("e:");
     }
@@ -153,7 +154,7 @@ processLDU2 (dsd_opts * opts, dsd_state * state)
   // IMBE 9
   process_IMBE (opts, state, &status_count);
 
-  if (opts->errorbars == 1)
+  if (Options::Instance().GetErrorBars())
     {
       printf ("\n");
     }

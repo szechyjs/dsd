@@ -21,15 +21,15 @@
 #endif
 
 #include "p25p1_check_nid.h"
+#include "options.h"
 
-void
-printFrameInfo (dsd_opts * opts, dsd_state * state)
+void printFrameInfo (dsd_opts * opts, dsd_state * state)
 {
 
   int level;
 
   level = (int) state->max / 164;
-  if (opts->verbose > 0)
+  if (Options::Instance().GetVerboseLevel() > 0)
     {
       printf ("inlvl: %2i%% ", level);
     }
@@ -38,15 +38,14 @@ printFrameInfo (dsd_opts * opts, dsd_state * state)
       printf ("nac: %4X ", state->nac);
     }
 
-  if (opts->verbose > 1)
+  if (Options::Instance().GetVerboseLevel() > 1)
     {
       printf ("src: %8i ", state->lastsrc);
     }
   printf ("tg: %5i ", state->lasttg);
 }
 
-void
-processFrame (dsd_opts * opts, dsd_state * state)
+void processFrame (dsd_opts * opts, dsd_state * state)
 {
 
   int i, j, dibit;
@@ -62,6 +61,9 @@ processFrame (dsd_opts * opts, dsd_state * state)
   int new_nac;
   char new_duid[3];
   int check_result;
+
+  int verbose = Options::Instance().GetVerboseLevel();
+  bool errorbars = Options::Instance().GetErrorBars();
 
   nac[12] = 0;
   duid[2] = 0;
@@ -84,9 +86,9 @@ processFrame (dsd_opts * opts, dsd_state * state)
       state->nac = 0;
       state->lastsrc = 0;
       state->lasttg = 0;
-      if (opts->errorbars == 1)
+      if (errorbars == 1)
         {
-          if (opts->verbose > 0)
+          if (verbose > 0)
             {
               level = (int) state->max / 164;
               printf ("inlvl: %2i%% ", level);
@@ -107,9 +109,9 @@ processFrame (dsd_opts * opts, dsd_state * state)
       state->nac = 0;
       state->lastsrc = 0;
       state->lasttg = 0;
-      if (opts->errorbars == 1)
+      if (errorbars == 1)
         {
-          if (opts->verbose > 0)
+          if (verbose > 0)
             {
               level = (int) state->max / 164;
               printf ("inlvl: %2i%% ", level);
@@ -129,9 +131,9 @@ processFrame (dsd_opts * opts, dsd_state * state)
       state->nac = 0;
       state->lastsrc = 0;
       state->lasttg = 0;
-      if (opts->errorbars == 1)
+      if (errorbars == 1)
         {
-          if (opts->verbose > 0)
+          if (verbose > 0)
             {
               level = (int) state->max / 164;
               printf ("inlvl: %2i%% ", level);
@@ -151,9 +153,9 @@ processFrame (dsd_opts * opts, dsd_state * state)
       state->nac = 0;
       state->lastsrc = 0;
       state->lasttg = 0;
-      if (opts->errorbars == 1)
+      if (errorbars == 1)
         {
-          if (opts->verbose > 0)
+          if (verbose > 0)
             {
               level = (int) state->max / 164;
               printf ("inlvl: %2i%% ", level);
@@ -174,9 +176,9 @@ processFrame (dsd_opts * opts, dsd_state * state)
       state->nac = 0;
       state->lastsrc = 0;
       state->lasttg = 0;
-      if (opts->errorbars == 1)
+      if (errorbars == 1)
         {
-          if (opts->verbose > 0)
+          if (verbose > 0)
             {
               level = (int) state->max / 164;
               printf ("inlvl: %2i%% ", level);
@@ -202,7 +204,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
   else if ((state->synctype >= 2) && (state->synctype <= 5))
     {
       state->nac = 0;
-      if (opts->errorbars == 1)
+      if (errorbars == 1)
         {
           printFrameInfo (opts, state);
         }
@@ -228,9 +230,9 @@ processFrame (dsd_opts * opts, dsd_state * state)
       state->nac = 0;
       state->lastsrc = 0;
       state->lasttg = 0;
-      if (opts->errorbars == 1)
+      if (errorbars == 1)
         {
-          if (opts->verbose > 0)
+          if (verbose > 0)
             {
               level = (int) state->max / 164;
               printf ("inlvl: %2i%% ", level);
@@ -334,7 +336,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
   if (strcmp (duid, "00") == 0)
     {
       // Header Data Unit
-      if (opts->errorbars == 1)
+      if (errorbars == 1)
         {
           printFrameInfo (opts, state);
           printf (" HDU\n");
@@ -352,7 +354,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
   else if (strcmp (duid, "11") == 0)
     {
       // Logical Link Data Unit 1
-      if (opts->errorbars == 1)
+      if (errorbars == 1)
         {
           printFrameInfo (opts, state);
           printf (" LDU1  ");
@@ -374,7 +376,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
       // Logical Link Data Unit 2
       if (state->lastp25type != 1)
         {
-          if (opts->errorbars == 1)
+          if (errorbars == 1)
             {
               printFrameInfo (opts, state);
               printf (" Ignoring LDU2 not preceeded by LDU1\n");
@@ -384,7 +386,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
         }
       else
         {
-          if (opts->errorbars == 1)
+          if (errorbars == 1)
             {
               printFrameInfo (opts, state);
               printf (" LDU2  ");
@@ -405,7 +407,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
   else if (strcmp (duid, "33") == 0)
     {
       // Terminator with subsequent Link Control
-      if (opts->errorbars == 1)
+      if (errorbars == 1)
         {
           printFrameInfo (opts, state);
           printf (" TDULC\n");
@@ -431,7 +433,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
   else if (strcmp (duid, "03") == 0)
     {
       // Terminator without subsequent Link Control
-      if (opts->errorbars == 1)
+      if (errorbars == 1)
         {
           printFrameInfo (opts, state);
           printf (" TDU\n");
@@ -454,7 +456,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
     }
   else if (strcmp (duid, "13") == 0)
     {
-      if (opts->errorbars == 1)
+      if (errorbars == 1)
         {
           printFrameInfo (opts, state);
           printf (" TSDU\n");
@@ -474,7 +476,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
     }
   else if (strcmp (duid, "30") == 0)
     {
-      if (opts->errorbars == 1)
+      if (errorbars == 1)
         {
           printFrameInfo (opts, state);
           printf (" PDU\n");
@@ -496,7 +498,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
   // try to guess based on previous frame if unknown type
   else if (state->lastp25type == 1)
     {
-      if (opts->errorbars == 1)
+      if (errorbars == 1)
         {
           printFrameInfo (opts, state);
           printf ("(LDU2) ");
@@ -517,7 +519,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
     }
   else if (state->lastp25type == 2)
     {
-      if (opts->errorbars == 1)
+      if (errorbars == 1)
         {
           printFrameInfo (opts, state);
           printf ("(LDU1) ");
@@ -538,7 +540,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
     }
   else if (state->lastp25type == 3)
     {
-      if (opts->errorbars == 1)
+      if (errorbars == 1)
         {
           printFrameInfo (opts, state);
           printf (" (TSDU)\n");
@@ -554,7 +556,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
     }
   else if (state->lastp25type == 4)
     {
-      if (opts->errorbars == 1)
+      if (errorbars == 1)
         {
           printFrameInfo (opts, state);
           printf (" (PDU)\n");
@@ -565,7 +567,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
     {
       state->lastp25type = 0;
       sprintf (state->fsubtype, "              ");
-      if (opts->errorbars == 1)
+      if (errorbars == 1)
         {
           printFrameInfo (opts, state);
           printf (" duid:%s *Unknown DUID*\n", duid);

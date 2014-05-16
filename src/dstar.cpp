@@ -17,12 +17,13 @@
 
 /*
  * Note: D-STAR support is fairly complete at this point.
- * The ambe3600x2450 decoder is similar butnot compatible with D-STAR voice frames. 
+ * The ambe3600x2450 decoder is similar butnot compatible with D-STAR voice frames.
  * The dstar interleave pattern is different as well.
  * GMSK modulation optimizations will also required to get a usable bit error
  */
 
 #include "dsd.h"
+#include "options.h"
 #include "dstar_const.h"
 #include "dstar_header.h"
 
@@ -39,7 +40,7 @@ void processDSTAR(dsd_opts * opts, dsd_state * state) {
 	unsigned int bitbuffer = 0;
 	const int *w, *x;
 
-	if (opts->errorbars == 1) {
+	if (Options::Instance().GetErrorBars()) {
 		printf("e:");
 	}
 
@@ -137,7 +138,7 @@ void processDSTAR(dsd_opts * opts, dsd_state * state) {
 		framecount++;
 	}
 
-	end: if (opts->errorbars == 1) {
+	end: if (Options::Instance().GetErrorBars()) {
 		printf("\n");
 	}
 }
@@ -160,4 +161,3 @@ void processDSTAR_HD(dsd_opts * opts, dsd_state * state) {
 	processDSTAR(opts, state);
 
 }
-
