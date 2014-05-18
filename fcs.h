@@ -65,12 +65,10 @@ uint16_t calc_fcs (unsigned char * dvstartframe, int size) {
 // radio header (fields flag1, flag2, flag3, destination, departure, companion,
 // own1 and own2)
 uint16_t m_crc;
-
-m_crc=0xFFFF;
-
 int loop;
 unsigned short tmp;
 
+m_crc=0xFFFF;
 
 for (loop=0; loop < size; loop++) {
 	tmp = (m_crc & 0x00ff) ^ dvstartframe[loop];

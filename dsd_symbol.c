@@ -20,7 +20,6 @@
 int
 getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
 {
-
   short sample;
   int i, sum, symbol, count;
   ssize_t result;
@@ -78,6 +77,8 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
             }
           state->jitter = -1;
         }
+
+      // Read the new sample from the input
       if(opts->audio_in_type == 0) {
           result = read (opts->audio_in_fd, &sample, 2);
       }
@@ -92,15 +93,20 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
               cleanupAndExit (opts, state);
           }
       }
-     // printf("res: %zd\n, offset: %lld", result, sf_seek(opts->audio_in_file, 0, SEEK_CUR));
+
+#ifdef TRACE_DSD
+      state->debug_sample_index++;
+#endif
+
+      // printf("res: %zd\n, offset: %lld", result, sf_seek(opts->audio_in_file, 0, SEEK_CUR));
       if (opts->use_cosine_filter)
-      {
-        if (state->lastsynctype >= 10 && state->lastsynctype <= 13)
-          sample = dmr_filter(sample);
-        else if (state->lastsynctype == 8 || state->lastsynctype == 9 ||
+        {
+          if (state->lastsynctype >= 10 && state->lastsynctype <= 13)
+              sample = dmr_filter(sample);
+          else if (state->lastsynctype == 8 || state->lastsynctype == 9 ||
                  state->lastsynctype == 16 || state->lastsynctype == 17)
-          sample = nxdn_filter(sample);
-      }
+              sample = nxdn_filter(sample);
+        }
 
       if ((sample > state->max) && (have_sync == 1) && (state->rf_mod == 0))
         {
@@ -195,14 +201,57 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
         }
       else
         {
-          if (((i >= state->symbolCenter - 1) && (i <= state->symbolCenter + 2) && (state->rf_mod == 0)) || (((i == state->symbolCenter) || (i == state->symbolCenter + 1)) && (state->rf_mod != 0)))
+          if (state->rf_mod == 0)
             {
-              sum += sample;
-              count++;
+              // 0: C4FM modulation
+
+              if ((i >= state->symbolCenter - 1) && (i <= state->symbolCenter + 2))
+                {
+                  sum += sample;
+                  count++;
+                }
+
+#ifdef TRACE_DSD
+              if (i == state->symbolCenter - 1) {
+                  state->debug_sample_left_edge = state->debug_sample_index - 1;
+              }
+              if (i == state->symbolCenter + 2) {
+                  state->debug_sample_right_edge = state->debug_sample_index - 1;
+              }
+#endif
+            }
+          else
+            {
+              // 1: QPSK modulation
+              // 2: GFSK modulation
+              // Note: this has been changed to use an additional symbol to the left
+              // On the p25_raw_unencrypted.flac it is evident that the timing
+              // comes one sample too late.
+              // This change makes a significant improvement in the BER, at least for
+              // this file.
+              //if ((i == state->symbolCenter) || (i == state->symbolCenter + 1))
+              if ((i == state->symbolCenter - 1) || (i == state->symbolCenter + 1))
+                {
+                  sum += sample;
+                  count++;
+                }
+
+#ifdef TRACE_DSD
+              //if (i == state->symbolCenter) {
+              if (i == state->symbolCenter - 1) {
+                  state->debug_sample_left_edge = state->debug_sample_index - 1;
+              }
+              if (i == state->symbolCenter + 1) {
+                  state->debug_sample_right_edge = state->debug_sample_index - 1;
+              }
+#endif
             }
         }
+
+
       state->lastsample = sample;
-    }
+    }   // for
+
   symbol = (sum / count);
 
   if ((opts->symboltiming == 1) && (have_sync == 0) && (state->lastsynctype != -1))
@@ -216,6 +265,27 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
           printf ("\n");
         }
     }
+
+#ifdef TRACE_DSD
+  if (state->samplesPerSymbol == 10) {
+      float left, right;
+      if (state->debug_label_file == NULL) {
+          state->debug_label_file = fopen ("pp_label.txt", "w");
+      }
+      left = state->debug_sample_left_edge / 48000.0;
+      right = state->debug_sample_right_edge / 48000.0;
+      if (state->debug_prefix != '\0') {
+          if (state->debug_prefix == 'I') {
+              fprintf(state->debug_label_file, "%f\t%f\t%c%c %i\n", left, right, state->debug_prefix, state->debug_prefix_2, symbol);
+          } else {
+              fprintf(state->debug_label_file, "%f\t%f\t%c %i\n", left, right, state->debug_prefix, symbol);
+          }
+      } else {
+          fprintf(state->debug_label_file, "%f\t%f\t%i\n", left, right, symbol);
+      }
+  }
+#endif
+
 
   state->symbolcnt++;
   return (symbol);

@@ -91,18 +91,19 @@ processAudio (dsd_opts * opts, dsd_state * state)
       gaindelta = (float) 0;
     }
 
-  if(opts->audio_gain >= 0){
-    // adjust output gain
-    state->audio_out_temp_buf_p = state->audio_out_temp_buf;
-    for (n = 0; n < 160; n++)
-      {
-        *state->audio_out_temp_buf_p = (state->aout_gain + ((float) n * gaindelta)) * (*state->audio_out_temp_buf_p);
-        state->audio_out_temp_buf_p++;
-      }
-    state->aout_gain += ((float) 160 * gaindelta);
-  }
+  if(opts->audio_gain >= 0)
+    {
+      // adjust output gain
+      state->audio_out_temp_buf_p = state->audio_out_temp_buf;
+      for (n = 0; n < 160; n++)
+        {
+          *state->audio_out_temp_buf_p = (state->aout_gain + ((float) n * gaindelta)) * (*state->audio_out_temp_buf_p);
+          state->audio_out_temp_buf_p++;
+        }
+      state->aout_gain += ((float) 160 * gaindelta);
+    }
 
-  // copy audio datat to output buffer and upsample if necessary
+  // copy audio data to output buffer and upsample if necessary
   state->audio_out_temp_buf_p = state->audio_out_temp_buf;
   if (opts->split == 0)
     {
@@ -118,13 +119,13 @@ processAudio (dsd_opts * opts, dsd_state * state)
       // copy to output (short) buffer
       for (n = 0; n < 960; n++)
         {
-          if (*state->audio_out_float_buf_p > (float) 32760)
+          if (*state->audio_out_float_buf_p >  32767.0F)
             {
-              *state->audio_out_float_buf_p = (float) 32760;
+              *state->audio_out_float_buf_p = 32767.0F;
             }
-          else if (*state->audio_out_float_buf_p < (float) -32760)
+          else if (*state->audio_out_float_buf_p < -32768.0F)
             {
-              *state->audio_out_float_buf_p = (float) -32760;
+              *state->audio_out_float_buf_p = -32768.0F;
             }
           *state->audio_out_buf_p = (short) *state->audio_out_float_buf_p;
           state->audio_out_buf_p++;
@@ -136,13 +137,13 @@ processAudio (dsd_opts * opts, dsd_state * state)
     {
       for (n = 0; n < 160; n++)
         {
-          if (*state->audio_out_temp_buf_p > (float) 32760)
+          if (*state->audio_out_temp_buf_p > 32767.0F)
             {
-              *state->audio_out_temp_buf_p = (float) 32760;
+              *state->audio_out_temp_buf_p = 32767.0F;
             }
-          else if (*state->audio_out_temp_buf_p < (float) -32760)
+          else if (*state->audio_out_temp_buf_p < -32768.0F)
             {
-              *state->audio_out_temp_buf_p = (float) -32760;
+              *state->audio_out_temp_buf_p = -32768.0F;
             }
           *state->audio_out_buf_p = (short) *state->audio_out_temp_buf_p;
           state->audio_out_buf_p++;
@@ -365,15 +366,18 @@ openAudioOutDevice (dsd_opts * opts, int speed)
 #else
   // get info of device/file
   struct stat stat_buf;
-  if(stat(opts->audio_out_dev, &stat_buf) != 0) {
-    printf("Error, couldn't open %s\n", opts->audio_out_dev);
-    exit(1);
-  }
+  if(stat(opts->audio_out_dev, &stat_buf) != 0)
+    {
+      printf("Error, couldn't open %s\n", opts->audio_out_dev);
+      exit(1);
+    }
 
-  if( !(S_ISCHR(stat_buf.st_mode) || S_ISBLK(stat_buf.st_mode))) { // this is not a device
-    printf("Error, %s is not a device. use -w filename for wav output.\n", opts->audio_out_dev);
-    exit(1);
-  }
+  if( !(S_ISCHR(stat_buf.st_mode) || S_ISBLK(stat_buf.st_mode)))
+    {
+      // this is not a device
+      printf("Error, %s is not a device. use -w filename for wav output.\n", opts->audio_out_dev);
+      exit(1);
+    }
 #endif /* USE_ALSA_AUDIO */
 
 #ifdef USE_SOLARIS_AUDIO
@@ -408,6 +412,7 @@ openAudioOutDevice (dsd_opts * opts, int speed)
 #if defined(USE_BSD_AUDIO) && !defined(__APPLE__)
 
   int fmt;
+
   opts->audio_out_fd = open (opts->audio_out_dev, O_WRONLY);
   if (opts->audio_out_fd == -1)
     {
@@ -499,22 +504,25 @@ openAudioInDevice (dsd_opts * opts)
 	}
     }
 #else
-  if (stat(opts->audio_in_dev, &stat_buf) != 0) {
-    printf("Error, couldn't open %s\n", opts->audio_in_dev);
-    exit(1);
-  }
-  if(S_ISREG(stat_buf.st_mode)) { // is this a regular file? then process with libsndfile.
-    opts->audio_in_type = 1;
-    opts->audio_in_file_info = calloc(1, sizeof(SF_INFO));
-    opts->audio_in_file_info->channels = 1;
-    opts->audio_in_file = sf_open(opts->audio_in_dev, SFM_READ, opts->audio_in_file_info);
-    if(opts->audio_in_file == NULL) {
-        printf ("Error, couldn't open file %s\n", opts->audio_in_dev);
-        exit(1);
+      printf("Error, couldn't open %s\n", opts->audio_in_dev);
+      exit(1);
     }
+  if (S_ISREG(stat_buf.st_mode))
+    {
+      // is this a regular file? then process with libsndfile.
+      opts->audio_in_type = 1;
+      opts->audio_in_file_info = calloc(1, sizeof(SF_INFO));
+      opts->audio_in_file_info->channels = 1;
+      opts->audio_in_file = sf_open(opts->audio_in_dev, SFM_READ, opts->audio_in_file_info);
+
+      if(opts->audio_in_file == NULL)
+        {
+          printf ("Error, couldn't open file %s\n", opts->audio_in_dev);
+          exit(1);
+        }
 #endif
-  }
-  else { // this is a device, use old handling
+    }
+  else
 #ifdef USE_ALSA_AUDIO
     opts->audio_in_type = 2;
     int err;

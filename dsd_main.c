@@ -25,6 +25,7 @@
 #include "dmr_const.h"
 #include "provoice_const.h"
 #include "git_ver.h"
+#include "p25p1_heuristics.h"
 
 int
 comp (const void *a, const void *b)
@@ -231,6 +232,15 @@ initState (dsd_state * state)
   state->debug_audio_errors = 0;
   state->debug_header_errors = 0;
   state->debug_header_critical_errors = 0;
+
+#ifdef TRACE_DSD
+  state->debug_sample_index = 0;
+  state->debug_label_file = NULL;
+  state->debug_label_dibit_file = NULL;
+  state->debug_label_imbe_file = NULL;
+#endif
+
+  initialize_p25_heuristics(&state->p25_heuristics);
 }
 
 void
@@ -317,7 +327,17 @@ liveScanner (dsd_opts * opts, dsd_state * state)
       while (state->synctype != -1)
         {
           processFrame (opts, state);
+
+#ifdef TRACE_DSD
+          state->debug_prefix = 'S';
+#endif
+
           state->synctype = getFrameSync (opts, state);
+
+#ifdef TRACE_DSD
+          state->debug_prefix = '\0';
+#endif
+
           // recalibrate center/umid/lmid
           state->center = ((state->max) + (state->min)) / 2;
           state->umid = (((state->max) - state->center) * 5 / 8) + state->center;
@@ -340,6 +360,28 @@ cleanupAndExit (dsd_opts * opts, dsd_state * state)
   printf("Total header errors: %i\n", state->debug_header_errors);
   printf("Total irrecoverable header errors: %i\n", state->debug_header_critical_errors);
 
+  //debug_print_heuristics(&(state->p25_heuristics));
+
+  printf("\n");
+  printf("+P25 BER estimate: %.2f%%\n", get_P25_BER_estimate(&state->p25_heuristics));
+  printf("-P25 BER estimate: %.2f%%\n", get_P25_BER_estimate(&state->inv_p25_heuristics));
+  printf("\n");
+
+#ifdef TRACE_DSD
+  if (state->debug_label_file != NULL) {
+      fclose(state->debug_label_file);
+      state->debug_label_file = NULL;
+  }
+  if(state->debug_label_dibit_file != NULL) {
+      fclose(state->debug_label_dibit_file);
+      state->debug_label_dibit_file = NULL;
+  }
+  if(state->debug_label_imbe_file != NULL) {
+      fclose(state->debug_label_imbe_file);
+      state->debug_label_imbe_file = NULL;
+  }
+#endif
+
   printf ("Exiting.\n");
   exit (0);
 }
@@ -354,7 +396,6 @@ sigfun (int sig)
 int
 main (int argc, char **argv)
 {
-
   int c;
   extern char *optarg;
   extern int optind, opterr, optopt;
