@@ -15,28 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/*
- * System target
- */
-#define LINUX                      // linux alsa interface
-//#define BSD                     // bsd/linux oss audio interface
-//#define SOLARIS // solaris audio interface, untested
-
-// handle case of multiple defines
-#ifdef LINUX
-#undef BSD
-#undef SOLARIS
-#endif
-
-#ifdef BSD
-#undef LINUX
-#undef SOLARIS
-#endif
-
-#ifdef SOLARIS
-#undef LINUX
-#undef BSD
-#endif
 
 /*
  * noisy debug/development options

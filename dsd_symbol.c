@@ -79,12 +79,13 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
           state->jitter = -1;
         }
       if(opts->audio_in_type == 0) {
-#ifdef LINUX
-	  result = snd_pcm_readi (opts->audio_in_handle, &sample, 1);
-#else
           result = read (opts->audio_in_fd, &sample, 2);
-#endif
       }
+#ifdef USE_ALSA_AUDIO
+      else if(opts->audio_in_type == 2) {
+	  result = snd_pcm_readi (opts->audio_in_handle, &sample, 1);
+      }
+#endif
       else {
           result = sf_read_short(opts->audio_in_file, &sample, 1);
           if(result == 0) {

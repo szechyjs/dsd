@@ -15,6 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <strings.h>
 #include "dsd.h"
 
 void
@@ -221,7 +222,7 @@ playSynthesizedVoice (dsd_opts * opts, dsd_state * state)
   if (state->audio_out_idx > opts->delay)
     {
       // output synthesized speech to sound card
-#ifdef LINUX
+#ifdef USE_ALSA_AUDIO
       while((result = snd_pcm_writei (opts->audio_out_handle,  (state->audio_out_buf_p - state->audio_out_idx), state->audio_out_idx)) < 0)
       {
       	snd_pcm_prepare(opts->audio_out_handle);
@@ -246,7 +247,7 @@ playSynthesizedVoice (dsd_opts * opts, dsd_state * state)
 void
 openAudioOutDevice (dsd_opts * opts, int speed)
 {
-#ifdef LINUX
+#ifdef USE_ALSA_AUDIO
   int err;
   snd_pcm_hw_params_t *hw_params;
   snd_pcm_sw_params_t *sw_params;
@@ -373,9 +374,9 @@ openAudioOutDevice (dsd_opts * opts, int speed)
     printf("Error, %s is not a device. use -w filename for wav output.\n", opts->audio_out_dev);
     exit(1);
   }
-#endif /* LINUX */
+#endif /* USE_ALSA_AUDIO */
 
-#ifdef SOLARIS
+#ifdef USE_SOLARIS_AUDIO
   sample_info_t aset, aget;
 
   opts->audio_out_fd = open (opts->audio_out_dev, O_WRONLY);
@@ -404,7 +405,7 @@ openAudioOutDevice (dsd_opts * opts, int speed)
     }
 #endif
 
-#if defined(BSD) && !defined(__APPLE__)
+#if defined(USE_BSD_AUDIO) && !defined(__APPLE__)
 
   int fmt;
   opts->audio_out_fd = open (opts->audio_out_dev, O_WRONLY);
@@ -446,17 +447,57 @@ openAudioInDevice (dsd_opts * opts)
   // get info of device/file
   struct stat stat_buf;
 
-#ifdef LINUX
-  if ((stat(opts->audio_in_dev, &stat_buf) == 0) && (S_ISREG(stat_buf.st_mode))) {
-    opts->audio_in_type = 1;
-    opts->audio_in_file_info = calloc(1, sizeof(SF_INFO));
-    opts->audio_in_file_info->channels = 1;
-    opts->audio_in_file = sf_open(opts->audio_in_dev, SFM_READ, opts->audio_in_file_info);
-    if(opts->audio_in_file == NULL) {
+#ifdef USE_ALSA_AUDIO
+  // Check if user specified a ALSA device (default or hw:0,0) and skip file check if true
+  if (strcmp(opts->audio_in_dev, "default") && strchr(opts->audio_in_dev, ':') == NULL)
+  {
+    if (stat(opts->audio_in_dev, &stat_buf) != 0) {
+      printf("Error, couldn't open %s\n", opts->audio_in_dev);
+      exit(1);
+    }
+    if(S_ISREG(stat_buf.st_mode)) { // is this a regular file? then process with libsndfile.
+      opts->audio_in_type = 1;
+      opts->audio_in_file_info = calloc(1, sizeof(SF_INFO));
+      opts->audio_in_file_info->channels = 1;
+      opts->audio_in_file = sf_open(opts->audio_in_dev, SFM_READ, opts->audio_in_file_info);
+      if(opts->audio_in_file == NULL) {
         printf ("Error, couldn't open file %s\n", opts->audio_in_dev);
         exit(1);
+      }
     }
-  }
+    else { // handle /dev devices like /dev/stdin
+      opts->audio_in_type = 0;
+      int fmt;
+  
+      opts->audio_in_fd = open (opts->audio_in_dev, O_RDONLY);
+  
+      if (opts->audio_in_fd == -1)
+	{
+	  printf ("Error, couldn't open %s\n", opts->audio_in_dev);
+	  opts->audio_out = 0;
+	}
+  
+      fmt = 0;
+      if (ioctl (opts->audio_in_fd, SNDCTL_DSP_RESET) < 0)
+	{
+	  printf ("ioctl reset error \n");
+	}
+      fmt = 48000;
+      if (ioctl (opts->audio_in_fd, SNDCTL_DSP_SPEED, &fmt) < 0)
+	{
+	  printf ("ioctl speed error \n");
+	}
+      fmt = 0;
+      if (ioctl (opts->audio_in_fd, SNDCTL_DSP_STEREO, &fmt) < 0)
+	{
+	  printf ("ioctl stereo error \n");
+	}
+      fmt = AFMT_S16_LE;
+      if (ioctl (opts->audio_in_fd, SNDCTL_DSP_SETFMT, &fmt) < 0)
+	{
+	  printf ("ioctl setfmt error \n");
+	}
+    }
 #else
   if (stat(opts->audio_in_dev, &stat_buf) != 0) {
     printf("Error, couldn't open %s\n", opts->audio_in_dev);
@@ -471,12 +512,11 @@ openAudioInDevice (dsd_opts * opts)
         printf ("Error, couldn't open file %s\n", opts->audio_in_dev);
         exit(1);
     }
-  }
 #endif
+  }
   else { // this is a device, use old handling
-    opts->audio_in_type = 0;
-    
-#ifdef LINUX
+#ifdef USE_ALSA_AUDIO
+    opts->audio_in_type = 2;
     int err;
     snd_pcm_hw_params_t *hw_params;
 
@@ -544,9 +584,10 @@ openAudioInDevice (dsd_opts * opts)
 			snd_strerror (err));
 	exit(1);
       }
-#endif
+#endif /* USE_ALSA_AUDIO */
 
-#ifdef SOLARIS
+#ifdef USE_SOLARIS_AUDIO
+    opts->audio_in_type = 0;
     sample_info_t aset, aget;
     int rgain;
   
@@ -585,9 +626,10 @@ openAudioInDevice (dsd_opts * opts)
         printf ("Error setting sample device parameters\n");
         exit (1);
       }
-#endif
+#endif  /* USE_SOLARIS_AUDIO */
 
-#if defined(BSD) && !defined(__APPLE__)
+#if defined(USE_BSD_AUDIO) && !defined(__APPLE__)
+    opts->audio_in_type = 0;
     int fmt;
   
     if (opts->split == 1)

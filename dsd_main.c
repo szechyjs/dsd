@@ -94,17 +94,17 @@ initOpts (dsd_opts * opts)
   opts->p25status = 0;
   opts->p25tg = 0;
   opts->scoperate = 15;
-#ifdef LINUX
+#ifdef USE_ALSA_AUDIO
   sprintf (opts->audio_in_dev, "default");
   opts->audio_in_handle = NULL;
   sprintf (opts->audio_out_dev, "default");
   opts->audio_out_handle = NULL;
 #else
   sprintf (opts->audio_in_dev, "/dev/audio");
-  opts->audio_in_fd = -1;
   sprintf (opts->audio_out_dev, "/dev/audio");
-  opts->audio_out_fd = -1;
 #endif
+  opts->audio_in_fd = -1;
+  opts->audio_out_fd = -1;
   opts->split = 0;
   opts->playoffset = 0;
   opts->mbe_out_dir[0] = 0;
@@ -255,7 +255,7 @@ usage ()
   printf ("  -z <num>      Frame rate for datascope\n");
   printf ("\n");
   printf ("Input/Output options:\n");
-#ifdef LINUX
+#ifdef USE_ALSA_AUDIO
   printf ("  -i <device>   Audio input device (default is default alsa device)\n");
   printf ("  -o <device>   Audio output device (default is default alsa device)\n");
 #else
@@ -372,7 +372,7 @@ main (int argc, char **argv)
   exitflag = 0;
   signal (SIGINT, sigfun);
 
-  while ((c = getopt (argc, argv, "hep:qstv:z:i:o:d:g:nw:B:C:R:f:m:u:x:A:S:M:rl")) != -1)
+  while ((c = getopt (argc, argv, "hep:qstv:z:i:o:d:g:nw:B:C:R:f:m:u:x:A:S:M:rl:")) != -1)
     {
       opterr = 0;
       switch (c)
@@ -699,7 +699,6 @@ main (int argc, char **argv)
         }
     }
 
-
   if (opts.resume > 0)
     {
       openSerial (&opts, &state);
@@ -738,7 +737,7 @@ main (int argc, char **argv)
     {
       opts.playoffset = 25;     // 38
       opts.delay = 0;
-#ifdef LINUX
+#ifdef USE_ALSA_AUDIO
       opts.split = 1; // Turn off upsampling as ALSA handles it
       openAudioInDevice (&opts);
       openAudioOutDevice (&opts, 8000);
