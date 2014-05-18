@@ -5,9 +5,9 @@ Recent distributions of Linux use PulseAudio. DSD needed the PulseAudio OSS
 wrapper program (padsp) to work on those systems. Some people had problems
 using padsp.
 
-PulseAudio works better with ALSA, so ALSA support was added to DSD. Uncomment
-the #define LINUX line in the config.h file and comment out the following two
-lines to enable Linux ALSA support. Recompile the program.
+PulseAudio works better with ALSA, so ALSA support was added to DSD. ALSA
+support is automatically included in the build step, if available on the
+system.
 
 The aplay -l command at a shell prompt will list ALSA devices.
 
