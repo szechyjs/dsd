@@ -133,21 +133,21 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
           lastt = 0;
           if (state->numflips > opts->mod_threshold)
             {
-              if (opts->mod_qpsk == 1)
+              if (Options::Instance().GetModQpsk())
                 {
                   state->rf_mod = 1;
                 }
             }
           else if (state->numflips > 18)
             {
-              if (opts->mod_gfsk == 1)
+              if (Options::Instance().GetModGfsk())
                 {
                   state->rf_mod = 2;
                 }
             }
           else
             {
-              if (opts->mod_c4fm == 1)
+              if (Options::Instance().GetModC4fm())
                 {
                   state->rf_mod = 0;
                 }
@@ -312,7 +312,7 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
             }
 
           strncpy (synctest, (synctest_p - 23), 24);
-          if (opts->frame_p25p1 == 1)
+          if (Options::Instance().GetFrameP25p1())
             {
               if (strcmp (synctest, P25P1_SYNC) == 0)
                 {
@@ -343,7 +343,7 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                   return (1);
                 }
             }
-          if (opts->frame_x2tdma == 1)
+          if (Options::Instance().GetFrameX2tdma())
             {
               if ((strcmp (synctest, X2TDMA_BS_DATA_SYNC) == 0) || (strcmp (synctest, X2TDMA_MS_DATA_SYNC) == 0))
                 {
@@ -351,7 +351,7 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                   state->offset = synctest_pos;
                   state->max = ((state->max) + (lmax)) / 2;
                   state->min = ((state->min) + (lmin)) / 2;
-                  if (opts->inverted_x2tdma == 0)
+                  if (!Options::Instance().GetInvertedX2tdma())
                     {
                       // data frame
                       sprintf (state->ftype, " X2-TDMA     ");
@@ -384,7 +384,7 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                   state->offset = synctest_pos;
                   state->max = ((state->max) + lmax) / 2;
                   state->min = ((state->min) + lmin) / 2;
-                  if (opts->inverted_x2tdma == 0)
+                  if (!Options::Instance().GetInvertedX2tdma())
                     {
                       // voice frame
                       sprintf (state->ftype, " X2-TDMA     ");
@@ -412,7 +412,7 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                     }
                 }
             }
-          if (opts->frame_dmr == 1)
+          if (Options::Instance().GetFrameDmr())
             {
               if ((strcmp (synctest, DMR_MS_DATA_SYNC) == 0) || (strcmp (synctest, DMR_BS_DATA_SYNC) == 0))
                 {
@@ -420,7 +420,7 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                   state->offset = synctest_pos;
                   state->max = ((state->max) + (lmax)) / 2;
                   state->min = ((state->min) + (lmin)) / 2;
-                  if (opts->inverted_dmr == 0)
+                  if (!Options::Instance().GetInvertedDmr())
                     {
                       // data frame
                       sprintf (state->ftype, " DMR         ");
@@ -453,7 +453,7 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                   state->offset = synctest_pos;
                   state->max = ((state->max) + lmax) / 2;
                   state->min = ((state->min) + lmin) / 2;
-                  if (opts->inverted_dmr == 0)
+                  if (!Options::Instance().GetInvertedDmr())
                     {
                       // voice frame
                       sprintf (state->ftype, " DMR         ");
@@ -481,7 +481,7 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                     }
                 }
             }
-          if (opts->frame_provoice == 1)
+          if (Options::Instance().GetFrameProvoice())
             {
               strncpy (synctest32, (synctest_p - 31), 32);
               if ((strcmp (synctest32, PROVOICE_SYNC) == 0) || (strcmp (synctest32, PROVOICE_EA_SYNC) == 0))
@@ -514,7 +514,7 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                 }
 
             }
-          if ((opts->frame_nxdn96 == 1) || (opts->frame_nxdn48 == 1))
+          if (Options::Instance().GetFrameNxdn96() || Options::Instance().GetFrameNxdn48())
             {
               strncpy (synctest18, (synctest_p - 17), 18);
               if ((strcmp (synctest18, NXDN_BS_VOICE_SYNC) == 0) || (strcmp (synctest18, NXDN_MS_VOICE_SYNC) == 0))
@@ -647,7 +647,7 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                     }
                 }
             }
-          if (opts->frame_dstar == 1)
+          if (Options::Instance().GetFrameDstar())
             {
               if (strcmp (synctest, DSTAR_SYNC) == 0)
                 {

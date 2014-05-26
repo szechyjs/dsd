@@ -45,7 +45,7 @@ void processDMRdata (dsd_opts * opts, dsd_state * state)
     {
       dibit = *dibit_p;
       dibit_p++;
-      if (opts->inverted_dmr == 1)
+      if (Options::Instance().GetInvertedDmr())
         {
           dibit = (dibit ^ 2);
         }
@@ -91,7 +91,7 @@ void processDMRdata (dsd_opts * opts, dsd_state * state)
   // slot type
   dibit = *dibit_p;
   dibit_p++;
-  if (opts->inverted_dmr == 1)
+  if (Options::Instance().GetInvertedDmr())
     {
       dibit = (dibit ^ 2);
     }
@@ -100,7 +100,7 @@ void processDMRdata (dsd_opts * opts, dsd_state * state)
 
   dibit = *dibit_p;
   dibit_p++;
-  if (opts->inverted_dmr == 1)
+  if (Options::Instance().GetInvertedDmr())
     {
       dibit = (dibit ^ 2);
     }
@@ -109,7 +109,7 @@ void processDMRdata (dsd_opts * opts, dsd_state * state)
 
   dibit = *dibit_p;
   dibit_p++;
-  if (opts->inverted_dmr == 1)
+  if (Options::Instance().GetInvertedDmr())
     {
       dibit = (dibit ^ 2);
     }
@@ -118,7 +118,7 @@ void processDMRdata (dsd_opts * opts, dsd_state * state)
 
   dibit = *dibit_p;
   dibit_p++;
-  if (opts->inverted_dmr == 1)
+  if (Options::Instance().GetInvertedDmr())
     {
       dibit = (dibit ^ 2);
     }
@@ -182,7 +182,7 @@ void processDMRdata (dsd_opts * opts, dsd_state * state)
     {
       dibit = *dibit_p;
       dibit_p++;
-      if (opts->inverted_dmr == 1)
+      if (Options::Instance().GetInvertedDmr())
         {
           dibit = (dibit ^ 2);
         }

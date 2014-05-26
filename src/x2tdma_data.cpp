@@ -47,7 +47,7 @@ processX2TDMAdata (dsd_opts * opts, dsd_state * state)
     {
       dibit = *dibit_p;
       dibit_p++;
-      if (opts->inverted_x2tdma == 1)
+      if (Options::Instance().GetInvertedX2tdma())
         {
           dibit = (dibit ^ 2);
         }
@@ -93,7 +93,7 @@ processX2TDMAdata (dsd_opts * opts, dsd_state * state)
   // slot type
   dibit = *dibit_p;
   dibit_p++;
-  if (opts->inverted_x2tdma == 1)
+  if (Options::Instance().GetInvertedX2tdma())
     {
       dibit = (dibit ^ 2);
     }
@@ -102,7 +102,7 @@ processX2TDMAdata (dsd_opts * opts, dsd_state * state)
 
   dibit = *dibit_p;
   dibit_p++;
-  if (opts->inverted_x2tdma == 1)
+  if (Options::Instance().GetInvertedX2tdma())
     {
       dibit = (dibit ^ 2);
     }
@@ -111,7 +111,7 @@ processX2TDMAdata (dsd_opts * opts, dsd_state * state)
 
   dibit = *dibit_p;
   dibit_p++;
-  if (opts->inverted_x2tdma == 1)
+  if (Options::Instance().GetInvertedX2tdma())
     {
       dibit = (dibit ^ 2);
     }
@@ -120,7 +120,7 @@ processX2TDMAdata (dsd_opts * opts, dsd_state * state)
 
   dibit = *dibit_p;
   dibit_p++;
-  if (opts->inverted_x2tdma == 1)
+  if (Options::Instance().GetInvertedX2tdma())
     {
       dibit = (dibit ^ 2);
     }
@@ -184,7 +184,7 @@ processX2TDMAdata (dsd_opts * opts, dsd_state * state)
     {
       dibit = *dibit_p;
       dibit_p++;
-      if (opts->inverted_x2tdma == 1)
+      if (Options::Instance().GetInvertedX2tdma())
         {
           dibit = (dibit ^ 2);
         }

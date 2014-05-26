@@ -76,7 +76,7 @@ typedef struct
   SNDFILE *audio_out_file;
   SF_INFO *audio_out_file_info;
   int audio_out_type; // 0 for device, 1 for file
-  int split;
+  bool split;
   int playoffset;
   char mbe_out_dir[1024];
   char mbe_out_file[1024];
@@ -91,26 +91,26 @@ typedef struct
   char serial_dev[1024];
   int serial_fd;
   int resume;
-  int frame_dstar;
-  int frame_x2tdma;
-  int frame_p25p1;
-  int frame_nxdn48;
-  int frame_nxdn96;
-  int frame_dmr;
-  int frame_provoice;
-  int mod_c4fm;
-  int mod_qpsk;
-  int mod_gfsk;
+  bool frame_dstar;
+  bool frame_x2tdma;
+  bool frame_p25p1;
+  bool frame_nxdn48;
+  bool frame_nxdn96;
+  bool frame_dmr;
+  bool frame_provoice;
+  bool mod_c4fm;
+  bool mod_qpsk;
+  bool mod_gfsk;
   int uvquality;
-  int inverted_x2tdma;
-  int inverted_dmr;
+  bool inverted_x2tdma;
+  bool inverted_dmr;
   int mod_threshold;
   int ssize;
   int msize;
   bool playfiles;
   int delay;
-  int use_cosine_filter;
-  int unmute_encrypted_p25;
+  bool use_cosine_filter;
+  bool unmute_encrypted_p25;
 } dsd_opts;
 
 typedef struct

@@ -100,7 +100,7 @@ initOpts (dsd_opts * opts)
   opts->audio_in_fd = -1;
   sprintf (opts->audio_out_dev, "/dev/audio");
   opts->audio_out_fd = -1;
-  opts->split = 0;
+  Options::Instance().SetSplit(false);
   opts->playoffset = 0;
   opts->mbe_out_dir[0] = 0;
   opts->mbe_out_file[0] = 0;
@@ -114,26 +114,26 @@ initOpts (dsd_opts * opts)
   opts->serial_baud = 115200;
   sprintf (opts->serial_dev, "/dev/ttyUSB0");
   opts->resume = 0;
-  opts->frame_dstar = 0;
-  opts->frame_x2tdma = 1;
-  opts->frame_p25p1 = 1;
-  opts->frame_nxdn48 = 0;
-  opts->frame_nxdn96 = 1;
-  opts->frame_dmr = 1;
-  opts->frame_provoice = 0;
-  opts->mod_c4fm = 1;
-  opts->mod_qpsk = 1;
-  opts->mod_gfsk = 1;
+  Options::Instance().SetFrameDstar(false);
+  Options::Instance().SetFrameX2tdma(true);
+  Options::Instance().SetFrameP25p1(true);
+  Options::Instance().SetFrameNxdn48(false);
+  Options::Instance().SetFrameNxdn96(true);
+  Options::Instance().SetFrameDmr(true);
+  Options::Instance().SetFrameProvoice(false);
+  Options::Instance().SetModC4fm(true);
+  Options::Instance().SetModQpsk(true);
+  Options::Instance().SetModGfsk(true);
   opts->uvquality = 3;
-  opts->inverted_x2tdma = 1;    // most transmitter + scanner + sound card combinations show inverted signals for this
-  opts->inverted_dmr = 0;       // most transmitter + scanner + sound card combinations show non-inverted signals for this
+  Options::Instance().SetInvertedX2tdma(true);    // most transmitter + scanner + sound card combinations show inverted signals for this
+  Options::Instance().SetInvertedDmr(false);      // most transmitter + scanner + sound card combinations show non-inverted signals for this
   opts->mod_threshold = 26;
   opts->ssize = 36;
   opts->msize = 15;
   Options::Instance().SetPlayFiles(false);
   opts->delay = 0;
-  opts->use_cosine_filter = 1;
-  opts->unmute_encrypted_p25 = 0;
+  Options::Instance().SetUseCosineFilter(true);
+  Options::Instance().SetUnmuteEncryptedP25(false);
 }
 
 void
@@ -434,7 +434,7 @@ main (int argc, char **argv)
             }
           else if (optarg[0] == 'u')
             {
-             opts.unmute_encrypted_p25 = 1;
+              Options::Instance().SetUnmuteEncryptedP25(true);
             }
           break;
         case 'q':
@@ -524,50 +524,50 @@ main (int argc, char **argv)
         case 'f':
           if (optarg[0] == 'a')
             {
-              opts.frame_dstar = 1;
-              opts.frame_x2tdma = 1;
-              opts.frame_p25p1 = 1;
-              opts.frame_nxdn48 = 0;
-              opts.frame_nxdn96 = 1;
-              opts.frame_dmr = 1;
-              opts.frame_provoice = 0;
+              Options::Instance().SetFrameDstar(true);
+              Options::Instance().SetFrameX2tdma(true);
+              Options::Instance().SetFrameP25p1(true);
+              Options::Instance().SetFrameNxdn48(false);
+              Options::Instance().SetFrameNxdn96(true);
+              Options::Instance().SetFrameDmr(true);
+              Options::Instance().SetFrameProvoice(false);
             }
           else if (optarg[0] == 'd')
             {
-              opts.frame_dstar = 1;
-              opts.frame_x2tdma = 0;
-              opts.frame_p25p1 = 0;
-              opts.frame_nxdn48 = 0;
-              opts.frame_nxdn96 = 0;
-              opts.frame_dmr = 0;
-              opts.frame_provoice = 0;
+              Options::Instance().SetFrameDstar(true);
+              Options::Instance().SetFrameX2tdma(false);
+              Options::Instance().SetFrameP25p1(false);
+              Options::Instance().SetFrameNxdn48(false);
+              Options::Instance().SetFrameNxdn96(false);
+              Options::Instance().SetFrameDmr(false);
+              Options::Instance().SetFrameProvoice(false);
               printf ("Decoding only D-STAR frames.\n");
             }
           else if (optarg[0] == 'x')
             {
-              opts.frame_dstar = 0;
-              opts.frame_x2tdma = 1;
-              opts.frame_p25p1 = 0;
-              opts.frame_nxdn48 = 0;
-              opts.frame_nxdn96 = 0;
-              opts.frame_dmr = 0;
-              opts.frame_provoice = 0;
+              Options::Instance().SetFrameDstar(false);
+              Options::Instance().SetFrameX2tdma(true);
+              Options::Instance().SetFrameP25p1(false);
+              Options::Instance().SetFrameNxdn48(false);
+              Options::Instance().SetFrameNxdn96(false);
+              Options::Instance().SetFrameDmr(false);
+              Options::Instance().SetFrameProvoice(false);
               printf ("Decoding only X2-TDMA frames.\n");
             }
           else if (optarg[0] == 'p')
             {
-              opts.frame_dstar = 0;
-              opts.frame_x2tdma = 0;
-              opts.frame_p25p1 = 0;
-              opts.frame_nxdn48 = 0;
-              opts.frame_nxdn96 = 0;
-              opts.frame_dmr = 0;
-              opts.frame_provoice = 1;
+              Options::Instance().SetFrameDstar(false);
+              Options::Instance().SetFrameX2tdma(false);
+              Options::Instance().SetFrameP25p1(false);
+              Options::Instance().SetFrameNxdn48(false);
+              Options::Instance().SetFrameNxdn96(false);
+              Options::Instance().SetFrameDmr(false);
+              Options::Instance().SetFrameProvoice(true);
               state.samplesPerSymbol = 5;
               state.symbolCenter = 2;
-              opts.mod_c4fm = 0;
-              opts.mod_qpsk = 0;
-              opts.mod_gfsk = 1;
+              Options::Instance().SetModC4fm(false);
+              Options::Instance().SetModQpsk(false);
+              Options::Instance().SetModGfsk(true);
               state.rf_mod = 2;
               printf ("Setting symbol rate to 9600 / second\n");
               printf ("Enabling only GFSK modulation optimizations.\n");
@@ -575,29 +575,29 @@ main (int argc, char **argv)
             }
           else if (optarg[0] == '1')
             {
-              opts.frame_dstar = 0;
-              opts.frame_x2tdma = 0;
-              opts.frame_p25p1 = 1;
-              opts.frame_nxdn48 = 0;
-              opts.frame_nxdn96 = 0;
-              opts.frame_dmr = 0;
-              opts.frame_provoice = 0;
+              Options::Instance().SetFrameDstar(false);
+              Options::Instance().SetFrameX2tdma(false);
+              Options::Instance().SetFrameP25p1(true);
+              Options::Instance().SetFrameNxdn48(false);
+              Options::Instance().SetFrameNxdn96(false);
+              Options::Instance().SetFrameDmr(false);
+              Options::Instance().SetFrameProvoice(false);
               printf ("Decoding only P25 Phase 1 frames.\n");
             }
           else if (optarg[0] == 'i')
             {
-              opts.frame_dstar = 0;
-              opts.frame_x2tdma = 0;
-              opts.frame_p25p1 = 0;
-              opts.frame_nxdn48 = 1;
-              opts.frame_nxdn96 = 0;
-              opts.frame_dmr = 0;
-              opts.frame_provoice = 0;
+              Options::Instance().SetFrameDstar(false);
+              Options::Instance().SetFrameX2tdma(false);
+              Options::Instance().SetFrameP25p1(false);
+              Options::Instance().SetFrameNxdn48(true);
+              Options::Instance().SetFrameNxdn96(false);
+              Options::Instance().SetFrameDmr(false);
+              Options::Instance().SetFrameProvoice(false);
               state.samplesPerSymbol = 20;
               state.symbolCenter = 10;
-              opts.mod_c4fm = 0;
-              opts.mod_qpsk = 0;
-              opts.mod_gfsk = 1;
+              Options::Instance().SetModC4fm(false);
+              Options::Instance().SetModQpsk(false);
+              Options::Instance().SetModGfsk(true);
               state.rf_mod = 2;
               printf ("Setting symbol rate to 2400 / second\n");
               printf ("Enabling only GFSK modulation optimizations.\n");
@@ -605,61 +605,61 @@ main (int argc, char **argv)
             }
           else if (optarg[0] == 'n')
             {
-              opts.frame_dstar = 0;
-              opts.frame_x2tdma = 0;
-              opts.frame_p25p1 = 0;
-              opts.frame_nxdn48 = 0;
-              opts.frame_nxdn96 = 1;
-              opts.frame_dmr = 0;
-              opts.frame_provoice = 0;
-              opts.mod_c4fm = 0;
-              opts.mod_qpsk = 0;
-              opts.mod_gfsk = 1;
+              Options::Instance().SetFrameDstar(false);
+              Options::Instance().SetFrameX2tdma(false);
+              Options::Instance().SetFrameP25p1(false);
+              Options::Instance().SetFrameNxdn48(false);
+              Options::Instance().SetFrameNxdn96(true);
+              Options::Instance().SetFrameDmr(false);
+              Options::Instance().SetFrameProvoice(false);
+              Options::Instance().SetModC4fm(false);
+              Options::Instance().SetModQpsk(false);
+              Options::Instance().SetModGfsk(true);
               state.rf_mod = 2;
               printf ("Enabling only GFSK modulation optimizations.\n");
               printf ("Decoding only NXDN 9600 baud frames.\n");
             }
           else if (optarg[0] == 'r')
             {
-              opts.frame_dstar = 0;
-              opts.frame_x2tdma = 0;
-              opts.frame_p25p1 = 0;
-              opts.frame_nxdn48 = 0;
-              opts.frame_nxdn96 = 0;
-              opts.frame_dmr = 1;
-              opts.frame_provoice = 0;
+              Options::Instance().SetFrameDstar(false);
+              Options::Instance().SetFrameX2tdma(false);
+              Options::Instance().SetFrameP25p1(false);
+              Options::Instance().SetFrameNxdn48(false);
+              Options::Instance().SetFrameNxdn96(false);
+              Options::Instance().SetFrameDmr(true);
+              Options::Instance().SetFrameProvoice(false);
               printf ("Decoding only DMR/MOTOTRBO frames.\n");
             }
           break;
         case 'm':
           if (optarg[0] == 'a')
             {
-              opts.mod_c4fm = 1;
-              opts.mod_qpsk = 1;
-              opts.mod_gfsk = 1;
+              Options::Instance().SetModC4fm(true);
+              Options::Instance().SetModQpsk(true);
+              Options::Instance().SetModGfsk(true);
               state.rf_mod = 0;
             }
           else if (optarg[0] == 'c')
             {
-              opts.mod_c4fm = 1;
-              opts.mod_qpsk = 0;
-              opts.mod_gfsk = 0;
+              Options::Instance().SetModC4fm(true);
+              Options::Instance().SetModQpsk(false);
+              Options::Instance().SetModGfsk(false);
               state.rf_mod = 0;
               printf ("Enabling only C4FM modulation optimizations.\n");
             }
           else if (optarg[0] == 'g')
             {
-              opts.mod_c4fm = 0;
-              opts.mod_qpsk = 0;
-              opts.mod_gfsk = 1;
+              Options::Instance().SetModC4fm(false);
+              Options::Instance().SetModQpsk(false);
+              Options::Instance().SetModGfsk(true);
               state.rf_mod = 2;
               printf ("Enabling only GFSK modulation optimizations.\n");
             }
           else if (optarg[0] == 'q')
             {
-              opts.mod_c4fm = 0;
-              opts.mod_qpsk = 1;
-              opts.mod_gfsk = 0;
+              Options::Instance().SetModC4fm(false);
+              Options::Instance().SetModQpsk(true);
+              Options::Instance().SetModGfsk(false);
               state.rf_mod = 1;
               printf ("Enabling only QPSK modulation optimizations.\n");
             }
@@ -684,7 +684,7 @@ main (int argc, char **argv)
             }
           else if (optarg[0] == 'r')
             {
-              opts.inverted_dmr = 1;
+              Options::Instance().SetInvertedDmr(true);
               printf ("Expecting inverted DMR/MOTOTRBO signals.\n");
             }
           break;
@@ -723,7 +723,7 @@ main (int argc, char **argv)
           state.optind = optind;
           break;
         case 'l':
-          opts.use_cosine_filter = 0;
+          Options::Instance().SetUseCosineFilter(false);
           break;
         default:
           usage ();
@@ -739,7 +739,7 @@ main (int argc, char **argv)
 
   if (Options::Instance().GetPlayFiles())
     {
-      opts.split = 1;
+      Options::Instance().SetSplit(true);
       opts.playoffset = 0;
       opts.delay = 0;
       if (strlen(opts.wav_out_file) > 0)
@@ -753,7 +753,7 @@ main (int argc, char **argv)
     }
   else if (strcmp (opts.audio_in_dev, opts.audio_out_dev) != 0)
     {
-      opts.split = 1;
+      Options::Instance().SetSplit(true);
       opts.playoffset = 0;
       opts.delay = 0;
       if (strlen(opts.wav_out_file) > 0)
@@ -768,7 +768,7 @@ main (int argc, char **argv)
     }
   else
     {
-      opts.split = 0;
+      Options::Instance().SetSplit(false);
       opts.playoffset = 25;     // 38
       opts.delay = 0;
       openAudioInDevice (&opts);

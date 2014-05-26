@@ -95,7 +95,7 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
 #endif
 
       // printf("res: %zd\n, offset: %lld", result, sf_seek(opts->audio_in_file, 0, SEEK_CUR));
-      if (opts->use_cosine_filter)
+      if (Options::Instance().GetUseCosineFilter())
         {
           if (state->lastsynctype >= 10 && state->lastsynctype <= 13)
               sample = dmr_filter(sample);

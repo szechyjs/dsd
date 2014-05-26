@@ -16,6 +16,7 @@
  */
 
 #include "dsd.h"
+#include "options.h"
 
 void
 processAudio (dsd_opts * opts, dsd_state * state)
@@ -104,7 +105,7 @@ processAudio (dsd_opts * opts, dsd_state * state)
 
   // copy audio data to output buffer and upsample if necessary
   state->audio_out_temp_buf_p = state->audio_out_temp_buf;
-  if (opts->split == 0)
+  if (!Options::Instance().GetSplit())
     {
       for (n = 0; n < 160; n++)
         {
@@ -353,7 +354,7 @@ openAudioInDevice (dsd_opts * opts)
 
     rgain = 64;
 
-    if (opts->split == 1)
+    if (Options::Instance().GetSplit())
       {
         opts->audio_in_fd = open (opts->audio_in_dev, O_RDONLY);
       }
@@ -391,7 +392,7 @@ openAudioInDevice (dsd_opts * opts)
 #if defined(BSD) && !defined(__APPLE__)
     int fmt;
 
-    if (opts->split == 1)
+    if (Options::Instance().GetSplit())
       {
         opts->audio_in_fd = open (opts->audio_in_dev, O_RDONLY);
       }
@@ -428,7 +429,7 @@ openAudioInDevice (dsd_opts * opts)
       }
 #endif
   }
-  if (opts->split == 1)
+  if (Options::Instance().GetSplit())
     {
       printf ("Audio In Device: %s\n", opts->audio_in_dev);
     }

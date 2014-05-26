@@ -4,6 +4,7 @@
 #include "p25p1_hdu.h"
 #include "p25p1_check_ldu.h"
 #include "p25p1_heuristics.h"
+#include "options.h"
 
 #ifdef TRACE_DSD
 static void
@@ -120,7 +121,7 @@ process_IMBE (dsd_opts* opts, dsd_state* state, int* status_count)
   state->debug_prefix = '\0';
 #endif
 
-  if (state->p25kid == 0 || opts->unmute_encrypted_p25 == 1)
+  if (state->p25kid == 0 || Options::Instance().GetUnmuteEncryptedP25())
     {
       {
           // Check for a non-standard c0 transmitted
