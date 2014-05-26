@@ -76,6 +76,7 @@ typedef struct
   int playoffset;
   char mbe_out_dir[1024];
   char mbe_out_file[1024];
+  char mbe_out_path[1024];
   FILE *mbe_out_f;
   float audio_gain;
   int audio_out;
