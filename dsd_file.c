@@ -213,7 +213,11 @@ closeMbeOutFile (dsd_opts * opts, dsd_state * state)
       strftime (datestr, 31, "%Y-%m-%d-%H%M%S", &timep);
       sprintf (newfilename, "nac%X-%s-tg%i%s", state->nac, datestr, talkgroup, ext);
       sprintf (new_path, "%s%s", opts->mbe_out_dir, newfilename);
+#ifdef _WIN32
+      sprintf (shell, "move %s %s", opts->mbe_out_path, new_path);
+#else
       sprintf (shell, "mv %s %s", opts->mbe_out_path, new_path);
+#endif
       result = system (shell);
 
       state->tgcount = 0;
