@@ -104,6 +104,7 @@ initOpts (dsd_opts * opts)
   opts->playoffset = 0;
   opts->mbe_out_dir[0] = 0;
   opts->mbe_out_file[0] = 0;
+  opts->mbe_out_path[0] = 0;
   opts->mbe_out_f = NULL;
   opts->audio_gain = 0;
   opts->audio_out = 1;
