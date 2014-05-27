@@ -288,7 +288,8 @@ processTDULC (dsd_opts* opts, dsd_state* state)
 
 
   // Next 10 dibits should be zeros
-  read_zeros(opts, state, analog_signal_array + 6*(6+6)+6*(6+6), 20, &status_count, 0);
+  // If an irrecoverable error happens, you should start a new sequence since the previous dibit was not set
+  read_zeros(opts, state, analog_signal_array + 6*(6+6)+6*(6+6), 20, &status_count, irrecoverable_errors);
 
   // Next we should find an status dibit
   if (status_count != 35) {
