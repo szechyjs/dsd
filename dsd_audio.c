@@ -455,26 +455,207 @@ openAudioInDevice (dsd_opts * opts)
 #ifdef USE_ALSA_AUDIO
   // Check if user specified a ALSA device (default or hw:0,0) and skip file check if true
   if (strcmp(opts->audio_in_dev, "default") && strchr(opts->audio_in_dev, ':') == NULL)
-  {
-    if (stat(opts->audio_in_dev, &stat_buf) != 0) {
+    {
+      if (stat(opts->audio_in_dev, &stat_buf) != 0)
+      {
+	printf("Error, couldn't open %s\n", opts->audio_in_dev);
+	exit(1);
+      }
+      if(S_ISREG(stat_buf.st_mode))
+	{ // is this a regular file? then process with libsndfile.
+	  opts->audio_in_type = 1;
+	  opts->audio_in_file_info = calloc(1, sizeof(SF_INFO));
+	  opts->audio_in_file_info->channels = 1;
+	  opts->audio_in_file = sf_open(opts->audio_in_dev, SFM_READ, opts->audio_in_file_info);
+	  if(opts->audio_in_file == NULL)
+	    {
+	      printf ("Error, couldn't open file %s\n", opts->audio_in_dev);
+	      exit(1);
+	    }
+	}
+      else
+	{ // handle /dev devices like /dev/stdin
+	  opts->audio_in_type = 0;
+	  int fmt;
+  
+	  opts->audio_in_fd = open (opts->audio_in_dev, O_RDONLY);
+  
+	  if (opts->audio_in_fd == -1)
+	    {
+	      printf ("Error, couldn't open %s\n", opts->audio_in_dev);
+	      opts->audio_out = 0;
+	    }
+  
+	  fmt = 0;
+	  if (ioctl (opts->audio_in_fd, SNDCTL_DSP_RESET) < 0)
+	    {
+	      printf ("ioctl reset error \n");
+	    }
+	  fmt = 48000;
+	  if (ioctl (opts->audio_in_fd, SNDCTL_DSP_SPEED, &fmt) < 0)
+	    {
+	      printf ("ioctl speed error \n");
+	    }
+	  fmt = 0;
+	  if (ioctl (opts->audio_in_fd, SNDCTL_DSP_STEREO, &fmt) < 0)
+	    {
+	      printf ("ioctl stereo error \n");
+	    }
+	  fmt = AFMT_S16_LE;
+	  if (ioctl (opts->audio_in_fd, SNDCTL_DSP_SETFMT, &fmt) < 0)
+	    {
+	      printf ("ioctl setfmt error \n");
+	    }
+	}
+    }
+  else
+    {
+      opts->audio_in_type = 2;
+      int err;
+      snd_pcm_hw_params_t *hw_params;
+
+      if ((err = snd_pcm_open (&opts->audio_in_handle, opts->audio_in_dev, SND_PCM_STREAM_CAPTURE, 0)) < 0)
+	{
+	  fprintf (stderr, "cannot open audio device %s (%s)\n", 
+			  opts->audio_in_dev,
+			  snd_strerror (err));
+	  exit(1);
+	}
+      if ((err = snd_pcm_hw_params_malloc (&hw_params)) < 0)
+	{
+	  fprintf (stderr, "cannot allocate hardware parameter structure %s (%s)\n",
+			  opts->audio_in_dev,
+			  snd_strerror (err));
+	  exit(1);
+	}
+      if ((err = snd_pcm_hw_params_any (opts->audio_in_handle, hw_params)) < 0)
+	{
+	  fprintf (stderr, "cannot initialize hardware parameter structure %s (%s)\n",
+			  opts->audio_in_dev,
+			  snd_strerror (err));
+	  exit(1);
+	}
+      if ((err = snd_pcm_hw_params_set_access (opts->audio_in_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
+	{
+	  fprintf (stderr, "cannot set access type %s (%s)\n",
+			  opts->audio_in_dev,
+			  snd_strerror (err));
+	  exit(1);
+	}
+      if ((err = snd_pcm_hw_params_set_format (opts->audio_in_handle, hw_params, SND_PCM_FORMAT_S16_LE)) < 0)
+	{
+	  fprintf (stderr, "cannot set sample format %s (%s)\n",
+			  opts->audio_in_dev,
+			  snd_strerror (err));
+	  exit(1);
+	}
+      if ((err = snd_pcm_hw_params_set_rate (opts->audio_in_handle, hw_params, 48000, 0)) < 0)
+	{
+	  fprintf (stderr, "cannot set sample rate %s (%s)\n",
+			  opts->audio_in_dev,
+			  snd_strerror (err));
+	  exit(1);
+	}
+      if ((err = snd_pcm_hw_params_set_channels (opts->audio_in_handle, hw_params, 1)) < 0)
+	{
+	  fprintf (stderr, "cannot set channel count %s (%s)\n",
+			  opts->audio_in_dev,
+			  snd_strerror (err));
+	  exit(1);
+	}
+      if ((err = snd_pcm_hw_params (opts->audio_in_handle, hw_params)) < 0)
+	{
+	  fprintf (stderr, "cannot set parameters %s (%s)\n",
+			  opts->audio_in_dev,
+			  snd_strerror (err));
+	  exit(1);
+	}
+      snd_pcm_hw_params_free (hw_params);
+      if ((err = snd_pcm_prepare (opts->audio_in_handle)) < 0)
+	{
+	  fprintf (stderr, "cannot prepare audio interface for use %s (%s)\n",
+			  opts->audio_in_dev,
+			  snd_strerror (err));
+	  exit(1);
+	}
+    }
+#else     /* USE_ALSA_AUDIO not defined */
+  if (stat(opts->audio_in_dev, &stat_buf) != 0)
+    {
       printf("Error, couldn't open %s\n", opts->audio_in_dev);
       exit(1);
     }
-    if(S_ISREG(stat_buf.st_mode)) { // is this a regular file? then process with libsndfile.
+  if (S_ISREG(stat_buf.st_mode))
+    {
+      // is this a regular file? then process with libsndfile.
       opts->audio_in_type = 1;
       opts->audio_in_file_info = calloc(1, sizeof(SF_INFO));
       opts->audio_in_file_info->channels = 1;
       opts->audio_in_file = sf_open(opts->audio_in_dev, SFM_READ, opts->audio_in_file_info);
-      if(opts->audio_in_file == NULL) {
-        printf ("Error, couldn't open file %s\n", opts->audio_in_dev);
-        exit(1);
-      }
+
+      if(opts->audio_in_file == NULL)
+        {
+          printf ("Error, couldn't open file %s\n", opts->audio_in_dev);
+          exit(1);
+        }
     }
-    else { // handle /dev devices like /dev/stdin
+  else
+    {
+
+#ifdef USE_SOLARIS_AUDIO
+      opts->audio_in_type = 0;
+      sample_info_t aset, aget;
+      int rgain;
+  
+      rgain = 64;
+  
+      if (opts->split == 1)
+	{
+	  opts->audio_in_fd = open (opts->audio_in_dev, O_RDONLY);
+	}
+      else
+	{
+	  opts->audio_in_fd = open (opts->audio_in_dev, O_RDWR);
+	}
+      if (opts->audio_in_fd == -1)
+	{
+	  printf ("Error, couldn't open %s\n", opts->audio_in_dev);
+	  exit(1);
+	}
+  
+      // get current
+      ioctl (opts->audio_in_fd, AUDIO_GETINFO, &aset);
+  
+      aset.record.sample_rate = 48000;
+      aset.play.sample_rate = 48000;
+      aset.record.channels = 1;
+      aset.play.channels = 1;
+      aset.record.precision = 16;
+      aset.play.precision = 16;
+      aset.record.encoding = AUDIO_ENCODING_LINEAR;
+      aset.play.encoding = AUDIO_ENCODING_LINEAR;
+      aset.record.port = AUDIO_LINE_IN;
+      aset.record.gain = rgain;
+  
+      if (ioctl (opts->audio_in_fd, AUDIO_SETINFO, &aset) == -1)
+	{
+	  printf ("Error setting sample device parameters\n");
+	  exit (1);
+	}
+#endif  /* USE_SOLARIS_AUDIO */
+
+#if defined(USE_BSD_AUDIO) && !defined(__APPLE__)
       opts->audio_in_type = 0;
       int fmt;
   
-      opts->audio_in_fd = open (opts->audio_in_dev, O_RDONLY);
+      if (opts->split == 1)
+	{
+	  opts->audio_in_fd = open (opts->audio_in_dev, O_RDONLY);
+	}
+      else
+	{
+	  opts->audio_in_fd = open (opts->audio_in_dev, O_RDWR);
+	}
   
       if (opts->audio_in_fd == -1)
 	{
@@ -502,181 +683,9 @@ openAudioInDevice (dsd_opts * opts)
 	{
 	  printf ("ioctl setfmt error \n");
 	}
-    }
-#else
-      printf("Error, couldn't open %s\n", opts->audio_in_dev);
-      exit(1);
-    }
-  if (S_ISREG(stat_buf.st_mode))
-    {
-      // is this a regular file? then process with libsndfile.
-      opts->audio_in_type = 1;
-      opts->audio_in_file_info = calloc(1, sizeof(SF_INFO));
-      opts->audio_in_file_info->channels = 1;
-      opts->audio_in_file = sf_open(opts->audio_in_dev, SFM_READ, opts->audio_in_file_info);
-
-      if(opts->audio_in_file == NULL)
-        {
-          printf ("Error, couldn't open file %s\n", opts->audio_in_dev);
-          exit(1);
-        }
 #endif
     }
-  else
-#ifdef USE_ALSA_AUDIO
-    opts->audio_in_type = 2;
-    int err;
-    snd_pcm_hw_params_t *hw_params;
-
-    if ((err = snd_pcm_open (&opts->audio_in_handle, opts->audio_in_dev, SND_PCM_STREAM_CAPTURE, 0)) < 0)
-      {
- 	fprintf (stderr, "cannot open audio device %s (%s)\n", 
-			 opts->audio_in_dev,
-			 snd_strerror (err));
-	exit(1);
-      }
-    if ((err = snd_pcm_hw_params_malloc (&hw_params)) < 0)
-      {
-	fprintf (stderr, "cannot allocate hardware parameter structure %s (%s)\n",
-			opts->audio_in_dev,
-			snd_strerror (err));
-	exit(1);
-      }
-    if ((err = snd_pcm_hw_params_any (opts->audio_in_handle, hw_params)) < 0)
-      {
-	fprintf (stderr, "cannot initialize hardware parameter structure %s (%s)\n",
-			opts->audio_in_dev,
-	    		snd_strerror (err));
-	exit(1);
-      }
-    if ((err = snd_pcm_hw_params_set_access (opts->audio_in_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
-      {
-	fprintf (stderr, "cannot set access type %s (%s)\n",
-			opts->audio_in_dev,
-			snd_strerror (err));
-	exit(1);
-      }
-    if ((err = snd_pcm_hw_params_set_format (opts->audio_in_handle, hw_params, SND_PCM_FORMAT_S16_LE)) < 0)
-      {
-	fprintf (stderr, "cannot set sample format %s (%s)\n",
-			opts->audio_in_dev,
-			snd_strerror (err));
-	exit(1);
-      }
-    if ((err = snd_pcm_hw_params_set_rate (opts->audio_in_handle, hw_params, 48000, 0)) < 0)
-      {
-	fprintf (stderr, "cannot set sample rate %s (%s)\n",
-			opts->audio_in_dev,
-			snd_strerror (err));
-	exit(1);
-      }
-    if ((err = snd_pcm_hw_params_set_channels (opts->audio_in_handle, hw_params, 1)) < 0)
-      {
-	fprintf (stderr, "cannot set channel count %s (%s)\n",
-			opts->audio_in_dev,
-			snd_strerror (err));
-	exit(1);
-      }
-    if ((err = snd_pcm_hw_params (opts->audio_in_handle, hw_params)) < 0)
-      {
-	fprintf (stderr, "cannot set parameters %s (%s)\n",
-			opts->audio_in_dev,
-			snd_strerror (err));
-	exit(1);
-      }
-    snd_pcm_hw_params_free (hw_params);
-    if ((err = snd_pcm_prepare (opts->audio_in_handle)) < 0)
-      {
-	fprintf (stderr, "cannot prepare audio interface for use %s (%s)\n",
-			opts->audio_in_dev,
-			snd_strerror (err));
-	exit(1);
-      }
-#endif /* USE_ALSA_AUDIO */
-
-#ifdef USE_SOLARIS_AUDIO
-    opts->audio_in_type = 0;
-    sample_info_t aset, aget;
-    int rgain;
-  
-    rgain = 64;
-  
-    if (opts->split == 1)
-      {
-        opts->audio_in_fd = open (opts->audio_in_dev, O_RDONLY);
-      }
-    else
-      {
-        opts->audio_in_fd = open (opts->audio_in_dev, O_RDWR);
-      }
-    if (opts->audio_in_fd == -1)
-      {
-        printf ("Error, couldn't open %s\n", opts->audio_in_dev);
-        exit(1);
-      }
-  
-    // get current
-    ioctl (opts->audio_in_fd, AUDIO_GETINFO, &aset);
-  
-    aset.record.sample_rate = 48000;
-    aset.play.sample_rate = 48000;
-    aset.record.channels = 1;
-    aset.play.channels = 1;
-    aset.record.precision = 16;
-    aset.play.precision = 16;
-    aset.record.encoding = AUDIO_ENCODING_LINEAR;
-    aset.play.encoding = AUDIO_ENCODING_LINEAR;
-    aset.record.port = AUDIO_LINE_IN;
-    aset.record.gain = rgain;
-  
-    if (ioctl (opts->audio_in_fd, AUDIO_SETINFO, &aset) == -1)
-      {
-        printf ("Error setting sample device parameters\n");
-        exit (1);
-      }
-#endif  /* USE_SOLARIS_AUDIO */
-
-#if defined(USE_BSD_AUDIO) && !defined(__APPLE__)
-    opts->audio_in_type = 0;
-    int fmt;
-  
-    if (opts->split == 1)
-      {
-        opts->audio_in_fd = open (opts->audio_in_dev, O_RDONLY);
-      }
-    else
-      {
-        opts->audio_in_fd = open (opts->audio_in_dev, O_RDWR);
-      }
-  
-    if (opts->audio_in_fd == -1)
-      {
-        printf ("Error, couldn't open %s\n", opts->audio_in_dev);
-        opts->audio_out = 0;
-      }
-  
-    fmt = 0;
-    if (ioctl (opts->audio_in_fd, SNDCTL_DSP_RESET) < 0)
-      {
-        printf ("ioctl reset error \n");
-      }
-    fmt = 48000;
-    if (ioctl (opts->audio_in_fd, SNDCTL_DSP_SPEED, &fmt) < 0)
-      {
-        printf ("ioctl speed error \n");
-      }
-    fmt = 0;
-    if (ioctl (opts->audio_in_fd, SNDCTL_DSP_STEREO, &fmt) < 0)
-      {
-        printf ("ioctl stereo error \n");
-      }
-    fmt = AFMT_S16_LE;
-    if (ioctl (opts->audio_in_fd, SNDCTL_DSP_SETFMT, &fmt) < 0)
-      {
-        printf ("ioctl setfmt error \n");
-      }
 #endif
-  }
   if (opts->split == 1)
     {
       printf ("Audio In Device: %s\n", opts->audio_in_dev);
