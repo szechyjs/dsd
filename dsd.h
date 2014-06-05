@@ -42,6 +42,15 @@
 
 #include "p25p1_heuristics.h"
 
+
+#define SAMPLE_RATE_IN 48000
+#define SAMPLE_RATE_OUT 8000
+#define PA_FRAMES_PER_BUFFER 64
+
+#ifdef USE_PORTAUDIO
+#include "portaudio.h"
+#endif
+
 /*
  * global variables
  */
@@ -66,12 +75,18 @@ typedef struct
   int audio_in_fd;
   SNDFILE *audio_in_file;
   SF_INFO *audio_in_file_info;
-  int audio_in_type; // 0 for device, 1 for file
+#ifdef USE_PORTAUDIO
+  PaStream* audio_in_pa_stream;
+#endif
+  int audio_in_type; // 0 for device, 1 for file, 2 for portaudio
   char audio_out_dev[1024];
   int audio_out_fd;
   SNDFILE *audio_out_file;
   SF_INFO *audio_out_file_info;
-  int audio_out_type; // 0 for device, 1 for file
+#ifdef USE_PORTAUDIO
+  PaStream* audio_out_pa_stream;
+#endif
+  int audio_out_type; // 0 for device, 1 for file, 2 for portaudio
   int split;
   int playoffset;
   char mbe_out_dir[1024];
