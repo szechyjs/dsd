@@ -364,7 +364,7 @@ void
 openAudioOutDevice (dsd_opts * opts, int speed)
 {
   // get info of device/file
-	if(strncmp(opts->audio_in_dev, "pa:", 3) == 0)
+	if(strncmp(opts->audio_out_dev, "pa:", 3) == 0)
 	{
 		opts->audio_out_type = 2;
 #ifdef USE_PORTAUDIO
