@@ -235,8 +235,11 @@ playSynthesizedVoice (dsd_opts * opts, dsd_state * state)
 				//printf("Frames available: %d\n", available);
 				if( err != paNoError )
 					break;
-				if(available > SAMPLE_RATE_OUT / 2)
+				if(available > SAMPLE_RATE_OUT * PA_LATENCY_OUT)
 				{
+					//It looks like this might not be needed for very small latencies. However, it's definitely needed for a bit larger ones.
+					//When PA_LATENCY_OUT == 0.500 I get output buffer underruns if I don't use this. With PA_LATENCY_OUT <= 0.100 I don't see those happen.
+					//But with PA_LATENCY_OUT < 0.100 I run the risk of choppy audio and stream errors.
 					printf("\nSyncing voice output stream\n");
 					err = Pa_StopStream( opts->audio_out_pa_stream );
 					if( err != paNoError )
@@ -335,7 +338,7 @@ int getPADevice(char* dev, int input, PaStream** stream)
     parameters.device = devnum;
     parameters.channelCount = 1;       /* mono */
     parameters.sampleFormat = paInt16; //Shorts
-    parameters.suggestedLatency = 0.500; //0.050; // Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
+    parameters.suggestedLatency = (input == 1) ? PA_LATENCY_IN : PA_LATENCY_OUT;
     parameters.hostApiSpecificStreamInfo = NULL;
 
 	//Open stream

@@ -98,8 +98,14 @@ initOpts (dsd_opts * opts)
   opts->scoperate = 15;
   sprintf (opts->audio_in_dev, "/dev/audio");
   opts->audio_in_fd = -1;
+#ifdef USE_PORTAUDIO
+  opts->audio_in_pa_stream = NULL;
+#endif
   sprintf (opts->audio_out_dev, "/dev/audio");
   opts->audio_out_fd = -1;
+#ifdef USE_PORTAUDIO
+  opts->audio_out_pa_stream = NULL;
+#endif
   opts->split = 0;
   opts->playoffset = 0;
   opts->mbe_out_dir[0] = 0;
@@ -364,20 +370,33 @@ cleanupAndExit (dsd_opts * opts, dsd_state * state)
 		printf("Terminating portaudio.\n");
 		PaError err = paNoError;
 		if(opts->audio_in_pa_stream != NULL)
-			err = Pa_CloseStream( opts->audio_in_pa_stream );
-		if( err != paNoError )
 		{
-			fprintf( stderr, "An error occured while closing the portaudio input stream\n" );
-			fprintf( stderr, "Error number: %d\n", err );
-			fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+			err = Pa_CloseStream( opts->audio_in_pa_stream );
+			if( err != paNoError )
+			{
+				fprintf( stderr, "An error occured while closing the portaudio input stream\n" );
+				fprintf( stderr, "Error number: %d\n", err );
+				fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+			}
 		}
 		if(opts->audio_out_pa_stream != NULL)
-			err = Pa_CloseStream( opts->audio_out_pa_stream );
-		if( err != paNoError )
 		{
-			fprintf( stderr, "An error occured while closing the portaudio output stream\n" );
-			fprintf( stderr, "Error number: %d\n", err );
-			fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+			err = Pa_IsStreamActive( opts->audio_out_pa_stream );
+			if(err == 1)
+				err = Pa_StopStream( opts->audio_out_pa_stream );
+			if( err != paNoError )
+			{
+				fprintf( stderr, "An error occured while closing the portaudio output stream\n" );
+				fprintf( stderr, "Error number: %d\n", err );
+				fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+			}
+			err = Pa_CloseStream( opts->audio_out_pa_stream );
+			if( err != paNoError )
+			{
+				fprintf( stderr, "An error occured while closing the portaudio output stream\n" );
+				fprintf( stderr, "Error number: %d\n", err );
+				fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+			}
 		}
 		err = Pa_Terminate();
 		if( err != paNoError )

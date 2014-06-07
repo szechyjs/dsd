@@ -45,10 +45,17 @@
 
 #define SAMPLE_RATE_IN 48000
 #define SAMPLE_RATE_OUT 8000
-#define PA_FRAMES_PER_BUFFER 64
 
 #ifdef USE_PORTAUDIO
 #include "portaudio.h"
+#define PA_FRAMES_PER_BUFFER 64
+//Buffer needs to be large enough to prevent input buffer overruns while DSD is doing other struff (like outputting voice)
+//else you get skipped samples which result in incomplete/erronous decodes and a mountain of error messages.
+#define PA_LATENCY_IN 0.500
+//Buffer needs to be large enough to prevent output buffer underruns while DSD is doing other stuff (like decoding input)
+//else you get choppy audio and in 'extreme' cases errors.
+//Buffer also needs to be as small as possible so we don't have a lot of audio delay.
+#define PA_LATENCY_OUT 0.100
 #endif
 
 /*
