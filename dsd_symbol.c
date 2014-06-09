@@ -82,12 +82,24 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
       if(opts->audio_in_type == 0) {
           result = read (opts->audio_in_fd, &sample, 2);
       }
-      else {
+      else if (opts->audio_in_type == 1) {
           result = sf_read_short(opts->audio_in_file, &sample, 1);
           if(result == 0) {
               cleanupAndExit (opts, state);
           }
       }
+	  else
+	  {
+#ifdef USE_PORTAUDIO
+		PaError err = Pa_ReadStream( opts->audio_in_pa_stream, &sample, 1 );
+		if( err != paNoError )
+		{
+    			fprintf( stderr, "An error occured while using the portaudio input stream\n" );
+    			fprintf( stderr, "Error number: %d\n", err );
+    			fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+		}
+#endif
+	  }
 
 #ifdef TRACE_DSD
       state->debug_sample_index++;
@@ -267,8 +279,8 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
       if (state->debug_label_file == NULL) {
           state->debug_label_file = fopen ("pp_label.txt", "w");
       }
-      left = state->debug_sample_left_edge / 48000.0;
-      right = state->debug_sample_right_edge / 48000.0;
+      left = state->debug_sample_left_edge / SAMPLE_RATE_IN;
+      right = state->debug_sample_right_edge / SAMPLE_RATE_IN;
       if (state->debug_prefix != '\0') {
           if (state->debug_prefix == 'I') {
               fprintf(state->debug_label_file, "%f\t%f\t%c%c %i\n", left, right, state->debug_prefix, state->debug_prefix_2, symbol);
