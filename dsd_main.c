@@ -26,6 +26,7 @@
 #include "provoice_const.h"
 #include "git_ver.h"
 #include "p25p1_heuristics.h"
+#include "pa_devs.h"
 
 
 int
@@ -273,6 +274,7 @@ usage ()
   printf ("  -g <num>      Audio output gain (default = 0 = auto, disable = -1)\n");
   printf ("  -n            Do not send synthesized speech to audio output device\n");
   printf ("  -w <file>     Output synthesized speech to a .wav file\n");
+  printf ("  -a            Display port audio devices\n");
   printf ("\n");
   printf ("Scanner control options:\n");
   printf ("  -B <num>      Serial port baud rate (default=115200)\n");
@@ -466,7 +468,7 @@ main (int argc, char **argv)
   exitflag = 0;
   signal (SIGINT, sigfun);
 
-  while ((c = getopt (argc, argv, "hep:qstv:z:i:o:d:g:nw:B:C:R:f:m:u:x:A:S:M:rl")) != -1)
+  while ((c = getopt (argc, argv, "haep:qstv:z:i:o:d:g:nw:B:C:R:f:m:u:x:A:S:M:rl")) != -1)
     {
       opterr = 0;
       switch (c)
@@ -474,6 +476,9 @@ main (int argc, char **argv)
         case 'h':
           usage ();
           exit (0);
+        case 'a':
+          printPortAudioDevices();
+          exit(0);
         case 'e':
           opts.errorbars = 1;
           opts.datascope = 0;
