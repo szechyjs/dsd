@@ -105,7 +105,16 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
               sample = dmr_filter(sample);
           else if (state->lastsynctype == 8 || state->lastsynctype == 9 ||
                  state->lastsynctype == 16 || state->lastsynctype == 17)
-              sample = nxdn_filter(sample);
+            {
+              if(state->samplesPerSymbol == 20)
+                {
+                  sample = nxdn_filter(sample);
+                }
+              else // the 12.5KHz NXDN filter is the same as the DMR filter
+                {
+                  sample = dmr_filter(sample);
+                }
+            }
         }
 
       if ((sample > state->max) && (have_sync == 1) && (state->rf_mod == 0))
