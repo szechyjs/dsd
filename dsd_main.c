@@ -27,6 +27,11 @@
 #include "git_ver.h"
 #include "p25p1_heuristics.h"
 
+/*
+ * global variables
+ */
+int exitflag;
+
 int
 comp (const void *a, const void *b)
 {

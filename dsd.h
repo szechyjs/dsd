@@ -47,9 +47,9 @@
 #include "p25p1_heuristics.h"
 
 /*
- * global variables
+ * global variables defined in dsd_main.c
  */
-int exitflag;
+extern int exitflag;
 
 
 typedef struct
