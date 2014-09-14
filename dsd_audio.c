@@ -465,7 +465,22 @@ void
 openAudioInDevice (dsd_opts * opts)
 {
   // get info of device/file
-	if(strncmp(opts->audio_in_dev, "pa:", 2) == 0)
+	if(strncmp(opts->audio_in_dev, "-", 1) == 0)
+	{
+		opts->audio_in_type = 1;
+		opts->audio_in_file_info = calloc(1, sizeof(SF_INFO));
+		opts->audio_in_file_info->samplerate=48000;
+		opts->audio_in_file_info->channels=1;
+		opts->audio_in_file_info->seekable=0;
+		opts->audio_in_file_info->format=SF_FORMAT_RAW|SF_FORMAT_PCM_16|SF_ENDIAN_LITTLE;
+		opts->audio_in_file = sf_open_fd(fileno(stdin), SFM_READ, opts->audio_in_file_info, 0);
+
+		if(opts->audio_in_file == NULL) {
+			printf ("Error, couldn't open stdin with libsndfile: %s\n", sf_strerror(NULL));
+			exit(1);
+		}
+	}
+	else if(strncmp(opts->audio_in_dev, "pa:", 2) == 0)
 	{
 		opts->audio_in_type = 2;
 #ifdef USE_PORTAUDIO
