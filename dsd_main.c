@@ -267,7 +267,7 @@ usage ()
   printf ("  -z <num>      Frame rate for datascope\n");
   printf ("\n");
   printf ("Input/Output options:\n");
-  printf ("  -i <device>   Audio input device (default is /dev/audio)\n");
+  printf ("  -i <device>   Audio input device (default is /dev/audio, - for piped stdin)\n");
   printf ("  -o <device>   Audio output device (default is /dev/audio)\n");
   printf ("  -d <dir>      Create mbe data files, use this directory\n");
   printf ("  -r <files>    Read/Play saved mbe data from file(s)\n");
