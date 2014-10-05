@@ -100,15 +100,8 @@ initOpts (dsd_opts * opts)
   opts->p25status = 0;
   opts->p25tg = 0;
   opts->scoperate = 15;
-#ifdef USE_ALSA_AUDIO
-  sprintf (opts->audio_in_dev, "default");
-  opts->audio_in_handle = NULL;
-  sprintf (opts->audio_out_dev, "default");
-  opts->audio_out_handle = NULL;
-#else
   sprintf (opts->audio_in_dev, "/dev/audio");
   sprintf (opts->audio_out_dev, "/dev/audio");
-#endif
   opts->audio_in_fd = -1;
   opts->audio_out_fd = -1;
   opts->split = 0;
@@ -270,13 +263,8 @@ usage ()
   printf ("  -z <num>      Frame rate for datascope\n");
   printf ("\n");
   printf ("Input/Output options:\n");
-#ifdef USE_ALSA_AUDIO
-  printf ("  -i <device>   Audio input device (default is default alsa device)\n");
-  printf ("  -o <device>   Audio output device (default is default alsa device)\n");
-#else
   printf ("  -i <device>   Audio input device (default is /dev/audio)\n");
   printf ("  -o <device>   Audio output device (default is /dev/audio)\n");
-#endif
   printf ("  -d <dir>      Create mbe data files, use this directory\n");
   printf ("  -r <files>    Read/Play saved mbe data from file(s)\n");
   printf ("  -g <num>      Audio output gain (default = 0 = auto, disable = -1)\n");
@@ -783,15 +771,9 @@ main (int argc, char **argv)
     {
       opts.playoffset = 25;     // 38
       opts.delay = 0;
-#ifdef USE_ALSA_AUDIO
-      opts.split = 1; // Turn off upsampling as ALSA handles it
-      openAudioInDevice (&opts);
-      openAudioOutDevice (&opts, 8000);
-#else
       opts.split = 0;
       openAudioInDevice (&opts);
       opts.audio_out_fd = opts.audio_in_fd;
-#endif
     }
 
   if (opts.playfiles == 1)

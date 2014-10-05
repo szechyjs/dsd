@@ -36,10 +36,6 @@
 #if defined(USE_BSD_AUDIO) && !defined(__APPLE__)
 #include <sys/soundcard.h>
 #endif
-#ifdef USE_ALSA_AUDIO
-#include <alsa/asoundlib.h>
-#include <sys/soundcard.h>
-#endif
 #include <math.h>
 #include <mbelib.h>
 #include <sndfile.h>
@@ -67,17 +63,11 @@ typedef struct
   int p25tg;
   int scoperate;
   char audio_in_dev[1024];
-#ifdef USE_ALSA_AUDIO
-  snd_pcm_t *audio_in_handle;
-#endif
   int audio_in_fd;
   SNDFILE *audio_in_file;
   SF_INFO *audio_in_file_info;
   int audio_in_type; // 0 for device, 1 for file
   char audio_out_dev[1024];
-#ifdef USE_ALSA_AUDIO
-  snd_pcm_t *audio_out_handle;
-#endif
   int audio_out_fd;
   SNDFILE *audio_out_file;
   SF_INFO *audio_out_file_info;
