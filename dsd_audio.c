@@ -15,7 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <strings.h>
 #include "dsd.h"
 
 
@@ -536,81 +535,81 @@ openAudioInDevice (dsd_opts * opts)
       rgain = 64;
   
       if (opts->split == 1)
-	{
-	  opts->audio_in_fd = open (opts->audio_in_dev, O_RDONLY);
-	}
+        {
+          opts->audio_in_fd = open (opts->audio_in_dev, O_RDONLY);
+        }
       else
-	{
-	  opts->audio_in_fd = open (opts->audio_in_dev, O_RDWR);
-	}
+        {
+          opts->audio_in_fd = open (opts->audio_in_dev, O_RDWR);
+        }
       if (opts->audio_in_fd == -1)
-	{
-	  printf ("Error, couldn't open %s\n", opts->audio_in_dev);
-	  exit(1);
-	}
+        {
+          printf ("Error, couldn't open %s\n", opts->audio_in_dev);
+          exit(1);
+        }
   
       // get current
       ioctl (opts->audio_in_fd, AUDIO_GETINFO, &aset);
   
-    aset.record.sample_rate = SAMPLE_RATE_IN;
-    aset.play.sample_rate = SAMPLE_RATE_IN;
-    aset.record.channels = 1;
-    aset.play.channels = 1;
-    aset.record.precision = 16;
-    aset.play.precision = 16;
-    aset.record.encoding = AUDIO_ENCODING_LINEAR;
-    aset.play.encoding = AUDIO_ENCODING_LINEAR;
-    aset.record.port = AUDIO_LINE_IN;
-    aset.record.gain = rgain;
+      aset.record.sample_rate = SAMPLE_RATE_IN;
+      aset.play.sample_rate = SAMPLE_RATE_IN;
+      aset.record.channels = 1;
+      aset.play.channels = 1;
+      aset.record.precision = 16;
+      aset.play.precision = 16;
+      aset.record.encoding = AUDIO_ENCODING_LINEAR;
+      aset.play.encoding = AUDIO_ENCODING_LINEAR;
+      aset.record.port = AUDIO_LINE_IN;
+      aset.record.gain = rgain;
   
       if (ioctl (opts->audio_in_fd, AUDIO_SETINFO, &aset) == -1)
-	{
-	  printf ("Error setting sample device parameters\n");
-	  exit (1);
-	}
+        {
+          printf ("Error setting sample device parameters\n");
+          exit (1);
+        }
 #endif  /* USE_SOLARIS_AUDIO */
 
 #if defined(USE_BSD_AUDIO) && !defined(__APPLE__)
       int fmt;
   
-    if (opts->split == 1)
-      {
-        opts->audio_in_fd = open (opts->audio_in_dev, O_RDONLY);
-      }
-    else
-      {
-        opts->audio_in_fd = open (opts->audio_in_dev, O_RDWR);
-      }
+      if (opts->split == 1)
+        {
+          opts->audio_in_fd = open (opts->audio_in_dev, O_RDONLY);
+        }
+      else
+        {
+          opts->audio_in_fd = open (opts->audio_in_dev, O_RDWR);
+        }
   
-    if (opts->audio_in_fd == -1)
-      {
-        printf ("Error, couldn't open %s\n", opts->audio_in_dev);
-        opts->audio_out = 0;
-      }
+      if (opts->audio_in_fd == -1)
+        {
+          printf ("Error, couldn't open %s\n", opts->audio_in_dev);
+          opts->audio_out = 0;
+        }
   
-    fmt = 0;
-    if (ioctl (opts->audio_in_fd, SNDCTL_DSP_RESET) < 0)
-      {
-        printf ("ioctl reset error \n");
-      }
-    fmt = SAMPLE_RATE_IN;
-    if (ioctl (opts->audio_in_fd, SNDCTL_DSP_SPEED, &fmt) < 0)
-      {
-        printf ("ioctl speed error \n");
-      }
-    fmt = 0;
-    if (ioctl (opts->audio_in_fd, SNDCTL_DSP_STEREO, &fmt) < 0)
-      {
-        printf ("ioctl stereo error \n");
-      }
-    fmt = AFMT_S16_LE;
-    if (ioctl (opts->audio_in_fd, SNDCTL_DSP_SETFMT, &fmt) < 0)
-      {
-        printf ("ioctl setfmt error \n");
-      }
+      fmt = 0;
+      if (ioctl (opts->audio_in_fd, SNDCTL_DSP_RESET) < 0)
+        {
+          printf ("ioctl reset error \n");
+        }
+      fmt = SAMPLE_RATE_IN;
+      if (ioctl (opts->audio_in_fd, SNDCTL_DSP_SPEED, &fmt) < 0)
+        {
+          printf ("ioctl speed error \n");
+        }
+      fmt = 0;
+      if (ioctl (opts->audio_in_fd, SNDCTL_DSP_STEREO, &fmt) < 0)
+        {
+          printf ("ioctl stereo error \n");
+        }
+      fmt = AFMT_S16_LE;
+      if (ioctl (opts->audio_in_fd, SNDCTL_DSP_SETFMT, &fmt) < 0)
+        {
+          printf ("ioctl setfmt error \n");
+        }
 #endif
-  }
-  }
+    }
+    }
 
   if (opts->split == 1)
     {
