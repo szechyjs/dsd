@@ -26,6 +26,8 @@
 #include "provoice_const.h"
 #include "git_ver.h"
 #include "p25p1_heuristics.h"
+#include "pa_devs.h"
+
 
 /*
  * global variables
@@ -101,13 +103,21 @@ initOpts (dsd_opts * opts)
   opts->p25tg = 0;
   opts->scoperate = 15;
   sprintf (opts->audio_in_dev, "/dev/audio");
+  opts->audio_in_fd = -1;
+#ifdef USE_PORTAUDIO
+  opts->audio_in_pa_stream = NULL;
+#endif
   sprintf (opts->audio_out_dev, "/dev/audio");
   opts->audio_in_fd = -1;
   opts->audio_out_fd = -1;
+#ifdef USE_PORTAUDIO
+  opts->audio_out_pa_stream = NULL;
+#endif
   opts->split = 0;
   opts->playoffset = 0;
   opts->mbe_out_dir[0] = 0;
   opts->mbe_out_file[0] = 0;
+  opts->mbe_out_path[0] = 0;
   opts->mbe_out_f = NULL;
   opts->audio_gain = 0;
   opts->audio_out = 1;
@@ -263,13 +273,14 @@ usage ()
   printf ("  -z <num>      Frame rate for datascope\n");
   printf ("\n");
   printf ("Input/Output options:\n");
-  printf ("  -i <device>   Audio input device (default is /dev/audio)\n");
+  printf ("  -i <device>   Audio input device (default is /dev/audio, - for piped stdin)\n");
   printf ("  -o <device>   Audio output device (default is /dev/audio)\n");
   printf ("  -d <dir>      Create mbe data files, use this directory\n");
   printf ("  -r <files>    Read/Play saved mbe data from file(s)\n");
   printf ("  -g <num>      Audio output gain (default = 0 = auto, disable = -1)\n");
   printf ("  -n            Do not send synthesized speech to audio output device\n");
   printf ("  -w <file>     Output synthesized speech to a .wav file\n");
+  printf ("  -a            Display port audio devices\n");
   printf ("\n");
   printf ("Scanner control options:\n");
   printf ("  -B <num>      Serial port baud rate (default=115200)\n");
@@ -309,7 +320,20 @@ usage ()
 void
 liveScanner (dsd_opts * opts, dsd_state * state)
 {
-  while (1)
+#ifdef USE_PORTAUDIO
+	if(opts->audio_in_type == 2)
+	{
+		PaError err = Pa_StartStream( opts->audio_in_pa_stream );
+		if( err != paNoError )
+		{
+			fprintf( stderr, "An error occured while starting the portaudio input stream\n" );
+			fprintf( stderr, "Error number: %d\n", err );
+			fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+			return;
+		}
+	}
+#endif
+	while (1)
     {
       noCarrier (opts, state);
       state->synctype = getFrameSync (opts, state);
@@ -347,6 +371,50 @@ cleanupAndExit (dsd_opts * opts, dsd_state * state)
     {
       closeWavOutFile (opts, state);
     }
+
+#ifdef USE_PORTAUDIO
+	if((opts->audio_in_type == 2) || (opts->audio_out_type == 2))
+	{
+		printf("Terminating portaudio.\n");
+		PaError err = paNoError;
+		if(opts->audio_in_pa_stream != NULL)
+		{
+			err = Pa_CloseStream( opts->audio_in_pa_stream );
+			if( err != paNoError )
+			{
+				fprintf( stderr, "An error occured while closing the portaudio input stream\n" );
+				fprintf( stderr, "Error number: %d\n", err );
+				fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+			}
+		}
+		if(opts->audio_out_pa_stream != NULL)
+		{
+			err = Pa_IsStreamActive( opts->audio_out_pa_stream );
+			if(err == 1)
+				err = Pa_StopStream( opts->audio_out_pa_stream );
+			if( err != paNoError )
+			{
+				fprintf( stderr, "An error occured while closing the portaudio output stream\n" );
+				fprintf( stderr, "Error number: %d\n", err );
+				fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+			}
+			err = Pa_CloseStream( opts->audio_out_pa_stream );
+			if( err != paNoError )
+			{
+				fprintf( stderr, "An error occured while closing the portaudio output stream\n" );
+				fprintf( stderr, "Error number: %d\n", err );
+				fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+			}
+		}
+		err = Pa_Terminate();
+		if( err != paNoError )
+		{
+			fprintf( stderr, "An error occured while terminating portaudio\n" );
+			fprintf( stderr, "Error number: %d\n", err );
+			fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+		}
+	}
+#endif
 
   printf("\n");
   printf("Total audio errors: %i\n", state->debug_audio_errors);
@@ -406,7 +474,7 @@ main (int argc, char **argv)
   exitflag = 0;
   signal (SIGINT, sigfun);
 
-  while ((c = getopt (argc, argv, "hep:qstv:z:i:o:d:g:nw:B:C:R:f:m:u:x:A:S:M:rl:")) != -1)
+  while ((c = getopt (argc, argv, "haep:qstv:z:i:o:d:g:nw:B:C:R:f:m:u:x:A:S:M:rl")) != -1)
     {
       opterr = 0;
       switch (c)
@@ -414,6 +482,9 @@ main (int argc, char **argv)
         case 'h':
           usage ();
           exit (0);
+        case 'a':
+          printPortAudioDevices();
+          exit(0);
         case 'e':
           opts.errorbars = 1;
           opts.datascope = 0;
@@ -738,6 +809,23 @@ main (int argc, char **argv)
       openSerial (&opts, &state);
     }
 
+
+#ifdef USE_PORTAUDIO
+  if((strncmp(opts.audio_in_dev, "pa:", 3) == 0)
+  || (strncmp(opts.audio_out_dev, "pa:", 3) == 0))
+  {
+	printf("Initializing portaudio.\n");
+    PaError err = Pa_Initialize();
+    if( err != paNoError )
+    {
+		fprintf( stderr, "An error occured while initializing portaudio\n" );
+		fprintf( stderr, "Error number: %d\n", err );
+		fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+		exit(err);
+    }
+  }
+#endif
+
   if (opts.playfiles == 1)
     {
       opts.split = 1;
@@ -749,7 +837,7 @@ main (int argc, char **argv)
         }
       else
         {
-          openAudioOutDevice (&opts, 8000);
+          openAudioOutDevice (&opts, SAMPLE_RATE_OUT);
         }
     }
   else if (strcmp (opts.audio_in_dev, opts.audio_out_dev) != 0)
@@ -763,7 +851,7 @@ main (int argc, char **argv)
         }
       else
         {
-          openAudioOutDevice (&opts, 8000);
+          openAudioOutDevice (&opts, SAMPLE_RATE_OUT);
         }
       openAudioInDevice (&opts);
     }

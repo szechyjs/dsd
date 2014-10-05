@@ -18,6 +18,7 @@
 #include <strings.h>
 #include "dsd.h"
 
+
 void
 processAudio (dsd_opts * opts, dsd_state * state)
 {
@@ -214,16 +215,68 @@ writeSynthesizedVoice (dsd_opts * opts, dsd_state * state)
   */
 }
 
+
 void
 playSynthesizedVoice (dsd_opts * opts, dsd_state * state)
 {
-
   ssize_t result;
 
   if (state->audio_out_idx > opts->delay)
     {
       // output synthesized speech to sound card
-      result = write (opts->audio_out_fd, (state->audio_out_buf_p - state->audio_out_idx), (state->audio_out_idx * 2));
+		if(opts->audio_out_type == 2)
+		{
+#ifdef USE_PORTAUDIO
+			PaError err = paNoError;
+			do
+			{
+				long available = Pa_GetStreamWriteAvailable( opts->audio_out_pa_stream );
+				if(available < 0)
+					err = available;
+				//printf("Frames available: %d\n", available);
+				if( err != paNoError )
+					break;
+				if(available > SAMPLE_RATE_OUT * PA_LATENCY_OUT)
+				{
+					//It looks like this might not be needed for very small latencies. However, it's definitely needed for a bit larger ones.
+					//When PA_LATENCY_OUT == 0.500 I get output buffer underruns if I don't use this. With PA_LATENCY_OUT <= 0.100 I don't see those happen.
+					//But with PA_LATENCY_OUT < 0.100 I run the risk of choppy audio and stream errors.
+					printf("\nSyncing voice output stream\n");
+					err = Pa_StopStream( opts->audio_out_pa_stream );
+					if( err != paNoError )
+						break;
+				}
+
+				err = Pa_IsStreamActive( opts->audio_out_pa_stream );
+				if(err == 0)
+				{
+					printf("Start voice output stream\n");
+					err = Pa_StartStream( opts->audio_out_pa_stream );
+				}
+				else if(err == 1)
+				{
+					err = paNoError;
+				}
+				if( err != paNoError )
+					break;
+
+				//printf("write stream %d\n", state->audio_out_idx);
+				err = Pa_WriteStream( opts->audio_out_pa_stream, (state->audio_out_buf_p - state->audio_out_idx), state->audio_out_idx );
+				if( err != paNoError )
+					break;
+			} while(0);
+
+			if( err != paNoError )
+			{
+				fprintf( stderr, "An error occured while using the portaudio output stream\n" );
+				fprintf( stderr, "Error number: %d\n", err );
+				fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+			}
+
+#endif
+		}
+		else
+			result = write (opts->audio_out_fd, (state->audio_out_buf_p - state->audio_out_idx), (state->audio_out_idx * 2));
       state->audio_out_idx = 0;
     }
 
@@ -237,11 +290,99 @@ playSynthesizedVoice (dsd_opts * opts, dsd_state * state)
     }
 }
 
+#ifdef USE_PORTAUDIO
+int getPADevice(char* dev, int input, PaStream** stream)
+{
+	int devnum = atoi(dev + 3);
+	printf("Using portaudio device %d.\n", devnum);
+
+    PaError err;
+
+	int numDevices = Pa_GetDeviceCount();
+    if( numDevices < 0 )
+    {
+        printf( "ERROR: Pa_GetDeviceCount returned 0x%x\n", numDevices );
+        err = numDevices;
+        goto error;
+    }
+	if( devnum >= numDevices)
+    {
+        printf( "ERROR: Requested device %d is larger than number of devices.\n", devnum );
+        return(1);
+    }
+	
+	const   PaDeviceInfo *deviceInfo = Pa_GetDeviceInfo( devnum );
+
+    /* print device name */
+#ifdef WIN32
+    {   /* Use wide char on windows, so we can show UTF-8 encoded device names */
+        wchar_t wideName[MAX_PATH];
+        MultiByteToWideChar(CP_UTF8, 0, deviceInfo->name, -1, wideName, MAX_PATH-1);
+        wprintf( L"Name                        = %s\n", wideName );
+    }
+#else
+    printf( "Name                        = %s\n", deviceInfo->name );
+#endif
+	if((input == 1) && (deviceInfo->maxInputChannels == 0))
+	{
+		printf( "ERROR: Requested device %d is not an input device.\n", devnum );
+		return(1);
+	}
+	if((input == 0) && (deviceInfo->maxOutputChannels == 0))
+	{
+		printf( "ERROR: Requested device %d is not an output device.\n", devnum );
+		return(1);
+	}
+
+	//Create stream parameters
+	PaStreamParameters parameters;
+    parameters.device = devnum;
+    parameters.channelCount = 1;       /* mono */
+    parameters.sampleFormat = paInt16; //Shorts
+    parameters.suggestedLatency = (input == 1) ? PA_LATENCY_IN : PA_LATENCY_OUT;
+    parameters.hostApiSpecificStreamInfo = NULL;
+
+	//Open stream
+	err = Pa_OpenStream(
+            stream,
+            (input == 1) ? &parameters : NULL,
+            (input == 0) ? &parameters : NULL,
+            (input == 1) ? SAMPLE_RATE_IN : SAMPLE_RATE_OUT,
+            PA_FRAMES_PER_BUFFER,
+            paClipOff,
+            NULL /*callback*/,
+            NULL );
+    if( err != paNoError ) goto error;
+
+	return 0;
+
+error:
+	fprintf( stderr, "An error occured while initializing a portaudio stream\n" );
+    fprintf( stderr, "Error number: %d\n", err );
+    fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+    return err;
+}
+#endif
+
 void
 openAudioOutDevice (dsd_opts * opts, int speed)
 {
   // get info of device/file
-  struct stat stat_buf;
+	if(strncmp(opts->audio_out_dev, "pa:", 3) == 0)
+	{
+		opts->audio_out_type = 2;
+#ifdef USE_PORTAUDIO
+		int err = getPADevice(opts->audio_out_dev, 0, &opts->audio_out_pa_stream);
+		if(err != 0)
+			exit(err);
+#else
+		printf("Error, Portaudio support not compiled.\n");
+		exit(1);
+#endif
+	}
+	else
+	{
+		struct stat stat_buf;
   if(stat(opts->audio_out_dev, &stat_buf) != 0)
     {
       printf("Error, couldn't open %s\n", opts->audio_out_dev);
@@ -318,6 +459,7 @@ openAudioOutDevice (dsd_opts * opts, int speed)
     }
 
 #endif
+	}
   printf ("Audio Out Device: %s\n", opts->audio_out_dev);
 }
 
@@ -325,6 +467,43 @@ void
 openAudioInDevice (dsd_opts * opts)
 {
   // get info of device/file
+	if(strncmp(opts->audio_in_dev, "-", 1) == 0)
+	{
+		opts->audio_in_type = 1;
+		opts->audio_in_file_info = calloc(1, sizeof(SF_INFO));
+		opts->audio_in_file_info->samplerate=48000;
+		opts->audio_in_file_info->channels=1;
+		opts->audio_in_file_info->seekable=0;
+		opts->audio_in_file_info->format=SF_FORMAT_RAW|SF_FORMAT_PCM_16|SF_ENDIAN_LITTLE;
+		opts->audio_in_file = sf_open_fd(fileno(stdin), SFM_READ, opts->audio_in_file_info, 0);
+
+		if(opts->audio_in_file == NULL) {
+			printf ("Error, couldn't open stdin with libsndfile: %s\n", sf_strerror(NULL));
+			exit(1);
+		}
+	}
+	else if(strncmp(opts->audio_in_dev, "pa:", 2) == 0)
+	{
+		opts->audio_in_type = 2;
+#ifdef USE_PORTAUDIO
+		int err = getPADevice(opts->audio_in_dev, 1, &opts->audio_in_pa_stream);
+		if(err != 0)
+			exit(err);
+
+		if (opts->split == 0)
+		{
+			int err = getPADevice(opts->audio_in_dev, 0, &opts->audio_out_pa_stream);
+			if(err != 0)
+				exit(err);
+		}
+
+#else
+		printf("Error, Portaudio support not compiled.\n");
+		exit(1);
+#endif
+	}
+	else
+	{
   struct stat stat_buf;
 
   if (stat(opts->audio_in_dev, &stat_buf) != 0)
@@ -373,16 +552,16 @@ openAudioInDevice (dsd_opts * opts)
       // get current
       ioctl (opts->audio_in_fd, AUDIO_GETINFO, &aset);
   
-      aset.record.sample_rate = 48000;
-      aset.play.sample_rate = 48000;
-      aset.record.channels = 1;
-      aset.play.channels = 1;
-      aset.record.precision = 16;
-      aset.play.precision = 16;
-      aset.record.encoding = AUDIO_ENCODING_LINEAR;
-      aset.play.encoding = AUDIO_ENCODING_LINEAR;
-      aset.record.port = AUDIO_LINE_IN;
-      aset.record.gain = rgain;
+    aset.record.sample_rate = SAMPLE_RATE_IN;
+    aset.play.sample_rate = SAMPLE_RATE_IN;
+    aset.record.channels = 1;
+    aset.play.channels = 1;
+    aset.record.precision = 16;
+    aset.play.precision = 16;
+    aset.record.encoding = AUDIO_ENCODING_LINEAR;
+    aset.play.encoding = AUDIO_ENCODING_LINEAR;
+    aset.record.port = AUDIO_LINE_IN;
+    aset.record.gain = rgain;
   
       if (ioctl (opts->audio_in_fd, AUDIO_SETINFO, &aset) == -1)
 	{
@@ -391,47 +570,48 @@ openAudioInDevice (dsd_opts * opts)
 	}
 #endif  /* USE_SOLARIS_AUDIO */
 
-#if defined(USE_BSD_AUDIO) && !defined(__APPLE__)
-      opts->audio_in_type = 0;
+#if defined(BSD) && !defined(__APPLE__)
       int fmt;
   
-      if (opts->split == 1)
-	{
-	  opts->audio_in_fd = open (opts->audio_in_dev, O_RDONLY);
-	}
-      else
-	{
-	  opts->audio_in_fd = open (opts->audio_in_dev, O_RDWR);
-	}
+    if (opts->split == 1)
+      {
+        opts->audio_in_fd = open (opts->audio_in_dev, O_RDONLY);
+      }
+    else
+      {
+        opts->audio_in_fd = open (opts->audio_in_dev, O_RDWR);
+      }
   
-      if (opts->audio_in_fd == -1)
-	{
-	  printf ("Error, couldn't open %s\n", opts->audio_in_dev);
-	  opts->audio_out = 0;
-	}
+    if (opts->audio_in_fd == -1)
+      {
+        printf ("Error, couldn't open %s\n", opts->audio_in_dev);
+        opts->audio_out = 0;
+      }
   
-      fmt = 0;
-      if (ioctl (opts->audio_in_fd, SNDCTL_DSP_RESET) < 0)
-	{
-	  printf ("ioctl reset error \n");
-	}
-      fmt = 48000;
-      if (ioctl (opts->audio_in_fd, SNDCTL_DSP_SPEED, &fmt) < 0)
-	{
-	  printf ("ioctl speed error \n");
-	}
-      fmt = 0;
-      if (ioctl (opts->audio_in_fd, SNDCTL_DSP_STEREO, &fmt) < 0)
-	{
-	  printf ("ioctl stereo error \n");
-	}
-      fmt = AFMT_S16_LE;
-      if (ioctl (opts->audio_in_fd, SNDCTL_DSP_SETFMT, &fmt) < 0)
-	{
-	  printf ("ioctl setfmt error \n");
-	}
+    fmt = 0;
+    if (ioctl (opts->audio_in_fd, SNDCTL_DSP_RESET) < 0)
+      {
+        printf ("ioctl reset error \n");
+      }
+    fmt = SAMPLE_RATE_IN;
+    if (ioctl (opts->audio_in_fd, SNDCTL_DSP_SPEED, &fmt) < 0)
+      {
+        printf ("ioctl speed error \n");
+      }
+    fmt = 0;
+    if (ioctl (opts->audio_in_fd, SNDCTL_DSP_STEREO, &fmt) < 0)
+      {
+        printf ("ioctl stereo error \n");
+      }
+    fmt = AFMT_S16_LE;
+    if (ioctl (opts->audio_in_fd, SNDCTL_DSP_SETFMT, &fmt) < 0)
+      {
+        printf ("ioctl setfmt error \n");
+      }
 #endif
-    }
+  }
+  }
+
   if (opts->split == 1)
     {
       printf ("Audio In Device: %s\n", opts->audio_in_dev);

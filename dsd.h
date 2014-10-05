@@ -42,6 +42,22 @@
 
 #include "p25p1_heuristics.h"
 
+
+#define SAMPLE_RATE_IN 48000
+#define SAMPLE_RATE_OUT 8000
+
+#ifdef USE_PORTAUDIO
+#include "portaudio.h"
+#define PA_FRAMES_PER_BUFFER 64
+//Buffer needs to be large enough to prevent input buffer overruns while DSD is doing other struff (like outputting voice)
+//else you get skipped samples which result in incomplete/erronous decodes and a mountain of error messages.
+#define PA_LATENCY_IN 0.500
+//Buffer needs to be large enough to prevent output buffer underruns while DSD is doing other stuff (like decoding input)
+//else you get choppy audio and in 'extreme' cases errors.
+//Buffer also needs to be as small as possible so we don't have a lot of audio delay.
+#define PA_LATENCY_OUT 0.100
+#endif
+
 /*
  * global variables defined in dsd_main.c
  */
@@ -66,16 +82,23 @@ typedef struct
   int audio_in_fd;
   SNDFILE *audio_in_file;
   SF_INFO *audio_in_file_info;
-  int audio_in_type; // 0 for device, 1 for file
+#ifdef USE_PORTAUDIO
+  PaStream* audio_in_pa_stream;
+#endif
+  int audio_in_type; // 0 for device, 1 for file, 2 for portaudio
   char audio_out_dev[1024];
   int audio_out_fd;
   SNDFILE *audio_out_file;
   SF_INFO *audio_out_file_info;
-  int audio_out_type; // 0 for device, 1 for file
+#ifdef USE_PORTAUDIO
+  PaStream* audio_out_pa_stream;
+#endif
+  int audio_out_type; // 0 for device, 1 for file, 2 for portaudio
   int split;
   int playoffset;
   char mbe_out_dir[1024];
   char mbe_out_file[1024];
+  char mbe_out_path[1024];
   FILE *mbe_out_f;
   float audio_gain;
   int audio_out;

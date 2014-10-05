@@ -168,7 +168,7 @@ void
 closeMbeOutFile (dsd_opts * opts, dsd_state * state)
 {
 
-  char shell[255], newfilename[64], ext[5], datestr[32];
+  char shell[255], newfilename[64], ext[5], datestr[32], new_path[1024];
   char tgid[17];
   int sum, i, j;
   int talkgroup;
@@ -212,7 +212,12 @@ closeMbeOutFile (dsd_opts * opts, dsd_state * state)
       opts->mbe_out_f = NULL;
       strftime (datestr, 31, "%Y-%m-%d-%H%M%S", &timep);
       sprintf (newfilename, "nac%X-%s-tg%i%s", state->nac, datestr, talkgroup, ext);
-      sprintf (shell, "mv %s %s", opts->mbe_out_file, newfilename);
+      sprintf (new_path, "%s%s", opts->mbe_out_dir, newfilename);
+#ifdef _WIN32
+      sprintf (shell, "move %s %s", opts->mbe_out_path, new_path);
+#else
+      sprintf (shell, "mv %s %s", opts->mbe_out_path, new_path);
+#endif
       result = system (shell);
 
       state->tgcount = 0;
@@ -256,10 +261,13 @@ openMbeOutFile (dsd_opts * opts, dsd_state * state)
 
   gettimeofday (&tv, NULL);
   sprintf (opts->mbe_out_file, "%i%s", (int) tv.tv_sec, ext);
-  opts->mbe_out_f = fopen (opts->mbe_out_file, "w");
+
+  sprintf(opts->mbe_out_path, "%s%s", opts->mbe_out_dir, opts->mbe_out_file);
+
+  opts->mbe_out_f = fopen (opts->mbe_out_path, "w");
   if (opts->mbe_out_f == NULL)
     {
-      printf ("Error, couldn't open %s\n", opts->mbe_out_file);
+      printf ("Error, couldn't open %s\n", opts->mbe_out_path);
     }
 
   // write magic
@@ -273,7 +281,7 @@ openWavOutFile (dsd_opts * opts, dsd_state * state)
 {
 
  // opts->wav_out_f = fopen (opts->wav_out_file, "w");
-  
+
   SF_INFO info;
   info.samplerate = 8000;
   info.channels = 1;
@@ -287,7 +295,7 @@ openWavOutFile (dsd_opts * opts, dsd_state * state)
   }
 
 //  state->wav_out_bytes = 0;
-  
+
 }
 
 void
