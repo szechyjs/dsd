@@ -570,7 +570,7 @@ openAudioInDevice (dsd_opts * opts)
 	}
 #endif  /* USE_SOLARIS_AUDIO */
 
-#if defined(BSD) && !defined(__APPLE__)
+#if defined(USE_BSD_AUDIO) && !defined(__APPLE__)
       int fmt;
   
     if (opts->split == 1)
