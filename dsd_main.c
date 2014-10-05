@@ -108,7 +108,6 @@ initOpts (dsd_opts * opts)
   opts->audio_in_pa_stream = NULL;
 #endif
   sprintf (opts->audio_out_dev, "/dev/audio");
-  opts->audio_in_fd = -1;
   opts->audio_out_fd = -1;
 #ifdef USE_PORTAUDIO
   opts->audio_out_pa_stream = NULL;

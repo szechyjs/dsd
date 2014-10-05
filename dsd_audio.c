@@ -527,9 +527,9 @@ openAudioInDevice (dsd_opts * opts)
     }
   else
     {
-
-#ifdef USE_SOLARIS_AUDIO
+      // this is a device, use old handling
       opts->audio_in_type = 0;
+#ifdef USE_SOLARIS_AUDIO
       sample_info_t aset, aget;
       int rgain;
   
