@@ -125,6 +125,11 @@ initOpts (dsd_opts * opts)
   //opts->wav_out_fd = -1;
   opts->serial_baud = 115200;
   sprintf (opts->serial_dev, "/dev/ttyUSB0");
+#ifdef _WIN32
+  opts->serial_h = INVALID_HANDLE_VALUE;
+#else
+  opts->serial_fd = 0;
+#endif
   opts->resume = 0;
   opts->frame_dstar = 0;
   opts->frame_x2tdma = 1;

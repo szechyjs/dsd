@@ -27,7 +27,11 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <sys/ioctl.h>
+#endif
 #include <fcntl.h>
 #include <unistd.h>
 #ifdef USE_SOLARIS_AUDIO
@@ -107,7 +111,11 @@ typedef struct
   //int wav_out_fd;
   int serial_baud;
   char serial_dev[1024];
+#ifdef _WIN32
+  HANDLE serial_h;
+#else
   int serial_fd;
+#endif
   int resume;
   int frame_dstar;
   int frame_x2tdma;

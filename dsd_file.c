@@ -180,12 +180,22 @@ closeMbeOutFile (dsd_opts * opts, dsd_state * state)
       if ((state->synctype == 0) || (state->synctype == 1) || (state->synctype == 14) || (state->synctype == 15))
         {
           sprintf (ext, ".imb");
+#ifdef _WIN32
+          sscanf(opts->mbe_out_file, "%d.imb", &i);
+          timep = *gmtime((const time_t *)&i);
+#else
           strptime (opts->mbe_out_file, "%s.imb", &timep);
+#endif
         }
       else
         {
           sprintf (ext, ".amb");
+#ifdef _WIN32
+          sscanf(opts->mbe_out_file, "%d.amb", &i);
+          timep = *gmtime((const time_t *)&i);
+#else
           strptime (opts->mbe_out_file, "%s.amb", &timep);
+#endif
         }
 
       if (state->tgcount > 0)

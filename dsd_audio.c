@@ -313,7 +313,7 @@ int getPADevice(char* dev, int input, PaStream** stream)
 	const   PaDeviceInfo *deviceInfo = Pa_GetDeviceInfo( devnum );
 
     /* print device name */
-#ifdef WIN32
+#ifdef _WIN32
     {   /* Use wide char on windows, so we can show UTF-8 encoded device names */
         wchar_t wideName[MAX_PATH];
         MultiByteToWideChar(CP_UTF8, 0, deviceInfo->name, -1, wideName, MAX_PATH-1);
