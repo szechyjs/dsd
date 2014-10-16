@@ -812,7 +812,7 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
           noCarrier (opts, state);
         }
 
-      if (state->lastsynctype != 1)
+      if (state->lastsynctype != -1)
         {
           if (synctest_pos >= 1800)
             {
