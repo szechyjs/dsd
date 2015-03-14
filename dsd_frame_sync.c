@@ -17,28 +17,6 @@
 
 #include "dsd.h"
 
-void
-printFrameSync (dsd_opts * opts, dsd_state * state, char *frametype, int offset, char *modulation)
-{
-
-  if (opts->verbose > 0)
-    {
-      printf ("Sync: %s ", frametype);
-    }
-  if (opts->verbose > 2)
-    {
-      printf ("o: %4i ", offset);
-    }
-  if (opts->verbose > 1)
-    {
-      printf ("mod: %s ", modulation);
-    }
-  if (opts->verbose > 2)
-    {
-      printf ("g: %f ", state->aout_gain);
-    }
-}
-
 int
 getFrameSync (dsd_opts * opts, dsd_state * state)
 {
@@ -318,10 +296,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                   state->max = ((state->max) + lmax) / 2;
                   state->min = ((state->min) + lmin) / 2;
                   sprintf (state->ftype, " P25 Phase 1 ");
-                  if (opts->errorbars == 1)
-                    {
-                      printFrameSync (opts, state, " +P25p1    ", synctest_pos + 1, modulation);
-                    }
                   state->lastsynctype = 0;
                   return (0);
                 }
@@ -332,10 +306,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                   state->max = ((state->max) + lmax) / 2;
                   state->min = ((state->min) + lmin) / 2;
                   sprintf (state->ftype, " P25 Phase 1 ");
-                  if (opts->errorbars == 1)
-                    {
-                      printFrameSync (opts, state, " -P25p1    ", synctest_pos + 1, modulation);
-                    }
                   state->lastsynctype = 1;
                   return (1);
                 }
@@ -352,10 +322,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                     {
                       // data frame
                       sprintf (state->ftype, " X2-TDMA     ");
-                      if (opts->errorbars == 1)
-                        {
-                          printFrameSync (opts, state, " +X2-TDMA  ", synctest_pos + 1, modulation);
-                        }
                       state->lastsynctype = 2;
                       return (2);
                     }
@@ -363,10 +329,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                     {
                       // inverted voice frame
                       sprintf (state->ftype, " X2-TDMA     ");
-                      if (opts->errorbars == 1)
-                        {
-                          printFrameSync (opts, state, " -X2-TDMA  ", synctest_pos + 1, modulation);
-                        }
                       if (state->lastsynctype != 3)
                         {
                           state->firstframe = 1;
@@ -385,10 +347,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                     {
                       // voice frame
                       sprintf (state->ftype, " X2-TDMA     ");
-                      if (opts->errorbars == 1)
-                        {
-                          printFrameSync (opts, state, " +X2-TDMA  ", synctest_pos + 1, modulation);
-                        }
                       if (state->lastsynctype != 4)
                         {
                           state->firstframe = 1;
@@ -400,10 +358,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                     {
                       // inverted data frame
                       sprintf (state->ftype, " X2-TDMA     ");
-                      if (opts->errorbars == 1)
-                        {
-                          printFrameSync (opts, state, " -X2-TDMA  ", synctest_pos + 1, modulation);
-                        }
                       state->lastsynctype = 5;
                       return (5);
                     }
@@ -421,10 +375,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                     {
                       // data frame
                       sprintf (state->ftype, " DMR         ");
-                      if (opts->errorbars == 1)
-                        {
-                          printFrameSync (opts, state, " +DMR      ", synctest_pos + 1, modulation);
-                        }
                       state->lastsynctype = 10;
                       return (10);
                     }
@@ -432,10 +382,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                     {
                       // inverted voice frame
                       sprintf (state->ftype, " DMR         ");
-                      if (opts->errorbars == 1)
-                        {
-                          printFrameSync (opts, state, " -DMR      ", synctest_pos + 1, modulation);
-                        }
                       if (state->lastsynctype != 11)
                         {
                           state->firstframe = 1;
@@ -454,10 +400,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                     {
                       // voice frame
                       sprintf (state->ftype, " DMR         ");
-                      if (opts->errorbars == 1)
-                        {
-                          printFrameSync (opts, state, " +DMR      ", synctest_pos + 1, modulation);
-                        }
                       if (state->lastsynctype != 12)
                         {
                           state->firstframe = 1;
@@ -469,10 +411,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                     {
                       // inverted data frame
                       sprintf (state->ftype, " DMR         ");
-                      if (opts->errorbars == 1)
-                        {
-                          printFrameSync (opts, state, " -DMR      ", synctest_pos + 1, modulation);
-                        }
                       state->lastsynctype = 13;
                       return (13);
                     }
@@ -488,10 +426,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                   state->max = ((state->max) + lmax) / 2;
                   state->min = ((state->min) + lmin) / 2;
                   sprintf (state->ftype, " ProVoice    ");
-                  if (opts->errorbars == 1)
-                    {
-                      printFrameSync (opts, state, " -ProVoice ", synctest_pos + 1, modulation);
-                    }
                   state->lastsynctype = 14;
                   return (14);
                 }
@@ -502,10 +436,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                   state->max = ((state->max) + lmax) / 2;
                   state->min = ((state->min) + lmin) / 2;
                   sprintf (state->ftype, " ProVoice    ");
-                  if (opts->errorbars == 1)
-                    {
-                      printFrameSync (opts, state, " -ProVoice ", synctest_pos + 1, modulation);
-                    }
                   state->lastsynctype = 15;
                   return (15);
                 }
@@ -514,7 +444,8 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
           if ((opts->frame_nxdn96 == 1) || (opts->frame_nxdn48 == 1))
             {
               strncpy (synctest18, (synctest_p - 17), 18);
-              if ((strcmp (synctest18, NXDN_BS_VOICE_SYNC) == 0) || (strcmp (synctest18, NXDN_MS_VOICE_SYNC) == 0))
+              if ((strcmp (synctest18, NXDN_BS_VOICE_SYNC) == 0) || (strcmp (synctest18, NXDN_MS_VOICE_SYNC) == 0) ||
+                  (strcmp (synctest18, NXDN_TC_VOICE_SYNC) == 0) || (strcmp (synctest18, NXDN_TD_VOICE_SYNC) == 0))
                 {
                   if ((state->lastsynctype == 8) || (state->lastsynctype == 16))
                     {
@@ -525,18 +456,10 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                       if (state->samplesPerSymbol == 20)
                         {
                           sprintf (state->ftype, " NXDN48      ");
-                          if (opts->errorbars == 1)
-                            {
-                              printFrameSync (opts, state, " +NXDN48   ", synctest_pos + 1, modulation);
-                            }
                         }
                       else
                         {
                           sprintf (state->ftype, " NXDN96      ");
-                          if (opts->errorbars == 1)
-                            {
-                              printFrameSync (opts, state, " +NXDN96   ", synctest_pos + 1, modulation);
-                            }
                         }
                       state->lastsynctype = 8;
                       return (8);
@@ -546,7 +469,8 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                       state->lastsynctype = 8;
                     }
                 }
-              else if ((strcmp (synctest18, INV_NXDN_BS_VOICE_SYNC) == 0) || (strcmp (synctest18, INV_NXDN_MS_VOICE_SYNC) == 0))
+              else if ((strcmp (synctest18, INV_NXDN_BS_VOICE_SYNC) == 0) || (strcmp (synctest18, INV_NXDN_MS_VOICE_SYNC) == 0)  ||
+                       (strcmp (synctest18, INV_NXDN_TC_VOICE_SYNC) == 0) || (strcmp (synctest18, INV_NXDN_TD_VOICE_SYNC) == 0))
                 {
                   if ((state->lastsynctype == 9) || (state->lastsynctype == 17))
                     {
@@ -557,18 +481,10 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                       if (state->samplesPerSymbol == 20)
                         {
                           sprintf (state->ftype, " NXDN48      ");
-                          if (opts->errorbars == 1)
-                            {
-                              printFrameSync (opts, state, " -NXDN48   ", synctest_pos + 1, modulation);
-                            }
                         }
                       else
                         {
                           sprintf (state->ftype, " NXDN96      ");
-                          if (opts->errorbars == 1)
-                            {
-                              printFrameSync (opts, state, " -NXDN96   ", synctest_pos + 1, modulation);
-                            }
                         }
                       state->lastsynctype = 9;
                       return (9);
@@ -578,7 +494,12 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                       state->lastsynctype = 9;
                     }
                 }
-              else if ((strcmp (synctest18, NXDN_BS_DATA_SYNC) == 0) || (strcmp (synctest18, NXDN_MS_DATA_SYNC) == 0))
+              else if ((strcmp (synctest18, NXDN_BS_DATA_SYNC) == 0) || (strcmp (synctest18, NXDN_MS_DATA_SYNC) == 0)  ||
+                       (strcmp (synctest18, NXDN_BS_SF2_SYNC) == 0) || (strcmp (synctest18, NXDN_BS_FA2_SYNC) == 0) ||
+                        (strcmp (synctest18, NXDN_TC_CC_SYNC) == 0) || (strcmp (synctest18, NXDN_TD_CC_SYNC) == 0) ||
+                       (strcmp (synctest18, NXDN_TC_SF2_SYNC) == 0) || (strcmp (synctest18, NXDN_TC_FA2_SYNC) == 0) ||
+                       (strcmp (synctest18, NXDN_TD_SF2_SYNC) == 0) || (strcmp (synctest18, NXDN_TD_FA2_SYNC) == 0) ||
+                       (strcmp (synctest18, NXDN_TD_UD2_SYNC) == 0) || (strcmp (synctest18, NXDN_TD_FA3_SYNC) == 0))
                 {
                   if ((state->lastsynctype == 8) || (state->lastsynctype == 16))
                     {
@@ -589,18 +510,10 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                       if (state->samplesPerSymbol == 20)
                         {
                           sprintf (state->ftype, " NXDN48      ");
-                          if (opts->errorbars == 1)
-                            {
-                              printFrameSync (opts, state, " +NXDN48   ", synctest_pos + 1, modulation);
-                            }
                         }
                       else
                         {
                           sprintf (state->ftype, " NXDN96      ");
-                          if (opts->errorbars == 1)
-                            {
-                              printFrameSync (opts, state, " +NXDN96   ", synctest_pos + 1, modulation);
-                            }
                         }
                       state->lastsynctype = 16;
                       return (16);
@@ -610,7 +523,12 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                       state->lastsynctype = 16;
                     }
                 }
-              else if ((strcmp (synctest18, INV_NXDN_BS_DATA_SYNC) == 0) || (strcmp (synctest18, INV_NXDN_MS_DATA_SYNC) == 0))
+              else if ((strcmp (synctest18, INV_NXDN_BS_DATA_SYNC) == 0) || (strcmp (synctest18, INV_NXDN_MS_DATA_SYNC) == 0)  ||
+                       (strcmp (synctest18, INV_NXDN_BS_SF2_SYNC) == 0) || (strcmp (synctest18, INV_NXDN_BS_FA2_SYNC) == 0) ||
+                       (strcmp (synctest18, INV_NXDN_TC_CC_SYNC) == 0) || (strcmp (synctest18, INV_NXDN_TD_CC_SYNC) == 0) ||
+                       (strcmp (synctest18, INV_NXDN_TC_SF2_SYNC) == 0) || (strcmp (synctest18, INV_NXDN_TC_FA2_SYNC) == 0) ||
+                       (strcmp (synctest18, INV_NXDN_TD_SF2_SYNC) == 0) || (strcmp (synctest18, INV_NXDN_TD_FA2_SYNC) == 0) ||
+                       (strcmp (synctest18, INV_NXDN_TD_UD2_SYNC) == 0) || (strcmp (synctest18, INV_NXDN_TD_FA3_SYNC) == 0))
                 {
                   if ((state->lastsynctype == 9) || (state->lastsynctype == 17))
                     {
@@ -622,18 +540,10 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                       if (state->samplesPerSymbol == 20)
                         {
                           sprintf (state->ftype, " NXDN48      ");
-                          if (opts->errorbars == 1)
-                            {
-                              printFrameSync (opts, state, " -NXDN48   ", synctest_pos + 1, modulation);
-                            }
                         }
                       else
                         {
                           sprintf (state->ftype, " NXDN96      ");
-                          if (opts->errorbars == 1)
-                            {
-                              printFrameSync (opts, state, " -NXDN96   ", synctest_pos + 1, modulation);
-                            }
                         }
                       state->lastsynctype = 17;
                       return (17);
@@ -653,10 +563,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                   state->max = ((state->max) + lmax) / 2;
                   state->min = ((state->min) + lmin) / 2;
                   sprintf (state->ftype, " D-STAR      ");
-                  if (opts->errorbars == 1)
-                    {
-                      printFrameSync (opts, state, " +D-STAR   ", synctest_pos + 1, modulation);
-                    }
                   state->lastsynctype = 6;
                   return (6);
                 }
@@ -667,10 +573,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                   state->max = ((state->max) + lmax) / 2;
                   state->min = ((state->min) + lmin) / 2;
                   sprintf (state->ftype, " D-STAR      ");
-                  if (opts->errorbars == 1)
-                    {
-                      printFrameSync (opts, state, " -D-STAR   ", synctest_pos + 1, modulation);
-                    }
                   state->lastsynctype = 7;
                   return (7);
                 }
@@ -681,10 +583,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                    state->max = ((state->max) + lmax) / 2;
                    state->min = ((state->min) + lmin) / 2;
                    sprintf (state->ftype, " D-STAR_HD   ");
-                   if (opts->errorbars == 1)
-                     {
-                       printFrameSync (opts, state, " +D-STAR_HD   ", synctest_pos + 1, modulation);
-                     }
                    state->lastsynctype = 18;
                    return (18);
                  }
@@ -695,10 +593,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                    state->max = ((state->max) + lmax) / 2;
                    state->min = ((state->min) + lmin) / 2;
                    sprintf (state->ftype, " D-STAR_HD   ");
-                   if (opts->errorbars == 1)
-                     {
-                       printFrameSync (opts, state, " -D-STAR_HD   ", synctest_pos + 1, modulation);
-                     }
                    state->lastsynctype = 19;
                    return (19);
                  }
@@ -714,10 +608,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                   state->max = ((state->max) + (lmax)) / 2;
                   state->min = ((state->min) + (lmin)) / 2;
                   sprintf (state->ftype, "(P25 Phase 1)");
-                  if (opts->errorbars == 1)
-                    {
-                      printFrameSync (opts, state, "(+P25p1)   ", synctest_pos + 1, modulation);
-                    }
                   state->lastsynctype = -1;
                   return (0);
                 }
@@ -728,10 +618,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                   state->max = ((state->max) + lmax) / 2;
                   state->min = ((state->min) + lmin) / 2;
                   sprintf (state->ftype, "(P25 Phase 1)");
-                  if (opts->errorbars == 1)
-                    {
-                      printFrameSync (opts, state, "(-P25p1)   ", synctest_pos + 1, modulation);
-                    }
                   state->lastsynctype = -1;
                   return (1);
                 }
@@ -742,10 +628,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                   state->max = ((state->max) + lmax) / 2;
                   state->min = ((state->min) + lmin) / 2;
                   sprintf (state->ftype, "(X2-TDMA)    ");
-                  if (opts->errorbars == 1)
-                    {
-                      printFrameSync (opts, state, "(-X2-TDMA) ", synctest_pos + 1, modulation);
-                    }
                   state->lastsynctype = -1;
                   return (3);
                 }
@@ -756,10 +638,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                   state->max = ((state->max) + lmax) / 2;
                   state->min = ((state->min) + lmin) / 2;
                   sprintf (state->ftype, "(X2-TDMA)    ");
-                  if (opts->errorbars == 1)
-                    {
-                      printFrameSync (opts, state, "(+X2-TDMA) ", synctest_pos + 1, modulation);
-                    }
                   state->lastsynctype = -1;
                   return (4);
                 }
@@ -770,10 +648,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                   state->max = ((state->max) + lmax) / 2;
                   state->min = ((state->min) + lmin) / 2;
                   sprintf (state->ftype, "(DMR)        ");
-                  if (opts->errorbars == 1)
-                    {
-                      printFrameSync (opts, state, "(-DMR)     ", synctest_pos + 1, modulation);
-                    }
                   state->lastsynctype = -1;
                   return (11);
                 }
@@ -784,10 +658,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                   state->max = ((state->max) + lmax) / 2;
                   state->min = ((state->min) + lmin) / 2;
                   sprintf (state->ftype, "(DMR)        ");
-                  if (opts->errorbars == 1)
-                    {
-                      printFrameSync (opts, state, "(+DMR)     ", synctest_pos + 1, modulation);
-                    }
                   state->lastsynctype = -1;
                   return (12);
                 }
@@ -816,11 +686,6 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
         {
           if (synctest_pos >= 1800)
             {
-              if ((opts->errorbars == 1) && (opts->verbose > 1) && (state->carrier == 1))
-                {
-                  printf ("Sync: no sync\n");
-                }
-              noCarrier (opts, state);
               return (-1);
             }
         }

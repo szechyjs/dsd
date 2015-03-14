@@ -27,7 +27,7 @@
 #include "git_ver.h"
 #include "p25p1_heuristics.h"
 #include "pa_devs.h"
-
+#include "dsd_display.h"
 
 /*
  * global variables
@@ -63,6 +63,8 @@ noCarrier (dsd_opts * opts, dsd_state * state)
   state->err_str[0] = 0;
   sprintf (state->fsubtype, "              ");
   sprintf (state->ftype, "             ");
+  state->err_str[0] = 0;
+  state->err_str2[0] = 0;
   state->errs = 0;
   state->errs2 = 0;
   state->lasttg = 0;
@@ -198,6 +200,7 @@ initState (dsd_state * state)
     }
   state->midx = 0;
   state->err_str[0] = 0;
+  state->err_str2[0] = 0;
   sprintf (state->fsubtype, "              ");
   sprintf (state->ftype, "             ");
   state->symbolcnt = 0;
@@ -322,9 +325,11 @@ usage ()
 }
 
 void
-liveScanner (dsd_opts * opts, dsd_state * state)
+liveScanner (dsd_opts * opts, dsd_state * state, dsd_frame * frame)
 {
-#ifdef USE_PORTAUDIO
+    dsd_display display;
+
+    #ifdef USE_PORTAUDIO
 	if(opts->audio_in_type == 2)
 	{
 		PaError err = Pa_StartStream( opts->audio_in_pa_stream );
@@ -340,14 +345,19 @@ liveScanner (dsd_opts * opts, dsd_state * state)
 	while (1)
     {
       noCarrier (opts, state);
+      frame->frame_type = FR_TYPE_UNKNOWN;
+      frame->invert_flag = false;
       state->synctype = getFrameSync (opts, state);
-      // recalibrate center/umid/lmid
-      state->center = ((state->max) + (state->min)) / 2;
-      state->umid = (((state->max) - state->center) * 5 / 8) + state->center;
-      state->lmid = (((state->min) - state->center) * 5 / 8) + state->center;
+      displayState  (opts, state);
       while (state->synctype != -1)
         {
-          processFrame (opts, state);
+          // recalibrate center/umid/lmid
+          state->center = ((state->max) + (state->min)) / 2;
+          state->umid = (((state->max) - state->center) * 5 / 8) + state->center;
+          state->lmid = (((state->min) - state->center) * 5 / 8) + state->center;
+          processFrame (opts, state, frame);
+          displayFrame (opts, state, frame);
+          displayActivity (opts, frame, &display);
 
 #ifdef TRACE_DSD
           state->debug_prefix = 'S';
@@ -358,11 +368,7 @@ liveScanner (dsd_opts * opts, dsd_state * state)
 #ifdef TRACE_DSD
           state->debug_prefix = '\0';
 #endif
-
-          // recalibrate center/umid/lmid
-          state->center = ((state->max) + (state->min)) / 2;
-          state->umid = (((state->max) - state->center) * 5 / 8) + state->center;
-          state->lmid = (((state->min) - state->center) * 5 / 8) + state->center;
+          displayState  (opts, state);
         }
     }
 }
@@ -466,6 +472,7 @@ main (int argc, char **argv)
   extern int optind, opterr, optopt;
   dsd_opts opts;
   dsd_state state;
+  dsd_frame frame;
   char versionstr[25];
   mbe_printVersion (versionstr);
 
@@ -874,7 +881,7 @@ main (int argc, char **argv)
     }
   else
     {
-        liveScanner (&opts, &state);
+        liveScanner (&opts, &state, &frame);
     }
   cleanupAndExit (&opts, &state);
   return (0);

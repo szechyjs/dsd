@@ -20,9 +20,12 @@
 #include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <signal.h>
 #include <string.h>
-#define __USE_XOPEN
+#ifndef __USE_XOPEN
+#define __USE_XOPEN 1
+#endif
 #include <time.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -67,6 +70,44 @@
  */
 extern int exitflag;
 
+typedef enum
+{
+  DISP_FMT_VALUE = -1,
+  DISP_FMT_BRIEF,
+  DISP_FMT_VERBOSE,
+} dsd_display_format;
+
+typedef enum
+{
+    SY_TYPE_UNKNOWN = -1,
+    SY_TYPE_P25_CNV_P1,
+    SY_TYPE_P25_TNK_P1,
+    SY_TYPE_P25_TNK_X2,
+    SY_TYPE_P25_TNK_P2,
+
+    
+} dsd_system_type;
+
+typedef enum
+{
+    FR_TYPE_UNKNOWN = -1,
+    FR_TYPE_P25_P1,
+    FR_TYPE_P25_X2_VOICE,
+    FR_TYPE_P25_X2_DATA,
+    FR_TYPE_P25_P2_VOICE,
+    FR_TYPE_P25_P2_DATA,
+    FR_TYPE_D_STAR_VOICE,
+    FR_TYPE_D_STAR_DATA,
+    FR_TYPE_D_STAR_HDR,
+    FR_TYPE_NXDN_48_VOICE,
+    FR_TYPE_NXDN_48_DATA,
+    FR_TYPE_NXDN_96_VOICE,
+    FR_TYPE_NXDN_96_DATA,
+    FR_TYPE_DMR_VOICE,
+    FR_TYPE_DMR_DATA,
+    FR_TYPE_PROVOICE_VOICE,
+    FR_TYPE_PROVOICE_DATA,
+} dsd_frame_type;
 
 typedef struct
 {
@@ -169,6 +210,7 @@ typedef struct
   int minbuf[1024];
   int midx;
   char err_str[64];
+  char err_str2[512];
   char fsubtype[16];
   char ftype[16];
   int symbolcnt;
@@ -231,6 +273,46 @@ typedef struct
 
 } dsd_state;
 
+typedef struct
+{
+    long site_id;
+    long channel;
+} dsd_info_site;
+
+typedef struct
+{
+    long channel;
+    short slot;
+    long destination;
+    long source;
+    long call_type;
+} dsd_info_activity;
+
+typedef struct
+{
+  dsd_frame_type frame_type;
+  bool invert_flag;
+  long frame_subtype;
+  unsigned long element_data[3][128]; // data frame elements (Dual Frame + Slow Data)
+  bool element_data_valid[3][128];
+  int raw_frame_data_count;
+  unsigned char raw_frame_data[128];
+  int raw_sframe_data_count;
+  unsigned char raw_sframe_data[128];
+} dsd_frame;
+
+typedef struct
+{
+  dsd_system_type system_type;
+  long system_id;
+  long site_id;
+  int adj_site_count;
+  dsd_info_site adj_sites[64];
+  int activity_count;
+  dsd_info_activity activity[64];
+  unsigned char alias[20];
+} dsd_display;
+
 /*
  * Frame sync patterns
  */
@@ -247,6 +329,7 @@ typedef struct
 #define DSTAR_SYNC     "313131313133131113313111"
 #define INV_DSTAR_SYNC "131313131311313331131333"
 
+// Conventional
 #define NXDN_MS_DATA_SYNC      "313133113131111333"
 #define INV_NXDN_MS_DATA_SYNC  "131311331313333111"
 #define NXDN_MS_VOICE_SYNC     "313133113131113133"
@@ -255,6 +338,34 @@ typedef struct
 #define NXDN_BS_DATA_SYNC      "313133113131111313"
 #define INV_NXDN_BS_VOICE_SYNC "131311331313331331"
 #define NXDN_BS_VOICE_SYNC     "313133113131113113"
+#define INV_NXDN_BS_SF2_SYNC "131311331313333131"
+#define NXDN_BS_SF2_SYNC     "313133113131111313"
+#define INV_NXDN_BS_FA2_SYNC "131311331313133133"
+#define NXDN_BS_FA2_SYNC     "313133113131311311"
+
+// Trunked NexEdge (Type-C)
+#define NXDN_TC_VOICE_SYNC     "313133113113113113"
+#define INV_NXDN_TC_VOICE_SYNC "131311331331331331"
+#define INV_NXDN_TC_CC_SYNC "131311331333133131"
+#define NXDN_TC_CC_SYNC     "313133113111311313"
+#define INV_NXDN_TC_SF2_SYNC "131311331331333131"
+#define NXDN_TC_SF2_SYNC     "313133113113111313"
+#define INV_NXDN_TC_FA2_SYNC "131311331331133133"
+#define NXDN_TC_FA2_SYNC     "313133113113311311"
+
+// Trunked IDAS (Type-D)
+#define NXDN_TD_VOICE_SYNC     "313133113133113111"
+#define INV_NXDN_TD_VOICE_SYNC "131311331311331333"
+#define INV_NXDN_TD_CC_SYNC  "131311331311133331"
+#define NXDN_TD_CC_SYNC      "313133113133311113"
+#define INV_NXDN_TD_SF2_SYNC "131311331311333133"
+#define NXDN_TD_SF2_SYNC     "313133113133111311"
+#define INV_NXDN_TD_FA2_SYNC "131311331311133131"
+#define NXDN_TD_FA2_SYNC     "313133113133311313"
+#define INV_NXDN_TD_UD2_SYNC "131311331311111333"
+#define NXDN_TD_UD2_SYNC     "313133113133333111"
+#define INV_NXDN_TD_FA3_SYNC "131311331311113133"
+#define NXDN_TD_FA3_SYNC     "313133113133331311"
 
 #define DMR_BS_DATA_SYNC  "313333111331131131331131"
 #define DMR_BS_VOICE_SYNC "131111333113313313113313"
@@ -291,15 +402,14 @@ void openMbeOutFile (dsd_opts * opts, dsd_state * state);
 void openWavOutFile (dsd_opts * opts, dsd_state * state);
 void closeWavOutFile (dsd_opts * opts, dsd_state * state);
 void printFrameInfo (dsd_opts * opts, dsd_state * state);
-void processFrame (dsd_opts * opts, dsd_state * state);
-void printFrameSync (dsd_opts * opts, dsd_state * state, char *frametype, int offset, char *modulation);
+void processFrame (dsd_opts * opts, dsd_state * state, dsd_frame * frame);
 int getFrameSync (dsd_opts * opts, dsd_state * state);
 int comp (const void *a, const void *b);
 void noCarrier (dsd_opts * opts, dsd_state * state);
 void initOpts (dsd_opts * opts);
 void initState (dsd_state * state);
 void usage ();
-void liveScanner (dsd_opts * opts, dsd_state * state);
+void liveScanner (dsd_opts * opts, dsd_state * state, dsd_frame * frame);
 void cleanupAndExit (dsd_opts * opts, dsd_state * state);
 void sigfun (int sig);
 int main (int argc, char **argv);
@@ -310,8 +420,8 @@ void resumeScan (dsd_opts * opts, dsd_state * state);
 int getSymbol (dsd_opts * opts, dsd_state * state, int have_sync);
 void upsample (dsd_state * state, float invalue);
 void processDSTAR (dsd_opts * opts, dsd_state * state);
-void processNXDNVoice (dsd_opts * opts, dsd_state * state);
-void processNXDNData (dsd_opts * opts, dsd_state * state);
+void processNXDNVoice (dsd_opts * opts, dsd_state * state, dsd_frame * frame);
+void processNXDNData (dsd_opts * opts, dsd_state * state, dsd_frame * frame);
 void processP25lcw (dsd_opts * opts, dsd_state * state, char *lcformat, char *mfid, char *lcinfo);
 void processHDU (dsd_opts * opts, dsd_state * state);
 void processLDU1 (dsd_opts * opts, dsd_state * state);
