@@ -1,15 +1,27 @@
 language: cpp
 
+sudo: false
+
+cache:
+  directories:
+    - $HOME/itpp
+
 compiler:
   - gcc
 
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -y libsndfile1-dev libfftw3-dev liblapack3gf libblas3gf
+addons:
+  apt:
+    packages:
+      - libsndfile1-dev
+      - libfftw3-dev
+      - liblapack3gf
+      - libblas3gf
 
-install: ./travis_deps.sh
+install:
+  - bash travis_deps.sh
 
 before_script:
+  - export CMAKE_PREFIX_PATH=$HOME/mbelib:$HOME/itpp
   - mkdir build
   - cd build
   - cmake ..
