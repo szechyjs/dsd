@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/szechyjs/dsd.svg?branch=master)](https://travis-ci.org/szechyjs/dsd)
-[![Stories in Ready](https://badge.waffle.io/szechyjs/dsd.png?label=ready&title=Ready)](https://waffle.io/szechyjs/dsd)
+
 # Digital Speech Decoder 1.7.0-dev
 DSD is able to decode [several digital voice formats](https://github.com/szechyjs/dsd/wiki/Supported-formats) from discriminator
 tap audio and synthesize  the decoded speech.  Speech
@@ -9,21 +9,31 @@ synthesis requires mbelib, which is a separate package.
 ## Information
 
 ### The DSD Wiki
-The DSD Wiki has lots of additional information about DSD including build instructions and answers to the most frequently asked questions. Please browse the Wiki after finishing this README.
+The DSD Wiki has lots of additional information about DSD including build
+instructions and answers to the most frequently asked questions.
+Please browse the Wiki after finishing this README.
 
 [https://github.com/szechyjs/dsd/wiki](https://github.com/szechyjs/dsd/wiki)
 
 ### Bug reports
-If you discover a problem with DSD, we would like to know about it. However, we ask that you please review these guidelines before submitting a bug report:
+If you discover a problem with DSD, we would like to know about it.
+However, we ask that you please review these guidelines before submitting a
+bug report:
 
 [https://github.com/szechyjs/dsd/wiki/Bug-reports](https://github.com/szechyjs/dsd/wiki/Bug-reports)
 
+Please don't contact developers directly through email or other channels.
+We ask that you follow the guidelines above and use the
+[http://github.com/szechyjs/dsd/issues](Issue Tracker).
+
 ### Contributing
-We hope that you will consider contributing to DSD. Please read this short overview for some information about how to get started.
+We hope that you will consider contributing to DSD. Please read this short
+overview for some information about how to get started.
 
 [https://github.com/szechyjs/dsd/wiki/Contributing](https://github.com/szechyjs/dsd/wiki/Contributing)
 
-You will usually want to write tests for your changes. To run the test suite run `make test` from your build directory.
+You will usually want to write tests for your changes. To run the test suite
+run `make test` from your build directory.
 
 ## License
 Copyright (C) 2010 DSD Author
