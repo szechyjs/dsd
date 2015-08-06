@@ -11,13 +11,14 @@ find_package(LibMbe REQUIRED)
 find_package(ITPP REQUIRED)
 find_package(LibPortAudio)
 
-FILE(GLOB SRCS *.c *.cpp)
+FILE(GLOB SRCS src/*.c src/*.cpp)
+FILE(GLOB HEADERS include/*.h include/*.hpp)
 
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/git_ver.c.in" "${CMAKE_CURRENT_BINARY_DIR}/git_ver.c" @ONLY)
-list(APPEND SRCS "${CMAKE_CURRENT_BINARY_DIR}/git_ver.c" git_ver.h)
+configure_file("src/git_ver.c.in" "${CMAKE_CURRENT_BINARY_DIR}/git_ver.c" @ONLY)
+list(APPEND SRCS "${CMAKE_CURRENT_BINARY_DIR}/git_ver.c")
 
 INCLUDE_DIRECTORIES(
-    "${PROJECT_SOURCE_DIR}"
+    "${PROJECT_SOURCE_DIR}/include"
     "${LIBSNDFILE_INCLUDE_DIR}"
     "${LIBMBE_INCLUDE_DIR}"
     "${ITPP_INCLUDE_DIR}"
@@ -31,7 +32,7 @@ SET(LIBS ${LIBS} ${PORTAUDIO_LIBRARIES})
 add_definitions(-DUSE_PORTAUDIO)
 endif(PORTAUDIO_FOUND)
 
-ADD_EXECUTABLE(dsd ${SRCS})
+ADD_EXECUTABLE(dsd ${SRCS} ${HEADERS})
 TARGET_LINK_LIBRARIES(dsd ${LIBS})
 
 install(TARGETS dsd DESTINATION bin)
