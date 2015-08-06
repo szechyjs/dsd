@@ -1,5 +1,5 @@
-** Please review the appropriate guideline page before submitting an Issue or a
-Pull Request. **
+**Please review the appropriate guideline page before submitting an Issue or a
+Pull Request.**
 
 ### Issues
 
