@@ -24,7 +24,7 @@ bug report:
 
 Please don't contact developers directly through email or other channels.
 We ask that you follow the guidelines above and use the
-[http://github.com/szechyjs/dsd/issues](Issue Tracker).
+[Issue Tracker](http://github.com/szechyjs/dsd/issues).
 
 ### Contributing
 We hope that you will consider contributing to DSD. Please read this short
