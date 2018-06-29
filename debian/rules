@@ -1,0 +1,9 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+# debhelper defaults to running make install DESTDIR=debian/$(PACKAGE)
+# when the source package builds only one binary package.
+override_dh_auto_install:
+	dh_auto_install --destdir=$(CURDIR)/debian/tmp

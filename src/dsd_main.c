@@ -249,10 +249,9 @@ void
 usage ()
 {
   printf ("\n");
-  printf ("Usage:\n");
-  printf ("  dsd [options]            Live scanner mode\n");
-  printf ("  dsd [options] -r <files> Read/Play saved mbe data from file(s)\n");
-  printf ("  dsd -h                   Show help\n");
+  printf ("Usage: dsd [options]            Live scanner mode\n");
+  printf ("  or:  dsd [options] -r <files> Read/Play saved mbe data from file(s)\n");
+  printf ("  or:  dsd -h                   Show help\n");
   printf ("\n");
   printf ("Display Options:\n");
   printf ("  -e            Show Frame Info and errorbars (default)\n");
@@ -308,6 +307,8 @@ usage ()
   printf ("                 (default=36)\n");
   printf ("  -M <num>      Min/Max buffer size for QPSK decision point tracking\n");
   printf ("                 (default=15)\n");
+  printf ("\n");
+  printf ("Report bugs to: https://github.com/szechyjs/dsd/issues\n");
   exit (0);
 }
 

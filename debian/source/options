@@ -1,0 +1,2 @@
+tar-ignore = samples
+tar-ignore = build

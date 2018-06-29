@@ -1,0 +1,20 @@
+Source: dsd
+Section: hamradio
+Priority: optional
+Maintainer: Jared Szechy <jared.szechy@gmail.com>
+Build-Depends: debhelper (>= 9), libmbe-dev, libitpp-dev, libsndfile1-dev,
+ portaudio19-dev, cmake, git, help2man
+Standards-Version: 4.1.4
+Homepage: https://github.com/szechyjs/dsd
+Vcs-Git: https://github.com/szechyjs/dsd.git
+Vcs-Browser: https://github.com/szechyjs/dsd
+
+Package: dsd
+Section: hamradio
+Architecture: any
+Multi-Arch: foreign
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Digital Speech Decoder
+ DSD is able to decode several digital voice formats from discriminator tap
+ audio and synthesize the decoded speech.

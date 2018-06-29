@@ -10,10 +10,7 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/gmock/include
 )
 
-add_custom_target(test
-    DEPENDS dsdtest
-    COMMAND dsdtest
-)
-
 ADD_EXECUTABLE(dsdtest ${SRCS})
 TARGET_LINK_LIBRARIES(dsdtest gmock gtest)
+
+add_test(gtest dsdtest)

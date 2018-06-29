@@ -35,7 +35,22 @@ endif(PORTAUDIO_FOUND)
 ADD_EXECUTABLE(dsd ${SRCS} ${HEADERS})
 TARGET_LINK_LIBRARIES(dsd ${LIBS})
 
-install(TARGETS dsd DESTINATION bin)
+include(GNUInstallDirs)
+install(TARGETS dsd DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+# man page
+find_program(HELP2MAN_FOUND help2man)
+if (HELP2MAN_FOUND)
+    add_custom_command(TARGET dsd POST_BUILD
+        COMMAND help2man
+        ARGS -n "Digital Speech Decoder"
+            --version-string=${GIT_TAG}
+            -o ${CMAKE_CURRENT_BINARY_DIR}/dsd.1
+            --no-info
+            $<TARGET_FILE:dsd> 
+    )
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/dsd.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+endif()
 
 # uninstall target
 configure_file(
@@ -49,5 +64,6 @@ add_custom_target(uninstall
 option(DISABLE_TEST "Disable building of test framework." OFF)
 
 if (NOT DISABLE_TEST)
+    enable_testing()
     add_subdirectory(test)
 endif()
