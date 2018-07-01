@@ -1,27 +1,22 @@
 language: cpp
 
+dist: trusty
 sudo: false
-
-cache:
-  directories:
-    - $HOME/itpp
 
 compiler:
   - gcc
 
 addons:
   apt:
+    sources:
+      - sourceline: 'ppa:szechyjs/dsd'
     packages:
+      - libmbe-dev
       - libsndfile1-dev
-      - libfftw3-dev
-      - liblapack3gf
-      - libblas3gf
-
-install:
-  - bash travis_deps.sh
+      - libitpp-dev
+      - portaudio19-dev
 
 before_script:
-  - export CMAKE_PREFIX_PATH=$HOME/mbelib:$HOME/itpp
   - mkdir build
   - cd build
   - cmake ..
