@@ -61,7 +61,7 @@
 /*
  * global variables
  */
-int exitflag;
+static int exitflag;
 
 
 typedef struct
