@@ -500,6 +500,13 @@ openAudioInDevice (dsd_opts * opts)
 		exit(1);
 #endif
 	}
+  else if(strncmp(opts->audio_in_dev, "rtl:", 3) == 0)
+  {
+    printf("USING RTL SDR\n");
+    opts->audio_in_type = 3;
+
+    // Starting the stream will open the device.
+  }
 	else
 	{
   struct stat stat_buf;

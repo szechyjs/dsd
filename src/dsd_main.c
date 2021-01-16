@@ -328,6 +328,13 @@ liveScanner (dsd_opts * opts, dsd_state * state)
 		}
 	}
 #endif
+#ifdef USE_RTLSDR
+  if(opts->audio_in_type == 3)
+  {
+    printf("starting rtl stream\n");
+    open_rtlsdr_stream();
+  }
+#endif
 	while (1)
     {
       noCarrier (opts, state);
@@ -409,6 +416,13 @@ cleanupAndExit (dsd_opts * opts, dsd_state * state)
 			fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
 		}
 	}
+#endif
+
+#ifdef USE_RTLSDR
+  if(opts->audio_in_type == 3)
+  {
+    // TODO: cleanup demod threads
+  }
 #endif
 
   printf("\n");

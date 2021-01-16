@@ -58,6 +58,10 @@
 #define PA_LATENCY_OUT 0.100
 #endif
 
+#ifdef USE_RTLSDR
+#include <rtl-sdr.h>
+#endif
+
 /*
  * global variables
  */
@@ -85,7 +89,10 @@ typedef struct
 #ifdef USE_PORTAUDIO
   PaStream* audio_in_pa_stream;
 #endif
-  int audio_in_type; // 0 for device, 1 for file, 2 for portaudio
+#ifdef USE_RTLSDR
+  rtlsdr_dev_t *rtlSdrDev;
+#endif
+  int audio_in_type; // 0 for device, 1 for file, 2 for portaudio, 3 for rtlsdr
   char audio_out_dev[1024];
   int audio_out_fd;
   SNDFILE *audio_out_file;
@@ -316,5 +323,9 @@ void processX2TDMAvoice (dsd_opts * opts, dsd_state * state);
 void processDSTAR_HD (dsd_opts * opts, dsd_state * state);
 short dmr_filter(short sample);
 short nxdn_filter(short sample);
+
+void open_rtlsdr_stream();
+void cleanup_rtlsdr_stream();
+void get_rtlsdr_sample();
 
 #endif // DSD_H
