@@ -22,13 +22,18 @@ if(PORTAUDIO_FOUND)
 endif(PORTAUDIO_FOUND)
 
 if(RTLSDR_FOUND)
+    find_package(Threads)
     include_directories(SYSTEM ${RTLSDR_INCLUDE_DIRS})
-    list(APPEND LIBS ${RTLSDR_LIBRARIES})
+    list(APPEND LIBS ${RTLSDR_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
     add_definitions(-DUSE_RTLSDR)
 endif(RTLSDR_FOUND)
 
 FILE(GLOB SRCS src/*.c src/*.cpp)
 FILE(GLOB HEADERS include/*.h include/*.hpp)
+
+if(NOT RTLSDR_FOUND)
+    list(REMOVE_ITEM SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/rtl_sdr_fm.cpp)
+endif(NOT RTLSDR_FOUND)
 
 configure_file("src/git_ver.c.in" "${CMAKE_CURRENT_BINARY_DIR}/git_ver.c" @ONLY)
 list(APPEND SRCS "${CMAKE_CURRENT_BINARY_DIR}/git_ver.c")
