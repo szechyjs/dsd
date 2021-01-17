@@ -65,7 +65,7 @@
 /*
  * global variables
  */
-int exitflag;
+static volatile int exitflag;
 
 
 typedef struct
@@ -327,5 +327,7 @@ short nxdn_filter(short sample);
 void open_rtlsdr_stream();
 void cleanup_rtlsdr_stream();
 void get_rtlsdr_sample();
+void rtlsdr_sighandler();
+
 
 #endif // DSD_H

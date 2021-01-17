@@ -105,7 +105,6 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
 #ifdef USE_RTLSDR
         // TODO: need to read demodulated stream here
         get_rtlsdr_sample(&sample);
-        printf("sample: %d\n", sample);
 #endif
       }
 

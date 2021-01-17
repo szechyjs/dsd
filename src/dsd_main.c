@@ -331,7 +331,6 @@ liveScanner (dsd_opts * opts, dsd_state * state)
 #ifdef USE_RTLSDR
   if(opts->audio_in_type == 3)
   {
-    printf("starting rtl stream\n");
     open_rtlsdr_stream();
   }
 #endif
@@ -422,6 +421,7 @@ cleanupAndExit (dsd_opts * opts, dsd_state * state)
   if(opts->audio_in_type == 3)
   {
     // TODO: cleanup demod threads
+    cleanup_rtlsdr_stream();
   }
 #endif
 
@@ -461,6 +461,9 @@ sigfun (int sig)
 {
     exitflag = 1;
     signal (SIGINT, SIG_DFL);
+#ifdef USE_RTLSDR
+    rtlsdr_sighandler();
+#endif
 }
 
 int

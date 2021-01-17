@@ -39,7 +39,10 @@
 
 #define FREQUENCIES_LIMIT		  1000
 
-static volatile int do_exit = 0;
+extern "C" {
+	volatile int exitflag;
+}
+
 static int lcm_post[17] = {1,1,1,3,1,5,3,7,1,9,5,11,3,13,7,15,1};
 static int ACTUAL_BUF_LENGTH;
 
@@ -103,12 +106,6 @@ struct demod_state
 
 struct output_state
 {
-	int      exit_flag;
-	pthread_t thread;
-	FILE     *file;
-	char     *filename;
-	int16_t  result[MAXIMUM_BUF_LENGTH];
-	int      result_len;
 	int      rate;
 	std::queue<int16_t> queue;
 	pthread_rwlock_t rw;
@@ -133,13 +130,6 @@ struct dongle_state dongle;
 struct demod_state demod;
 struct output_state output;
 struct controller_state controller;
-
-static void sighandler(int signum)
-{
-	fprintf(stderr, "Signal caught, exiting!\n");
-	do_exit = 1;
-	rtlsdr_cancel_async(dongle.dev);
-}
 
 #define safe_cond_signal(n, m) pthread_mutex_lock(m); pthread_cond_signal(n); pthread_mutex_unlock(m)
 #define safe_cond_wait(n, m) pthread_mutex_lock(m); pthread_cond_wait(n, m); pthread_mutex_unlock(m)
@@ -541,7 +531,7 @@ static void rtlsdr_callback(unsigned char *buf, uint32_t len, void *ctx)
 	struct dongle_state *s = static_cast<dongle_state*>(ctx);
 	struct demod_state *d = s->demod_target;
 
-	if (do_exit) {
+	if (exitflag) {
 		return;}
 	if (!ctx) {
 		return;}
@@ -563,7 +553,6 @@ static void rtlsdr_callback(unsigned char *buf, uint32_t len, void *ctx)
 
 static void *dongle_thread_fn(void *arg)
 {
-	printf("starting dongle thread\n");
 	struct dongle_state *s = static_cast<dongle_state*>(arg);
 	rtlsdr_read_async(s->dev, rtlsdr_callback, s, 0, s->buf_len);
 	return 0;
@@ -571,16 +560,15 @@ static void *dongle_thread_fn(void *arg)
 
 static void *demod_thread_fn(void *arg)
 {
-	printf("starting demod thread\n");
 	struct demod_state *d = static_cast<demod_state*>(arg);
 	struct output_state *o = d->output_target;
-	while (!do_exit) {
+	while (!exitflag) {
 		safe_cond_wait(&d->ready, &d->ready_m);
 		pthread_rwlock_wrlock(&d->rw);
 		full_demod(d);
 		pthread_rwlock_unlock(&d->rw);
 		if (d->exit_flag) {
-			do_exit = 1;
+			exitflag = 1;
 		}
 		if (d->squelch_level && d->squelch_hits > d->conseq_squelch) {
 			d->squelch_hits = d->conseq_squelch + 1;  /* hair trigger */
@@ -588,30 +576,12 @@ static void *demod_thread_fn(void *arg)
 			continue;
 		}
 		pthread_rwlock_wrlock(&o->rw);
-		memcpy(o->result, d->result, 2*d->result_len);
-		o->result_len = d->result_len;
+		for (int i = 0; i < d->result_len; i++)
+		{
+			o->queue.push(d->result[i]);
+		}
 		pthread_rwlock_unlock(&o->rw);
 		safe_cond_signal(&o->ready, &o->ready_m);
-	}
-	return 0;
-}
-
-static void *output_thread_fn(void *arg)
-{
-	printf("starting output thread\n");
-	struct output_state *s = static_cast<output_state*>(arg);
-	while (!do_exit) {
-		// use timedwait and pad out under runs
-		safe_cond_wait(&s->ready, &s->ready_m);
-		pthread_rwlock_rdlock(&s->rw);
-		printf("result_len: %i\n", s->result_len);
-		for (int i = 0; i < s->result_len; i++)
-		{
-			s->queue.push(reinterpret_cast<int16_t>(s->result[i * 2]));
-		}
-		printf("queue size: %lu\n", s->queue.size());
-		// fwrite(s->result, 2, s->result_len, s->file);
-		pthread_rwlock_unlock(&s->rw);
 	}
 	return 0;
 }
@@ -777,7 +747,6 @@ static void optimal_settings(int freq, int rate)
 
 static void *controller_thread_fn(void *arg)
 {
-	printf("starting controller thread\n");
 	// thoughts for multiple dongles
 	// might be no good using a controller thread if retune/rate blocks
 	int i;
@@ -806,7 +775,7 @@ static void *controller_thread_fn(void *arg)
 	verbose_set_sample_rate(dongle.dev, dongle.rate);
 	fprintf(stderr, "Output at %u Hz.\n", demod.rate_in/demod.post_downsample);
 
-	while (!do_exit) {
+	while (!exitflag) {
 		safe_cond_wait(&s->hop, &s->hop_m);
 		if (s->freq_len <= 1) {
 			continue;}
@@ -895,11 +864,15 @@ void controller_cleanup(struct controller_state *s)
 	pthread_mutex_destroy(&s->hop_m);
 }
 
-extern "C" void open_rtlsdr_stream();
+extern "C" {
+void rtlsdr_sighandler()
+{
+	fprintf(stderr, "Signal caught, exiting!\n");
+	rtlsdr_cancel_async(dongle.dev);
+}
+
 void open_rtlsdr_stream()
 {
-	printf("+++++ OPEN STREAM +++++\n");
-	
   struct sigaction sigact;
   int r;
 
@@ -915,6 +888,8 @@ void open_rtlsdr_stream()
 
   // sanity_checks();
 
+	if (controller.freq_len > 1) demod.terminate_on_squelch = 0;
+
   ACTUAL_BUF_LENGTH = lcm_post[demod.post_downsample] * DEFAULT_BUF_LENGTH;
 
   r = rtlsdr_open(&dongle.dev, (uint32_t)dongle.dev_index);
@@ -924,13 +899,13 @@ void open_rtlsdr_stream()
     exit(1);
   }
 
-  sigact.sa_handler = sighandler;
-  sigemptyset(&sigact.sa_mask);
-  sigact.sa_flags = 0;
-  sigaction(SIGINT, &sigact, NULL);
-  sigaction(SIGTERM, &sigact, NULL);
-  sigaction(SIGQUIT, &sigact, NULL);
-  sigaction(SIGPIPE, &sigact, NULL);
+  // sigact.sa_handler = sighandler;
+  // sigemptyset(&sigact.sa_mask);
+  // sigact.sa_flags = 0;
+  // sigaction(SIGINT, &sigact, NULL);
+  // sigaction(SIGTERM, &sigact, NULL);
+  // sigaction(SIGQUIT, &sigact, NULL);
+  // sigaction(SIGPIPE, &sigact, NULL);
 
   if (demod.deemph) {
 		demod.deemph_a = (int)round(1.0/((1.0-exp(-1.0/(demod.rate_out * 75e-6)))));
@@ -951,20 +926,18 @@ void open_rtlsdr_stream()
 
   pthread_create(&controller.thread, NULL, controller_thread_fn, (void*)(&controller));
   usleep(100000);
-  pthread_create(&output.thread, NULL, output_thread_fn, (void*)(&output));
   pthread_create(&demod.thread, NULL, demod_thread_fn, (void*)(&demod));
   pthread_create(&dongle.thread, NULL, dongle_thread_fn, (void*)(&dongle));
-	printf("done opening stream\n");
 }
 
 void cleanup_rtlsdr_stream()
 {
+	printf("cleaning up...\n");
   rtlsdr_cancel_async(dongle.dev);
   pthread_join(dongle.thread, NULL);
   safe_cond_signal(&demod.ready, &demod.ready_m);
   pthread_join(demod.thread, NULL);
   safe_cond_signal(&output.ready, &output.ready_m);
-  pthread_join(output.thread, NULL);
   safe_cond_signal(&controller.hop, &controller.hop_m);
   pthread_join(controller.thread, NULL);
 
@@ -976,11 +949,15 @@ void cleanup_rtlsdr_stream()
   rtlsdr_close(dongle.dev);
 }
 
-extern "C" void get_rtlsdr_sample(int16_t *sample);
 void get_rtlsdr_sample(int16_t *sample)
 {
-	printf("getting sample\n");
-	safe_cond_wait(&output.ready, &output.ready_m);
+	if (output.queue.empty())
+	{
+		safe_cond_wait(&output.ready, &output.ready_m);
+	}
+	pthread_rwlock_wrlock(&output.rw);
 	*sample = output.queue.front();
 	output.queue.pop();
+	pthread_rwlock_unlock(&output.rw);
+}
 }
