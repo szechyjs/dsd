@@ -1,6 +1,6 @@
 language: cpp
 
-dist: trusty
+dist: bionic
 sudo: false
 
 compiler:
@@ -14,6 +14,7 @@ addons:
       - libmbe-dev
       - libsndfile1-dev
       - libitpp-dev
+      - librtlsdr-dev
       - portaudio19-dev
 
 before_script:
