@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include <queue>
 #include <rtl-sdr.h>
+#include "dsd.h"
 
 #define DEFAULT_SAMPLE_RATE		48000
 #define DEFAULT_BUF_LENGTH		(1 * 16384)
@@ -38,10 +39,6 @@
 #define BUFFER_DUMP			4096
 
 #define FREQUENCIES_LIMIT		  1000
-
-extern "C" {
-	volatile int exitflag;
-}
 
 static int lcm_post[17] = {1,1,1,3,1,5,3,7,1,9,5,11,3,13,7,15,1};
 static int ACTUAL_BUF_LENGTH;
@@ -850,7 +847,7 @@ void output_cleanup(struct output_state *s)
 
 void controller_init(struct controller_state *s)
 {
-	s->freqs[0] = 451800000;
+	s->freqs[0] = 446000000;
 	s->freq_len = 0;
 	s->edge = 0;
 	s->wb_mode = 0;
@@ -864,14 +861,32 @@ void controller_cleanup(struct controller_state *s)
 	pthread_mutex_destroy(&s->hop_m);
 }
 
-extern "C" {
+void sanity_checks(void)
+{
+	if (controller.freq_len == 0) {
+		fprintf(stderr, "Please specify a frequency.\n");
+		exit(1);
+	}
+
+	if (controller.freq_len >= FREQUENCIES_LIMIT) {
+		fprintf(stderr, "Too many channels, maximum %i.\n", FREQUENCIES_LIMIT);
+		exit(1);
+	}
+
+	if (controller.freq_len > 1 && demod.squelch_level == 0) {
+		fprintf(stderr, "Please specify a squelch level.  Required for scanning multiple frequencies.\n");
+		exit(1);
+	}
+
+}
+
 void rtlsdr_sighandler()
 {
 	fprintf(stderr, "Signal caught, exiting!\n");
 	rtlsdr_cancel_async(dongle.dev);
 }
 
-void open_rtlsdr_stream()
+void open_rtlsdr_stream(dsd_opts *opts)
 {
   struct sigaction sigact;
   int r;
@@ -881,12 +896,17 @@ void open_rtlsdr_stream()
   output_init(&output);
   controller_init(&controller);
 
+	if (opts->rtlsdr_center_freq > 0) {
+		controller.freqs[controller.freq_len] = opts->rtlsdr_center_freq;
+		controller.freq_len++;
+	}
+
   /* quadruple sample_rate to limit to Δθ to ±π/2 */
 	demod.rate_in *= demod.post_downsample;
 
   if (!output.rate) output.rate = demod.rate_out;
 
-  // sanity_checks();
+  sanity_checks();
 
 	if (controller.freq_len > 1) demod.terminate_on_squelch = 0;
 
@@ -959,5 +979,4 @@ void get_rtlsdr_sample(int16_t *sample)
 	*sample = output.queue.front();
 	output.queue.pop();
 	pthread_rwlock_unlock(&output.rw);
-}
 }

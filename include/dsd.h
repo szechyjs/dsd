@@ -67,7 +67,6 @@
  */
 static volatile int exitflag;
 
-
 typedef struct
 {
   int onesymbol;
@@ -89,9 +88,7 @@ typedef struct
 #ifdef USE_PORTAUDIO
   PaStream* audio_in_pa_stream;
 #endif
-#ifdef USE_RTLSDR
-  rtlsdr_dev_t *rtlSdrDev;
-#endif
+  uint32_t rtlsdr_center_freq;
   int audio_in_type; // 0 for device, 1 for file, 2 for portaudio, 3 for rtlsdr
   char audio_out_dev[1024];
   int audio_out_fd;
@@ -324,10 +321,15 @@ void processDSTAR_HD (dsd_opts * opts, dsd_state * state);
 short dmr_filter(short sample);
 short nxdn_filter(short sample);
 
-void open_rtlsdr_stream();
+#ifdef __cplusplus
+extern "C" {
+#endif
+void open_rtlsdr_stream(dsd_opts *opts);
 void cleanup_rtlsdr_stream();
-void get_rtlsdr_sample();
+void get_rtlsdr_sample(int16_t *sample);
 void rtlsdr_sighandler();
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif // DSD_H

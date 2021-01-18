@@ -274,6 +274,7 @@ usage ()
   printf ("  -n            Do not send synthesized speech to audio output device\n");
   printf ("  -w <file>     Output synthesized speech to a .wav file\n");
   printf ("  -a            Display port audio devices\n");
+  printf ("  -c <hertz>    RTL-SDR center frequency\n");
   printf ("\n");
   printf ("Scanner control options:\n");
   printf ("  -B <num>      Serial port baud rate (default=115200)\n");
@@ -331,7 +332,7 @@ liveScanner (dsd_opts * opts, dsd_state * state)
 #ifdef USE_RTLSDR
   if(opts->audio_in_type == 3)
   {
-    open_rtlsdr_stream();
+    open_rtlsdr_stream(opts);
   }
 #endif
 	while (1)
@@ -466,6 +467,32 @@ sigfun (int sig)
 #endif
 }
 
+double atofs(char *s)
+{
+	char last;
+	int len;
+	double suff = 1.0;
+	len = strlen(s);
+	last = s[len-1];
+	s[len-1] = '\0';
+	switch (last) {
+		case 'g':
+		case 'G':
+			suff *= 1e3;
+		case 'm':
+		case 'M':
+			suff *= 1e3;
+		case 'k':
+		case 'K':
+			suff *= 1e3;
+			suff *= atof(s);
+			s[len-1] = last;
+			return suff;
+	}
+	s[len-1] = last;
+	return atof(s);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -486,7 +513,7 @@ main (int argc, char **argv)
   exitflag = 0;
   signal (SIGINT, sigfun);
 
-  while ((c = getopt (argc, argv, "haep:qstv:z:i:o:d:g:nw:B:C:R:f:m:u:x:A:S:M:rl")) != -1)
+  while ((c = getopt (argc, argv, "haep:qstv:z:i:o:d:c:g:nw:B:C:R:f:m:u:x:A:S:M:rl")) != -1)
     {
       opterr = 0;
       switch (c)
@@ -567,6 +594,10 @@ main (int argc, char **argv)
           strncpy(opts.mbe_out_dir, optarg, 1023);
           opts.mbe_out_dir[1023] = '\0';
           printf ("Writing mbe data files to directory %s\n", opts.mbe_out_dir);
+          break;
+        case 'c':
+          opts.rtlsdr_center_freq = (uint32_t)atofs(optarg);
+          printf("Using center freq: %i\n", opts.rtlsdr_center_freq);
           break;
         case 'g':
           sscanf (optarg, "%f", &opts.audio_gain);
