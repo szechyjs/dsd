@@ -89,6 +89,7 @@ typedef struct
   PaStream* audio_in_pa_stream;
 #endif
   uint32_t rtlsdr_center_freq;
+  int rtlsdr_ppm_error;
   int audio_in_type; // 0 for device, 1 for file, 2 for portaudio, 3 for rtlsdr
   char audio_out_dev[1024];
   int audio_out_fd;

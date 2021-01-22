@@ -901,6 +901,10 @@ void open_rtlsdr_stream(dsd_opts *opts)
 		controller.freq_len++;
 	}
 
+	if (opts->rtlsdr_ppm_error > 0) {
+		dongle.ppm_error = opts->rtlsdr_ppm_error;
+	}
+
   /* quadruple sample_rate to limit to Δθ to ±π/2 */
 	demod.rate_in *= demod.post_downsample;
 

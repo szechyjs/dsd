@@ -275,6 +275,7 @@ usage ()
   printf ("  -w <file>     Output synthesized speech to a .wav file\n");
   printf ("  -a            Display port audio devices\n");
   printf ("  -c <hertz>    RTL-SDR center frequency\n");
+  printf ("  -P <num>      RTL-SDR ppm error (default = 0)\n");
   printf ("\n");
   printf ("Scanner control options:\n");
   printf ("  -B <num>      Serial port baud rate (default=115200)\n");
@@ -513,7 +514,7 @@ main (int argc, char **argv)
   exitflag = 0;
   signal (SIGINT, sigfun);
 
-  while ((c = getopt (argc, argv, "haep:qstv:z:i:o:d:c:g:nw:B:C:R:f:m:u:x:A:S:M:rl")) != -1)
+  while ((c = getopt (argc, argv, "haep:P:qstv:z:i:o:d:c:g:nw:B:C:R:f:m:u:x:A:S:M:rl")) != -1)
     {
       opterr = 0;
       switch (c)
@@ -549,6 +550,9 @@ main (int argc, char **argv)
             {
              opts.unmute_encrypted_p25 = 1;
             }
+          break;
+        case 'P':
+          sscanf (optarg, "%i", &opts.rtlsdr_ppm_error);
           break;
         case 'q':
           opts.errorbars = 0;
