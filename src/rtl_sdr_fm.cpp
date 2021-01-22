@@ -913,7 +913,7 @@ void open_rtlsdr_stream(dsd_opts *opts)
   token = strtok(dev_in, delim);
   if ( token != NULL ) {
     token = strtok(NULL, delim);
-    dongle.dev_index = atoi(token) & 0xFF);
+    dongle.dev_index = atoi(token) & 0xFF;
   }
   printf("Using RTL device: %d\n", dongle.dev_index);
 
