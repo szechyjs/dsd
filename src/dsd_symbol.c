@@ -88,18 +88,25 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
               cleanupAndExit (opts, state);
           }
       }
-	  else
-	  {
+      else if (opts->audio_in_type == 2)
+      {
 #ifdef USE_PORTAUDIO
-		PaError err = Pa_ReadStream( opts->audio_in_pa_stream, &sample, 1 );
-		if( err != paNoError )
-		{
-    			fprintf( stderr, "An error occured while using the portaudio input stream\n" );
-    			fprintf( stderr, "Error number: %d\n", err );
-    			fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
-		}
+        PaError err = Pa_ReadStream( opts->audio_in_pa_stream, &sample, 1 );
+        if( err != paNoError )
+        {
+              fprintf( stderr, "An error occured while using the portaudio input stream\n" );
+              fprintf( stderr, "Error number: %d\n", err );
+              fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+        }
 #endif
-	  }
+	    }
+      else if (opts->audio_in_type == 3)
+      {
+#ifdef USE_RTLSDR
+        // TODO: need to read demodulated stream here
+        get_rtlsdr_sample(&sample);
+#endif
+      }
 
 #ifdef TRACE_DSD
       state->debug_sample_index++;

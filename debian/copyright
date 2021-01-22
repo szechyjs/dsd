@@ -20,6 +20,14 @@ Files: src/dstar_header.c include/dstar_header.h include/fcs.h
 Copyright: Copyright (C) 2010 by Kristoff Bonne, ON1ARF
 License: GPL-2
 
+Files: src/rtl_sdr_fm.cpp
+Copyright: Copyright (C) 2012 by Steve Markgraf <steve@steve-m.de>
+ Copyright (C) 2012 by Hoernchen <la@tfc-server.de>
+ Copyright (C) 2012 by Kyle Keen <keenerd@gmail.com>
+ Copyright (C) 2013 by Elias Oenal <EliasOenal@gmail.com>
+ Copyright (C) 2014 by Kyle Keen <keenerd@gmail.com>
+License: GPL-2
+
 Files: include/descramble.h
 Copyright: Copyright (C) 2011 by Jonathan Naylor, G4KLX
 License: GPL-2

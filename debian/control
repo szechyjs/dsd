@@ -2,8 +2,8 @@ Source: dsd
 Section: hamradio
 Priority: optional
 Maintainer: Jared Szechy <jared.szechy@gmail.com>
-Build-Depends: debhelper (>= 9), libmbe-dev, libitpp-dev, libsndfile1-dev,
- portaudio19-dev, cmake, git, help2man
+Build-Depends: debhelper (>= 9), libmbe-dev, libitpp-dev, librtlsdr-dev
+ libsndfile1-dev, portaudio19-dev, cmake, git, help2man
 Standards-Version: 4.1.4
 Homepage: https://github.com/szechyjs/dsd
 Vcs-Git: https://github.com/szechyjs/dsd.git
