@@ -266,7 +266,7 @@ usage ()
   printf ("  -z <num>      Frame rate for datascope\n");
   printf ("\n");
   printf ("Input/Output options:\n");
-  printf ("  -i <device>   Audio input device (default is /dev/audio, - for piped stdin)\n");
+  printf ("  -i <device>   Input device: Audio or RTL (default is /dev/audio, - for piped stdin or RTL:#)\n");
   printf ("  -o <device>   Audio output device (default is /dev/audio)\n");
   printf ("  -d <dir>      Create mbe data files, use this directory\n");
   printf ("  -r <files>    Read/Play saved mbe data from file(s)\n");
@@ -275,7 +275,7 @@ usage ()
   printf ("  -w <file>     Output synthesized speech to a .wav file\n");
   printf ("  -a            Display port audio devices\n");
   printf ("  -c <hertz>    RTL-SDR center frequency\n");
-  printf ("  -P <num>      RTL-SDR ppm error (default = 0)\n");
+  printf ("  -P <num>      RTL-SDR ppm error (default = 0)[-100 to 100]\n");
   printf ("\n");
   printf ("Scanner control options:\n");
   printf ("  -B <num>      Serial port baud rate (default=115200)\n");
@@ -553,6 +553,14 @@ main (int argc, char **argv)
           break;
         case 'P':
           sscanf (optarg, "%i", &opts.rtlsdr_ppm_error);
+          if (opts.rtlsdr_ppm_error > 100)
+            {
+              opts.rtlsdr_ppm_error = 100;
+            }
+          else if (opts.rtlsdr_ppm_error < -100)
+            {
+              opts.rtlsdr_ppm_error = -100;
+            }
           break;
         case 'q':
           opts.errorbars = 0;

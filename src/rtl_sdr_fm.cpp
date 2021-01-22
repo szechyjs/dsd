@@ -901,9 +901,20 @@ void open_rtlsdr_stream(dsd_opts *opts)
 		controller.freq_len++;
 	}
 
-	if (opts->rtlsdr_ppm_error > 0) {
-		dongle.ppm_error = opts->rtlsdr_ppm_error;
-	}
+	dongle.ppm_error = opts->rtlsdr_ppm_error;
+
+  /* Get RTL device index use on command line [default=0]*/
+  char dev_in[1024];
+  const char delim[2] = ":";
+  char *token;
+  int len = strlen(opts->audio_in_dev);
+  memcpy(dev_in, opts->audio_in_dev, len);
+  token = strtok(dev_in, delim);
+  if ( token != NULL ) {
+    token = strtok(NULL, delim);
+    dongle.dev_index = atoi(token) & 0xFF);
+  }
+  printf("Using RTL device: %d\n", dongle.dev_index);
 
   /* quadruple sample_rate to limit to Δθ to ±π/2 */
 	demod.rate_in *= demod.post_downsample;
