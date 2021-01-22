@@ -883,7 +883,8 @@ void sanity_checks(void)
 void rtlsdr_sighandler()
 {
 	fprintf(stderr, "Signal caught, exiting!\n");
-	rtlsdr_cancel_async(dongle.dev);
+  cleanup_rtlsdr_stream();
+	_Exit(1);
 }
 
 void open_rtlsdr_stream(dsd_opts *opts)
@@ -967,6 +968,12 @@ void open_rtlsdr_stream(dsd_opts *opts)
 
 void cleanup_rtlsdr_stream()
 {
+  /* Skip function when not using RTL */
+  if(dongle.dev == 0)
+  {
+    return;
+  }
+
 	printf("cleaning up...\n");
   rtlsdr_cancel_async(dongle.dev);
   pthread_join(dongle.thread, NULL);

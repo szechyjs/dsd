@@ -65,7 +65,7 @@
 /*
  * global variables
  */
-static volatile int exitflag;
+volatile int exitflag;
 
 typedef struct
 {
