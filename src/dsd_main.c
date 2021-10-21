@@ -28,6 +28,7 @@
 #include "p25p1_heuristics.h"
 #include "pa_devs.h"
 
+int exitflag = 0;
 
 int
 comp (const void *a, const void *b)
