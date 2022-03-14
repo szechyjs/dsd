@@ -469,7 +469,6 @@ main (int argc, char **argv)
   initOpts (&opts);
   initState (&state);
 
-  exitflag = 0;
   signal (SIGINT, sigfun);
 
   while ((c = getopt (argc, argv, "haep:qstv:z:i:o:d:g:nw:B:C:R:f:m:u:x:A:S:M:rl")) != -1)
