@@ -28,6 +28,8 @@
 #include "p25p1_heuristics.h"
 #include "pa_devs.h"
 
+extern void initializeEnv();
+
 int exitflag = 0;
 
 int
@@ -339,6 +341,7 @@ liveScanner (dsd_opts * opts, dsd_state * state)
       state->center = ((state->max) + (state->min)) / 2;
       state->umid = (((state->max) - state->center) * 5 / 8) + state->center;
       state->lmid = (((state->min) - state->center) * 5 / 8) + state->center;
+
       while (state->synctype != -1)
         {
           processFrame (opts, state);
@@ -553,6 +556,7 @@ main (int argc, char **argv)
           strncpy(opts.mbe_out_dir, optarg, 1023);
           opts.mbe_out_dir[1023] = '\0';
           printf ("Writing mbe data files to directory %s\n", opts.mbe_out_dir);
+          initializeEnv();
           break;
         case 'g':
           sscanf (optarg, "%f", &opts.audio_gain);

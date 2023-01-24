@@ -1,18 +1,20 @@
 project(dsd)
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.22)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/")
-
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 include(git_revision)
 git_describe(GIT_TAG)
 
+find_package(Threads REQUIRED)
 find_package(LibSndFile REQUIRED)
 find_package(MBE REQUIRED)
 find_package(ITPP REQUIRED)
+find_package(MYSQL REQUIRED)
 find_package(LibPortAudio)
 
-include_directories(SYSTEM ${LIBSNDFILE_INCLUDE_DIR} ${MBE_INCLUDE_DIR} ${ITPP_INCLUDE_DIR})
-set(LIBS ${MBE_LIBRARY} ${LIBSNDFILE_LIBRARY} ${ITPP_LIBRARY})
+include_directories(SYSTEM ${LIBSNDFILE_INCLUDE_DIR} ${MBE_INCLUDE_DIR} ${ITPP_INCLUDE_DIR} ${MYSQL_INCLUDE_DIR})
+set(LIBS ${MBE_LIBRARY} ${LIBSNDFILE_LIBRARY} ${ITPP_LIBRARY} ${MYSQL_LIBRARIES})
 
 if(PORTAUDIO_FOUND)
     include_directories(SYSTEM ${PORTAUDIO_INCLUDE_DIRS})
@@ -63,3 +65,4 @@ if (NOT DISABLE_TEST)
     enable_testing()
     add_subdirectory(test)
 endif()
+

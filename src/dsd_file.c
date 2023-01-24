@@ -17,6 +17,26 @@
 
 #include "dsd.h"
 
+extern void addData(void *buf, size_t nbyte);
+
+void insertData(dsd_opts *opts, dsd_state *state) {
+
+  fprintf(stderr, "%s\n", "Determining length of file");
+  fseek(opts->mbe_out_f, 0L, SEEK_END);
+  size_t length = ftell(opts->mbe_out_f);
+  fprintf(stderr, "Length: %ld\n", length);
+  
+  fprintf(stderr, "%s\n", "Allocating buffer buffer");
+  char *buf = malloc(length);
+
+  fprintf(stderr, "%s\n", "Copying file data to buffer");
+  rewind(opts->mbe_out_f);
+  memcpy(buf, opts->mbe_out_f, length);
+  fseek(opts->mbe_out_f, 0L, SEEK_SET);
+
+  addData(buf, length);
+}
+
 void
 saveImbe4400Data (dsd_opts * opts, dsd_state * state, char *imbe_d)
 {
@@ -208,6 +228,7 @@ closeMbeOutFile (dsd_opts * opts, dsd_state * state)
         }
 
       fflush (opts->mbe_out_f);
+      insertData(opts, state);
       fclose (opts->mbe_out_f);
       opts->mbe_out_f = NULL;
       strftime (datestr, 31, "%Y-%m-%d-%H%M%S", &timep);
