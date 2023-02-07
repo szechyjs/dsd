@@ -51,6 +51,8 @@ static void readAmbe(dsd_opts *opts, dsd_state *state) {
 
 static void playMbeFile(dataReaderDef readData, dsd_opts *opts, dsd_state *state) {
 
+    int ret;
+
     while (!exitflag && readData != NULL) {
 
         readData(opts, state);
@@ -64,7 +66,11 @@ static void playMbeFile(dataReaderDef readData, dsd_opts *opts, dsd_state *state
             playSynthesizedVoice(opts, state);
         }
 
-        if (handleFatalFileError(opts->mbe_in_file, checkFileError(opts->mbe_in_f))) {
+        if ((ret = checkFileError(opts->mbe_in_f))) {
+            
+            if (ret != EOF) {
+                handleFileError(opts->mbe_in_file, ret);
+            }
             break;
         }
     }
@@ -95,7 +101,7 @@ void playMbeFiles(dsd_opts *opts, dsd_state *state, int argc, char **argv) {
                 break;
         }
 
-        closeMbeOutFile(opts, state);
+        handleFileError(opts->mbe_in_file, fclose(opts->mbe_in_f));
     }
 }
 

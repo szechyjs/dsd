@@ -17,25 +17,39 @@
 
 #include "dsd.h"
 
+static void openFile(FILE **file, char *fileName) {
+    char errorMsg[255];
+
+    *file = fopen(fileName, "ro");
+    if (NULL == *file) {
+        sprintf(errorMsg, "Error: could not open %s ", fileName);
+        perror(errorMsg);
+        exitflag = 1;
+    }
+}
+
 int checkFileError(FILE *file) {
     if (ferror(file)) {
-        return -1;
-    } else if (feof(file)) {
         return 1;
+    } else if (feof(file)) {
+        return EOF;
     }
 
     return 0;
 }
 
-int handleFatalFileError(char *fileName, int fileStatus) {
+int handleFileError(char *fileName, int fileStatus) {
 
     char errorMsg[255];
 
     switch (fileStatus) {
         case 0:
-        case 1:
             break;
-        case -1:
+        case EOF:
+            sprintf(errorMsg, "Unexpected EOF when reading file %s ", fileName);
+            perror(errorMsg);
+            break;
+        case 1:
         default:
             sprintf(errorMsg, "I/O error when reading file %s ", fileName);
             perror(errorMsg);
@@ -162,20 +176,15 @@ readAmbe2450Data (dsd_opts * opts, dsd_state * state, char *ambe_d)
 void openMbeInFile(dsd_opts *opts, dsd_state *state) {
 
     char cookie[5];
-    uint32_t c, i;
-    char errorMsg[255];
+    int c, i;
 
-    opts->mbe_in_f = fopen(opts->mbe_in_file, "ro");
-    if (NULL == opts->mbe_in_f) {
-        sprintf(errorMsg, "Error: could not open %s ", opts->mbe_in_file);
-        perror(errorMsg);
-    }
+    openFile(&opts->mbe_in_f, opts->mbe_in_file);
 
     for (i = 0; !exitflag && i < 4; ++i) {
 
         c = fgetc(opts->mbe_in_f);
 
-        if (handleFatalFileError(opts->mbe_in_file, checkFileError(opts->mbe_in_f))) {
+        if (handleFileError(opts->mbe_in_file, checkFileError(opts->mbe_in_f))) {
             break;
         }
 
@@ -191,6 +200,7 @@ void openMbeInFile(dsd_opts *opts, dsd_state *state) {
     } else {
         state->mbe_file_type = -1;
         fprintf(stderr, "%s\n", "Error - unrecognized file type");
+        exitflag = 1;
     }
 }
 

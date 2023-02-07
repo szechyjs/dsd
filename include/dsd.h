@@ -317,5 +317,5 @@ void processDSTAR_HD (dsd_opts * opts, dsd_state * state);
 short dmr_filter(short sample);
 short nxdn_filter(short sample);
 int checkFileError(FILE *file);
-int handleFatalFileError(char *fileName, int fileStatus);
+int handleFileError(char *fileName, int fileStatus);
 #endif // DSD_H
