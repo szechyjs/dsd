@@ -19,7 +19,7 @@
 
 typedef void (*dataReaderDef)(dsd_opts *opts, dsd_state *state);
 
-void readImbe(dsd_opts *opts, dsd_state *state) {
+static void readImbe(dsd_opts *opts, dsd_state *state) {
 
     char imbe_d[88];
     readImbe4400Data(opts, state, imbe_d);
@@ -34,7 +34,7 @@ void readImbe(dsd_opts *opts, dsd_state *state) {
                              opts->uvquality);
 }
 
-void readAmbe(dsd_opts *opts, dsd_state *state) {
+static void readAmbe(dsd_opts *opts, dsd_state *state) {
 
     char ambe_d[49];
     readAmbe2450Data(opts, state, ambe_d);
@@ -49,11 +49,30 @@ void readAmbe(dsd_opts *opts, dsd_state *state) {
                              opts->uvquality);
 }
 
+static void playMbeFile(dataReaderDef readData, dsd_opts *opts, dsd_state *state) {
+
+    while (!exitflag && readData != NULL) {
+
+        readData(opts, state);
+        processAudio(opts, state);
+
+        if (opts->wav_out_f != NULL) {
+            writeSynthesizedVoice(opts, state);
+        }
+
+        if (1 == opts->audio_out) {
+            playSynthesizedVoice(opts, state);
+        }
+
+        if (handleFatalFileError(opts->mbe_in_file, checkFileError(opts->mbe_in_f))) {
+            break;
+        }
+    }
+}
+
 void playMbeFiles(dsd_opts *opts, dsd_state *state, int argc, char **argv) {
 
     int i;
-    dataReaderDef readData = NULL;
-
     for (i = state->optind; !exitflag && i < argc; i++) {
 
         strcpy(opts->mbe_in_file, argv[i]);
@@ -65,36 +84,15 @@ void playMbeFiles(dsd_opts *opts, dsd_state *state, int argc, char **argv) {
 
         switch (state->mbe_file_type) {
             case 0:
-                readData = readImbe;
+                playMbeFile(readImbe, opts, state);
                 break;
             case 1:
-                readData = readAmbe;
+                playMbeFile(readAmbe, opts, state);
                 break;
             default:
+                fprintf(stderr, "Error - unrecognized file type %d\n", state->mbe_file_type);
                 exitflag = 1;
                 break;
-        }
-
-        while (!exitflag && readData != NULL) {
-
-            readData(opts, state);
-            processAudio(opts, state);
-
-            if (opts->wav_out_f != NULL) {
-                writeSynthesizedVoice(opts, state);
-            }
-
-            if (1 == opts->audio_out) {
-                playSynthesizedVoice(opts, state);
-            }
-
-            if (ferror(opts->mbe_in_f)) {
-                perror("I/O error when reading");
-                exitflag = 1;
-                break;
-            } else if (feof(opts->mbe_in_f)) {
-                break;
-            }
         }
 
         closeMbeOutFile(opts, state);

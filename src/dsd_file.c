@@ -17,6 +17,35 @@
 
 #include "dsd.h"
 
+int checkFileError(FILE *file) {
+    if (ferror(file)) {
+        return -1;
+    } else if (feof(file)) {
+        return 1;
+    }
+
+    return 0;
+}
+
+int handleFatalFileError(char *fileName, int fileStatus) {
+
+    char errorMsg[255];
+
+    switch (fileStatus) {
+        case 0:
+        case 1:
+            break;
+        case -1:
+        default:
+            sprintf(errorMsg, "I/O error when reading file %s ", fileName);
+            perror(errorMsg);
+            exitflag = 1;
+            break;
+    }
+
+    return fileStatus;
+}
+
 void
 saveImbe4400Data (dsd_opts * opts, dsd_state * state, char *imbe_d)
 {
@@ -130,38 +159,39 @@ readAmbe2450Data (dsd_opts * opts, dsd_state * state, char *ambe_d)
   return (0);
 }
 
-void
-openMbeInFile (dsd_opts * opts, dsd_state * state)
-{
+void openMbeInFile(dsd_opts *opts, dsd_state *state) {
 
-  char cookie[5];
+    char cookie[5];
+    uint32_t c, i;
+    char errorMsg[255];
 
-  opts->mbe_in_f = fopen (opts->mbe_in_file, "ro");
-  if (opts->mbe_in_f == NULL)
-    {
-      printf ("Error: could not open %s\n", opts->mbe_in_file);
+    opts->mbe_in_f = fopen(opts->mbe_in_file, "ro");
+    if (NULL == opts->mbe_in_f) {
+        sprintf(errorMsg, "Error: could not open %s ", opts->mbe_in_file);
+        perror(errorMsg);
     }
 
-  // read cookie
-  cookie[0] = fgetc (opts->mbe_in_f);
-  cookie[1] = fgetc (opts->mbe_in_f);
-  cookie[2] = fgetc (opts->mbe_in_f);
-  cookie[3] = fgetc (opts->mbe_in_f);
-  cookie[4] = 0;
-  if (strstr (cookie, ".amb") != NULL)
-    {
-      state->mbe_file_type = 1;
-    }
-  else if (strstr (cookie, ".imb") != NULL)
-    {
-      state->mbe_file_type = 0;
-    }
-  else
-    {
-      state->mbe_file_type = -1;
-      printf ("Error - unrecognized file type\n");
-    }
+    for (i = 0; !exitflag && i < 4; ++i) {
 
+        c = fgetc(opts->mbe_in_f);
+
+        if (handleFatalFileError(opts->mbe_in_file, checkFileError(opts->mbe_in_f))) {
+            break;
+        }
+
+        // read cookie
+        cookie[i] = (char) c;
+    }
+    cookie[4] = 0;
+
+    if (strstr(cookie, ".amb") != NULL) {
+        state->mbe_file_type = 1;
+    } else if (strstr(cookie, ".imb") != NULL) {
+        state->mbe_file_type = 0;
+    } else {
+        state->mbe_file_type = -1;
+        fprintf(stderr, "%s\n", "Error - unrecognized file type");
+    }
 }
 
 void
