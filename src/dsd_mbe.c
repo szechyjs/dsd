@@ -70,9 +70,12 @@ void playMbeFiles(dsd_opts *opts, dsd_state *state, int argc, char **argv) {
             case 1:
                 readData = readAmbe;
                 break;
+            default:
+                exitflag = 1;
+                break;
         }
 
-        while (!exitflag) {
+        while (!exitflag && readData != NULL) {
 
             readData(opts, state);
             processAudio(opts, state);
