@@ -67,7 +67,7 @@ static void playMbeFile(dataReaderDef readData, dsd_opts *opts, dsd_state *state
         }
 
         if ((ret = checkFileError(opts->mbe_in_f))) {
-            
+
             if (ret != EOF) {
                 handleFileError(opts->mbe_in_file, ret);
             }
@@ -86,7 +86,10 @@ void playMbeFiles(dsd_opts *opts, dsd_state *state, int argc, char **argv) {
         mbe_initMbeParms(state->cur_mp,
                          state->prev_mp,
                          state->prev_mp_enhanced);
-        printf("playing %s\n", opts->mbe_in_file);
+
+        if (opts->verbose > 0) {
+            printf("playing %s\n", opts->mbe_in_file);
+        }
 
         switch (state->mbe_file_type) {
             case 0:
