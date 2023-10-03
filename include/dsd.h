@@ -316,5 +316,6 @@ void processX2TDMAvoice (dsd_opts * opts, dsd_state * state);
 void processDSTAR_HD (dsd_opts * opts, dsd_state * state);
 short dmr_filter(short sample);
 short nxdn_filter(short sample);
-
+int checkFileError(FILE *file);
+int handleFileError(char *fileName, int fileStatus);
 #endif // DSD_H

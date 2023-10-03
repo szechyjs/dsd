@@ -17,6 +17,49 @@
 
 #include "dsd.h"
 
+static void openFile(FILE **file, char *fileName) {
+    char errorMsg[255];
+
+    *file = fopen(fileName, "ro");
+    if (NULL == *file) {
+        sprintf(errorMsg, "Error: could not open %s ", fileName);
+        perror(errorMsg);
+        exitflag = 1;
+    }
+}
+
+int checkFileError(FILE *file) {
+    if (ferror(file)) {
+        return 1;
+    } else if (feof(file)) {
+        return EOF;
+    }
+
+    return 0;
+}
+
+int handleFileError(char *fileName, int fileStatus) {
+
+    char errorMsg[255];
+
+    switch (fileStatus) {
+        case 0:
+            break;
+        case EOF:
+            sprintf(errorMsg, "Unexpected EOF when reading file %s ", fileName);
+            perror(errorMsg);
+            break;
+        case 1:
+        default:
+            sprintf(errorMsg, "I/O error when reading file %s ", fileName);
+            perror(errorMsg);
+            exitflag = 1;
+            break;
+    }
+
+    return fileStatus;
+}
+
 void
 saveImbe4400Data (dsd_opts * opts, dsd_state * state, char *imbe_d)
 {
@@ -130,38 +173,35 @@ readAmbe2450Data (dsd_opts * opts, dsd_state * state, char *ambe_d)
   return (0);
 }
 
-void
-openMbeInFile (dsd_opts * opts, dsd_state * state)
-{
+void openMbeInFile(dsd_opts *opts, dsd_state *state) {
 
-  char cookie[5];
+    char cookie[5];
+    int c, i;
 
-  opts->mbe_in_f = fopen (opts->mbe_in_file, "ro");
-  if (opts->mbe_in_f == NULL)
-    {
-      printf ("Error: could not open %s\n", opts->mbe_in_file);
-    }
+    openFile(&opts->mbe_in_f, opts->mbe_in_file);
 
-  // read cookie
-  cookie[0] = fgetc (opts->mbe_in_f);
-  cookie[1] = fgetc (opts->mbe_in_f);
-  cookie[2] = fgetc (opts->mbe_in_f);
-  cookie[3] = fgetc (opts->mbe_in_f);
-  cookie[4] = 0;
-  if (strstr (cookie, ".amb") != NULL)
-    {
-      state->mbe_file_type = 1;
-    }
-  else if (strstr (cookie, ".imb") != NULL)
-    {
-      state->mbe_file_type = 0;
-    }
-  else
-    {
-      state->mbe_file_type = -1;
-      printf ("Error - unrecognized file type\n");
-    }
+    for (i = 0; !exitflag && i < 4; ++i) {
 
+        c = fgetc(opts->mbe_in_f);
+
+        if (handleFileError(opts->mbe_in_file, checkFileError(opts->mbe_in_f))) {
+            break;
+        }
+
+        // read cookie
+        cookie[i] = (char) c;
+    }
+    cookie[4] = 0;
+
+    if (strstr(cookie, ".amb") != NULL) {
+        state->mbe_file_type = 1;
+    } else if (strstr(cookie, ".imb") != NULL) {
+        state->mbe_file_type = 0;
+    } else {
+        state->mbe_file_type = -1;
+        fprintf(stderr, "%s\n", "Error - unrecognized file type");
+        exitflag = 1;
+    }
 }
 
 void

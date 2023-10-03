@@ -4,3 +4,8 @@ dsd
 *.dylib
 build
 .DS_Store
+.idea
+cmake-build*
+*.swp
+
+build/

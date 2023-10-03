@@ -12,5 +12,10 @@ SET(LIBSNDFILE_NAMES ${LIBSNDFILE_NAMES} sndfile libsndfile)
 FIND_LIBRARY(LIBSNDFILE_LIBRARY NAMES ${LIBSNDFILE_NAMES})
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(LIBSNDFILE DEFAULT_MSG LIBSNDFILE_LIBRARY
-                                    LIBSNDFILE_INCLUDE_DIR)
+if (APPLE)
+    find_package_handle_standard_args(LibSndFile DEFAULT_MSG LIBSNDFILE_LIBRARY
+            LIBSNDFILE_INCLUDE_DIR)
+elseif (UNIX)
+    find_package_handle_standard_args(LIBSNDFILE DEFAULT_MSG LIBSNDFILE_LIBRARY
+            LIBSNDFILE_INCLUDE_DIR)
+endif() #TODO elseif windows lol
