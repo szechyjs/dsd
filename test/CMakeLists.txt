@@ -1,16 +1,9 @@
-project(dsdtest)
+find_package(Catch2 3 REQUIRED)
 
-add_subdirectory(gtest)
-add_subdirectory(gmock)
+FILE(GLOB TEST_SRCS *.cpp ${dsd_SOURCE_DIR}/src/Hamming.cpp)
 
-FILE(GLOB SRCS *.cpp ${dsd_SOURCE_DIR}/src/Hamming.cpp)
+add_executable(tests ${TEST_SRCS})
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
 
-include_directories(
-    ${PROJECT_SOURCE_DIR}/gtest/include
-    ${PROJECT_SOURCE_DIR}/gmock/include
-)
-
-ADD_EXECUTABLE(dsdtest ${SRCS})
-TARGET_LINK_LIBRARIES(dsdtest gmock gtest)
-
-add_test(gtest dsdtest)
+include(Catch)
+catch_discover_tests(tests)

@@ -60,6 +60,6 @@ add_custom_target(uninstall
 option(DISABLE_TEST "Disable building of test framework." OFF)
 
 if (NOT DISABLE_TEST)
-    enable_testing()
     add_subdirectory(test)
+    include(CTest)
 endif()
