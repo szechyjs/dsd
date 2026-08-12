@@ -16,7 +16,8 @@
  */
 
 #include "dsd.h"
-
+#include <unistd.h>
+#include <fcntl.h>
 
 void
 processAudio (dsd_opts * opts, dsd_state * state)

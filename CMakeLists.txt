@@ -1,18 +1,54 @@
 project(dsd)
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.5)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/")
 
 include(git_revision)
 git_describe(GIT_TAG)
 
-find_package(LibSndFile REQUIRED)
-find_package(MBE REQUIRED)
-find_package(ITPP REQUIRED)
-find_package(LibPortAudio)
+option(DSD_USE_BUNDLED_DEPS "Use contrib dependencies" ON)
+
+if(DSD_USE_BUNDLED_DEPS)
+
+    # ---------- mbelib ----------
+    set(DISABLE_TEST ON CACHE BOOL "" FORCE)
+    add_subdirectory(contrib/mbelib)
+    set(MBE_INCLUDE_DIR
+    ${PROJECT_SOURCE_DIR}/contrib/mbelib)
+    set(MBE_LIBRARY mbe-static)
+
+    # ---------- libsndfile ----------
+    set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    set(BUILD_PROGRAMS OFF CACHE BOOL "" FORCE)
+    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(ENABLE_CPACK OFF CACHE BOOL "" FORCE)
+    add_subdirectory(contrib/libsndfile)
+
+    # ---------- IT++ ----------
+    set(OLD_TESTS OFF CACHE BOOL "" FORCE)
+    add_subdirectory(contrib/itpp)
+
+    # ---------- PortAudio ----------
+    set(PA_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(PA_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(PA_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+    add_subdirectory(contrib/portaudio)
+
+else()
+
+    find_package(LibSndFile REQUIRED)
+    find_package(MBE REQUIRED)
+    find_package(ITPP REQUIRED)
+    find_package(LibPortAudio)
+
+endif()
 
 include_directories(SYSTEM ${LIBSNDFILE_INCLUDE_DIR} ${MBE_INCLUDE_DIR} ${ITPP_INCLUDE_DIR})
-set(LIBS ${MBE_LIBRARY} ${LIBSNDFILE_LIBRARY} ${ITPP_LIBRARY})
+set(LIBS
+    mbe-static
+    sndfile
+    itpp
+)
 
 if(PORTAUDIO_FOUND)
     include_directories(SYSTEM ${PORTAUDIO_INCLUDE_DIRS})
@@ -29,6 +65,26 @@ list(APPEND SRCS "${CMAKE_CURRENT_BINARY_DIR}/git_ver.c")
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
 ADD_EXECUTABLE(dsd ${SRCS} ${HEADERS})
+
+target_include_directories(dsd PRIVATE
+    ${PROJECT_SOURCE_DIR}/contrib/itpp
+    ${CMAKE_BINARY_DIR}
+)
+
+# Suppress register keyword warnings in C++17 (for C++ files only)
+set_source_files_properties(
+    src/p25p1_check_hdu.cpp
+    src/p25p1_check_ldu.cpp
+    src/p25p1_check_nid.cpp
+    src/Hamming.cpp
+    PROPERTIES COMPILE_FLAGS "-Wno-register"
+)
+
+# Fix for MinGW: Allow multiple definitions of gettimeofday from different libraries
+if(MINGW)
+    target_link_options(dsd PRIVATE "LINKER:--allow-multiple-definition")
+endif()
+
 TARGET_LINK_LIBRARIES(dsd ${LIBS})
 
 include(GNUInstallDirs)
@@ -49,13 +105,18 @@ if (HELP2MAN_FOUND)
 endif()
 
 # uninstall target
-configure_file(
-    "cmake/cmake_uninstall.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-    IMMEDIATE @ONLY)
+if(NOT TARGET uninstall)
 
-add_custom_target(uninstall
-    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+    configure_file(
+        "cmake/cmake_uninstall.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+        IMMEDIATE @ONLY)
+
+    add_custom_target(uninstall
+        COMMAND ${CMAKE_COMMAND}
+                -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+
+endif()
 
 option(DISABLE_TEST "Disable building of test framework." OFF)
 

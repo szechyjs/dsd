@@ -177,16 +177,23 @@ closeMbeOutFile (dsd_opts * opts, dsd_state * state)
 
   if (opts->mbe_out_f != NULL)
     {
-      if ((state->synctype == 0) || (state->synctype == 1) || (state->synctype == 14) || (state->synctype == 15))
-        {
-          sprintf (ext, ".imb");
-          strptime (opts->mbe_out_file, "%s.imb", &timep);
-        }
-      else
-        {
-          sprintf (ext, ".amb");
-          strptime (opts->mbe_out_file, "%s.amb", &timep);
-        }
+      	if ((state->synctype == 0) ||
+    		(state->synctype == 1) ||
+    		(state->synctype == 14) ||
+    		(state->synctype == 15))
+	{
+    		sprintf(ext, ".imb");
+	}
+	else
+	{
+    		sprintf(ext, ".amb");
+	}
+
+	time_t t = (time_t)strtoll(opts->mbe_out_file, NULL, 10);
+	struct tm *tmp = localtime(&t);
+
+if (tmp)
+    timep = *tmp;
 
       if (state->tgcount > 0)
         {

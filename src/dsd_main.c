@@ -257,6 +257,7 @@ usage ()
   printf ("  or:  dsd -h                   Show help\n");
   printf ("\n");
   printf ("Display Options:\n");
+  fflush(stdout);
   printf ("  -e            Show Frame Info and errorbars (default)\n");
   printf ("  -pe           Show P25 encryption sync bits\n");
   printf ("  -pl           Show P25 link control bits\n");
@@ -312,6 +313,7 @@ usage ()
   printf ("                 (default=15)\n");
   printf ("\n");
   printf ("Report bugs to: https://github.com/szechyjs/dsd/issues\n");
+  fflush(stdout);
   exit (0);
 }
 

@@ -1,0 +1,12 @@
+[submodule "contrib/libsndfile"]
+	path = contrib/libsndfile
+	url = https://github.com/libsndfile/libsndfile.git
+[submodule "contrib/portaudio"]
+	path = contrib/portaudio
+	url = https://github.com/PortAudio/portaudio.git
+[submodule "contrib/mbelib"]
+	path = contrib/mbelib
+	url = https://github.com/szechyjs/mbelib.git
+[submodule "contrib/itpp"]
+	path = contrib/itpp
+	url = https://github.com/nvmd/itpp.git

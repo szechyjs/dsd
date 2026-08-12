@@ -4,3 +4,4 @@ dsd
 *.dylib
 build
 .DS_Store
+build-mingw

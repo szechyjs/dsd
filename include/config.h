@@ -18,7 +18,11 @@
 /*
  * System target
  */
-#define BSD                     // bsd/linux audio interface
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#define BSD
+#endif                     // bsd/linux audio interface
+
+
 //#define SOLARIS // solaris audio interface, untested
 
 /*

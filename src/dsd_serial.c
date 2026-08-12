@@ -1,5 +1,27 @@
+#include <unistd.h>
+#include <fcntl.h>
+#ifdef _WIN32
+
+#include "dsd.h"
+
+void openSerial(dsd_opts *opts, dsd_state *state)
+{
+    (void)opts;
+    (void)state;
+    printf("Serial control is not supported on Windows.\n");
+}
+
+void resumeScan(dsd_opts *opts, dsd_state *state)
+{
+    (void)opts;
+    (void)state;
+}
+
+#else
+
 #include <termios.h>
 #include "dsd.h"
+
 
 void
 openSerial (dsd_opts * opts, dsd_state * state)
@@ -88,3 +110,6 @@ resumeScan (dsd_opts * opts, dsd_state * state)
       state->numtdulc = 0;
     }
 }
+
+#endif
+

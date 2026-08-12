@@ -23,12 +23,23 @@
 #include <signal.h>
 #include <string.h>
 #define __USE_XOPEN
+
+
 #include <time.h>
+
+#ifndef _WIN32
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
-#include <fcntl.h>
+#include <unistd.h>
+#else
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <io.h>
+#endif
+
+
 #include <unistd.h>
 #ifdef SOLARIS
 #include <sys/audioio.h>
@@ -57,6 +68,13 @@
 //Buffer also needs to be as small as possible so we don't have a lot of audio delay.
 #define PA_LATENCY_OUT 0.100
 #endif
+
+
+#ifdef _WIN32
+#include <sys/time.h>
+#define gettimeofday mingw_gettimeofday
+#endif
+
 
 /*
  * global variables
