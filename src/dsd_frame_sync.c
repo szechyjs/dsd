@@ -16,6 +16,7 @@
  */
 
 #include "dsd.h"
+#include <limits.h>
 
 void
 printFrameSync (dsd_opts * opts, dsd_state * state, char *frametype, int offset, char *modulation)
@@ -74,14 +75,13 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
   char *synctest_p;
   char synctest_buf[10240];
   int lmin, lmax, lidx;
-  int lbuf[24], lbuf2[24];
+  int lbuf[24];
   int lsum;
   char spectrum[64];
 
   for (i = 18; i < 24; i++)
     {
       lbuf[i] = 0;
-      lbuf2[i] = 0;
     }
 
   // detect frame sync
@@ -178,13 +178,27 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
       *synctest_p = dibit;
       if (t >= 18)
         {
+          int lmn[5] = {INT_MAX, INT_MAX, INT_MAX, INT_MAX, INT_MAX};
+          int lmx[5] = {INT_MIN, INT_MIN, INT_MIN, INT_MIN, INT_MIN};
+          int j, x;
           for (i = 0; i < 24; i++)
             {
-              lbuf2[i] = lbuf[i];
+              x = lbuf[i];
+              if (x < lmn[4])
+                {
+                  for (j = 4; j > 0 && x < lmn[j - 1]; j--)
+                    lmn[j] = lmn[j - 1];
+                  lmn[j] = x;
+                }
+              if (x > lmx[4])
+                {
+                  for (j = 4; j > 0 && x > lmx[j - 1]; j--)
+                    lmx[j] = lmx[j - 1];
+                  lmx[j] = x;
+                }
             }
-          qsort (lbuf2, 24, sizeof (int), comp);
-          lmin = (lbuf2[2] + lbuf2[3] + lbuf2[4]) / 3;
-          lmax = (lbuf2[21] + lbuf2[20] + lbuf2[19]) / 3;
+          lmin = (lmn[2] + lmn[3] + lmn[4]) / 3;
+          lmax = (lmx[2] + lmx[3] + lmx[4]) / 3;
 
           if (state->rf_mod == 1)
             {
@@ -243,7 +257,7 @@ getFrameSync (dsd_opts * opts, dsd_state * state)
                     }
                   for (i = 0; i < 24; i++)
                     {
-                      o = (lbuf2[i] + 32768) / 1024;
+                      o = (lbuf[i] + 32768) / 1024;
                       spectrum[o]++;
                     }
                   if (state->symbolcnt > (4800 / opts->scoperate))
